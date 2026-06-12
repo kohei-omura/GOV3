@@ -1,0 +1,2447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🔮 GACHA ORACLE — 霊眼統合占術システム</title>
+<!-- ═══ PWA ═══ -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0F0820">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GACHA ORACLE">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void:#07040E;--deep:#0F0820;--well:#160C2E;--rim:rgba(255,255,255,.07);
+  --glass:rgba(255,255,255,.034);--gold:#C9A84C;--gold-l:#EDD070;--gold-d:#7A5518;
+  --iris:#8B5CF6;--iris-l:#A78BFA;--rose:#E05585;--ice:#38BDF8;--green:#34D399;
+  --text:#EDE6F5;--muted:#6E5F88;--danger:#F87171;--r:18px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Noto Serif JP',serif;background:var(--void);color:var(--text);min-height:100vh;overflow-x:hidden}
+.bg-nebula{position:fixed;inset:0;pointer-events:none;z-index:0;background:
+  radial-gradient(ellipse 65% 55% at 15% 10%,rgba(80,30,160,.22) 0%,transparent 60%),
+  radial-gradient(ellipse 45% 45% at 85% 85%,rgba(201,168,76,.10) 0%,transparent 55%),
+  radial-gradient(ellipse 35% 35% at 55% 40%,rgba(139,92,246,.07) 0%,transparent 50%)}
+.grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.22;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E")}
+canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:2;max-width:760px;margin:0 auto;padding:0 18px 100px}
+.hdr{text-align:center;padding:72px 0 52px;animation:riseIn 1.2s cubic-bezier(.16,1,.3,1) both}
+.hdr-sigil{font-size:3.4rem;display:block;margin-bottom:18px;filter:drop-shadow(0 0 28px rgba(201,168,76,.75));animation:float 4s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(4deg)}}
+.hdr h1{font-family:'Cinzel',serif;font-size:clamp(1.5rem,5.5vw,2.9rem);font-weight:700;letter-spacing:.16em;line-height:1.18;
+  background:linear-gradient(135deg,#A78BFA 0%,#EDD070 48%,#E05585 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(201,168,76,.28));margin-bottom:12px}
+.hdr-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:var(--muted);letter-spacing:.14em}
+.hdr-tags{margin-top:14px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.hdr-tag{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.18em;color:var(--gold);
+  border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:4px 12px;text-transform:uppercase;background:rgba(201,168,76,.06)}
+.glass{background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid var(--rim);border-radius:var(--r);padding:36px;margin-bottom:18px;
+  position:relative;overflow:hidden;animation:riseIn .8s cubic-bezier(.16,1,.3,1) both}
+.glass::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent 0%,var(--iris-l) 30%,var(--gold) 60%,var(--rose) 85%,transparent 100%);opacity:.55}
+@keyframes riseIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:translateY(0)}}
+.sec-title{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:26px;display:flex;align-items:center;gap:12px}
+.sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.span2{grid-column:1/-1}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-family:'Cinzel',serif;font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+.field label .opt{font-family:'Noto Serif JP',serif;text-transform:none;font-size:.62rem;color:var(--muted);letter-spacing:0;margin-left:6px}
+.field select,.field input[type=text],.field input[type=date],.field input[type=time]{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;
+  color:var(--text);padding:12px 14px;font-size:.88rem;font-family:'Noto Serif JP',serif;
+  transition:border-color .22s,box-shadow .22s;appearance:none;-webkit-appearance:none;width:100%}
+.field select:focus,.field input:focus{outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,168,76,.13),inset 0 0 18px rgba(201,168,76,.04)}
+.field select option{background:#150A30}
+.oracle-btn{width:100%;padding:20px;margin-top:28px;
+  background:linear-gradient(135deg,#3B1E8A,#6D28D9,#8B5CF6);background-size:200% 200%;
+  animation:gradShift 4s ease infinite;border:1px solid rgba(139,92,246,.45);border-radius:14px;
+  color:#fff;font-family:'Cinzel',serif;font-size:1rem;font-weight:600;letter-spacing:.2em;
+  cursor:pointer;position:relative;overflow:hidden;transition:transform .14s,box-shadow .3s;
+  box-shadow:0 0 30px rgba(139,92,246,.25)}
+.oracle-btn::after{content:'';position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.09),transparent);pointer-events:none}
+.oracle-btn:hover{transform:translateY(-2px);box-shadow:0 10px 48px rgba(139,92,246,.5),0 0 60px rgba(201,168,76,.12)}
+@keyframes gradShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.loading-wrap{display:none;text-align:center;padding:64px 20px}
+.loading-wrap.show{display:block}
+.orb-ring{width:86px;height:86px;margin:0 auto 28px;position:relative}
+.orb-ring::before,.orb-ring::after{content:'';position:absolute;border-radius:50%;border:2px solid transparent}
+.orb-ring::before{inset:0;border-top-color:var(--iris-l);border-right-color:var(--gold);animation:spin 1.2s linear infinite}
+.orb-ring::after{inset:14px;border-bottom-color:var(--rose);border-left-color:var(--ice);animation:spin .75s linear infinite reverse}
+.orb-crystal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2rem;animation:pulse 1.6s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(.88)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}}
+.load-step{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.95rem;color:var(--muted);margin:8px 0;opacity:0;transition:opacity .4s}
+.load-step.lit{opacity:1;color:var(--gold-l)}
+.result-wrap{display:none}
+.result-wrap.show{display:block;animation:riseIn .8s cubic-bezier(.16,1,.3,1) both}
+.score-hero{text-align:center;padding:52px 20px 40px}
+.ring-wrap{width:176px;height:176px;margin:0 auto 22px;position:relative}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);filter:drop-shadow(0 0 16px rgba(201,168,76,.42))}
+.ring-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-num{font-family:'Cinzel',serif;font-size:3.2rem;font-weight:700;line-height:1;
+  background:linear-gradient(180deg,var(--gold-l),var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 14px rgba(201,168,76,.6))}
+.score-lbl{font-size:.6rem;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;margin-top:4px}
+.verdict-badge{display:inline-block;font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.14em;padding:8px 26px;border-radius:40px;border:1px solid;margin-bottom:16px}
+.game-title-disp{font-size:1.1rem;font-weight:700;margin-bottom:5px}
+.target-disp{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:var(--gold)}
+.lunar-chip{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:40px;padding:8px 18px;margin-top:14px;font-size:.8rem;color:var(--muted)}
+.lunar-chip .lc-name{color:var(--text);font-weight:700}
+.times-heading{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.22em;color:var(--gold);text-align:center;margin:32px 0 16px;text-transform:uppercase}
+.tc{border-radius:var(--r);padding:20px 22px;margin-bottom:12px;border:1px solid rgba(255,255,255,.08);position:relative;overflow:hidden;transition:transform .22s,box-shadow .22s}
+.tc:hover{transform:translateX(5px)}
+.tc.r1{background:linear-gradient(135deg,rgba(201,168,76,.15),rgba(139,92,246,.08));border-color:rgba(201,168,76,.38);box-shadow:0 0 32px rgba(201,168,76,.10)}
+.tc.r2{background:linear-gradient(135deg,rgba(139,92,246,.11),rgba(56,189,248,.06));border-color:rgba(139,92,246,.25)}
+.tc.r3{background:linear-gradient(135deg,rgba(224,85,133,.09),rgba(139,92,246,.06));border-color:rgba(224,85,133,.2)}
+.tc.rlo{background:rgba(255,255,255,.03)}
+.tc.expired{opacity:.4;filter:grayscale(.6);pointer-events:none}
+.tc-top{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.tc-rank-num{font-family:'Cinzel',serif;font-size:.62rem;color:var(--muted);letter-spacing:.1em;position:absolute;top:16px;right:16px}
+.tc-date{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);letter-spacing:.1em}
+.tc-time{font-family:'Cinzel',serif;font-size:1.42rem;font-weight:700;color:var(--text);letter-spacing:.04em}
+.tc-pinpoint{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--danger);background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:5px 12px;margin-bottom:13px}
+.tc-bot{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tc-pulls{display:inline-flex;align-items:center;gap:8px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.28);border-radius:8px;padding:6px 14px;font-family:'Cinzel',serif;font-size:.78rem;color:var(--gold-l)}
+.tc-pulls strong{font-size:1.1rem}
+.tc-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;min-width:50px}
+.tc-bar-fill{height:100%;border-radius:4px}
+.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;font-weight:600;padding:3px 10px;border-radius:20px}
+.b-urgent{background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.38);color:var(--danger)}
+.b-special{background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.38);color:var(--gold-l)}
+.b-done{background:rgba(255,255,255,.05);border:1px solid var(--rim);color:var(--muted)}
+.div-grid{display:grid;gap:13px;margin-top:16px}
+.div-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:20px;transition:border-color .22s}
+.div-card:hover{border-color:rgba(201,168,76,.22)}
+.div-hdr{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.div-icon{font-size:1.25rem;flex-shrink:0}
+.div-name{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+.div-score{margin-left:auto;font-family:'Cinzel',serif;font-size:.68rem;padding:3px 10px;border-radius:20px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.22);color:var(--gold-l)}
+.div-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;margin-bottom:11px}
+.div-bar-fill{height:100%;border-radius:2px}
+.div-body{font-family:'Cormorant Garamond',serif;font-size:1.02rem;line-height:1.78;color:rgba(237,230,245,.88)}
+.occult-box{border-radius:var(--r);padding:26px;background:rgba(139,92,246,.06);border:1px dashed rgba(139,92,246,.3)}
+.occult-title{font-family:'Cinzel',serif;font-size:.76rem;letter-spacing:.2em;color:var(--iris-l);text-align:center;margin-bottom:4px;text-transform:uppercase}
+.occult-sub{font-size:.7rem;color:var(--muted);text-align:center;margin-bottom:18px}
+.jinx{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;margin-bottom:8px;border-radius:10px;font-size:.88rem;line-height:1.55}
+.jinx:nth-child(odd){background:rgba(139,92,246,.08)}
+.jinx:nth-child(even){background:rgba(201,168,76,.06)}
+.jinx-ic{flex-shrink:0;font-size:1.05rem}
+.action-list{list-style:none}
+.action-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.88rem;line-height:1.65}
+.action-item:last-child{border-bottom:none}
+.action-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,.14);border:1px solid rgba(201,168,76,.28);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.58rem;color:var(--gold);margin-top:2px}
+.dl-btn,.rst-btn{width:100%;padding:17px;border:none;border-radius:12px;font-family:'Cinzel',serif;font-size:.86rem;font-weight:600;letter-spacing:.16em;cursor:pointer;overflow:hidden;transition:transform .15s,box-shadow .3s;margin-top:12px}
+.dl-btn{background:linear-gradient(135deg,#7A5518,#C9A84C,#EDD070);color:#06040C;box-shadow:0 4px 24px rgba(201,168,76,.3)}
+.dl-btn:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(201,168,76,.48)}
+.rst-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);color:var(--muted)}
+.rst-btn:hover{border-color:var(--danger);color:var(--danger);background:rgba(248,113,113,.06)}
+.site-footer{text-align:center;padding:44px 0 20px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:.92rem;color:var(--muted);letter-spacing:.1em}
+.site-footer span{color:var(--gold)}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}.glass{padding:22px 18px}.hdr{padding:48px 0 38px}}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:var(--void)}
+::-webkit-scrollbar-thumb{background:rgba(139,92,246,.38);border-radius:3px}
+
+/* ═══ HISTORY MODAL ═══ */
+#hist-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(6,4,12,.85);backdrop-filter:blur(6px);overflow-y:auto;padding:20px 0}
+.hist-inner{max-width:480px;margin:0 auto;padding:0 16px}
+.hist-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px 16px;margin-bottom:14px;position:relative}
+.hist-card.hc-1{border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.05)}
+.hist-card.hc-2{border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.04)}
+.hist-card.hc-3{border-color:rgba(52,211,153,.2);background:rgba(52,211,153,.03)}
+.hist-verdict{font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.12em}
+.hist-score{font-size:2rem;font-weight:800;color:var(--gold);line-height:1}
+.hist-bar{height:4px;border-radius:2px;background:rgba(255,255,255,.08);margin:8px 0}
+.hist-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
+.hist-row{display:flex;justify-content:space-between;font-size:.72rem;color:rgba(255,255,255,.5);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.hist-row strong{color:var(--text)}
+.hist-sub-btn{font-size:.62rem;padding:2px 9px;border-radius:6px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold);cursor:pointer;margin-top:8px}
+.hist-sub{display:none;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,.35);border-radius:8px;font-size:.68rem}
+.hist-sub-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.55)}
+.hist-sub-row span:last-child{font-weight:bold}
+</style>
+</head>
+<body>
+<canvas id="cosmos"></canvas>
+<div class="bg-nebula"></div>
+<div class="grain"></div>
+<div class="wrap">
+<header class="hdr">
+  <span class="hdr-sigil">🔮</span>
+  <h1>GACHA ORACLE<br><span style="font-size:.52em;letter-spacing:.32em;opacity:.8">霊眼統合占術システム</span></h1>
+  <p class="hdr-sub">by クトちゃん — 全占術 × オカルト情報 融合</p>
+  <div class="hdr-tags">
+    <span class="hdr-tag">西洋占星術</span><span class="hdr-tag">九星気学</span><span class="hdr-tag">四柱推命</span>
+    <span class="hdr-tag">月齢計算</span><span class="hdr-tag">タロット</span><span class="hdr-tag">数秘術</span>
+    <span class="hdr-tag">血液型</span><span class="hdr-tag">紫微斗数</span>
+  </div>
+</header>
+
+<div class="glass">
+  <p class="sec-title">占術情報を入力</p>
+  <div id="fortuneForm">
+    <div class="form-grid">
+      <div class="field span2">
+        <label for="gameTitle">ゲームタイトル <span class="opt">※必須</span></label>
+        <select id="gameTitle">
+          <option value="">選択してください</option>
+          <option value="ウマ娘">ウマ娘 プリティーダービー</option>
+          <option value="ブルーアーカイブ">ブルーアーカイブ</option>
+          <option value="原神">原神</option>
+          <option value="NIKKE">勝利の女神：NIKKE</option>
+          <option value="崩壊：スターレイル">崩壊：スターレイル</option>
+          <option value="鳴潮">鳴潮</option>
+          <option value="Fate/GO">Fate/Grand Order</option>
+          <option value="ゼンレスゾーンゼロ">ゼンレスゾーンゼロ</option>
+          <option value="LINE MF">LINE モンスターファーム</option>
+          <option value="Echocalypse">Echocalypse</option>
+          <option value="Evertale">Evertale</option>
+          <option value="Pokémon Trading Card Game Pocket">Pokémon TCG Pocket</option>
+          <option value="プリコネR">プリンセスコネクト！Re:Dive</option>
+          <option value="グラブル">グランブルーファンタジー</option>
+          <option value="アズールレーン">アズールレーン</option>
+          <option value="ヘブバン">ヘブンバーンズレッド</option>
+          <option value="DQウォーク">ドラゴンクエストウォーク</option>
+          <option value="白猫">白猫プロジェクト</option>
+          <option value="その他">その他（自由入力）</option>
+        </select>
+        <span id="games-updated-cap" style="font-size:.6rem;color:var(--muted);letter-spacing:.04em"></span>
+      </div>
+      <div class="field span2" id="customGameGroup" style="display:none">
+        <label for="customGame">ゲームタイトルを入力</label>
+        <input type="text" id="customGame" placeholder="例: モンスターストライク">
+      </div>
+      <div class="field span2">
+        <label for="targetName">狙っているキャラ/武器名 <span class="opt">(任意)</span></label>
+        <input type="text" id="targetName" placeholder="例: 高坂麗奈、草薙の剣">
+      </div>
+      <div class="field span2">
+        <label for="gachaTitle">ガチャタイトル <span class="opt">(任意)</span></label>
+        <input type="text" id="gachaTitle" placeholder="例: 響け!ユーフォニアムコラボ、正月ガチャ">
+      </div>
+      <div class="field">
+        <label for="gachaDeadline">ガチャ期限（日付） <span class="opt">(任意)</span></label>
+        <input type="date" id="gachaDeadline">
+      </div>
+      <div class="field">
+        <label for="gachaDeadlineTime">ガチャ期限（時刻）</label>
+        <input type="time" id="gachaDeadlineTime" value="23:59">
+      </div>
+      <div class="field">
+        <label for="birthdate">生年月日 <span class="opt">(任意)</span></label>
+        <input type="date" id="birthdate" max="2010-12-31">
+      </div>
+      <div class="field">
+        <label for="zodiac">星座 <span class="opt">(任意)</span></label>
+        <select id="zodiac">
+          <option value="">選択</option>
+          <option>牡羊座</option><option>牡牛座</option><option>双子座</option><option>蟹座</option>
+          <option>獅子座</option><option>乙女座</option><option>天秤座</option><option>蠍座</option>
+          <option>射手座</option><option>山羊座</option><option>水瓶座</option><option>魚座</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="bloodType">血液型 <span class="opt">(任意)</span></label>
+        <select id="bloodType">
+          <option value="">選択</option>
+          <option>A型</option><option>B型</option><option>O型</option><option>AB型</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="eto">干支 <span class="opt">(任意)</span></label>
+        <select id="eto">
+          <option value="">選択</option>
+          <option value="子">子（ねずみ）</option><option value="丑">丑（うし）</option>
+          <option value="寅">寅（とら）</option><option value="卯">卯（うさぎ）</option>
+          <option value="辰">辰（たつ）</option><option value="巳">巳（へび）</option>
+          <option value="午">午（うま）</option><option value="未">未（ひつじ）</option>
+          <option value="申">申（さる）</option><option value="酉">酉（とり）</option>
+          <option value="戌">戌（いぬ）</option><option value="亥">亥（いのしし）</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin:14px 0 0;padding:14px 16px;background:rgba(255,200,80,.08);border:1px solid rgba(255,200,80,.3);border-radius:12px;">
+      <p style="font-size:.8rem;font-weight:700;color:var(--gold-l);margin:0 0 10px;">🎯 ピックアップ確率（確率計算用・任意）</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="field" style="margin:0"><label for="pickupRate" style="font-size:.75rem;">ピックアップ確率(%)</label><input type="number" id="pickupRate" min="0.01" max="100" step="0.01" placeholder="例: 0.7" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--text);font-size:.9rem;"></div>
+        <div class="field" style="margin:0"><label for="pityCount" style="font-size:.75rem;">天井（保証回数）</label><input type="number" id="pityCount" min="0" max="1000" step="1" placeholder="例: 200（なし=0）" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--text);font-size:.9rem;"></div>
+        <div class="field" style="margin:0"><label for="currentPulls" style="font-size:.75rem;">現在の累計引き数</label><input type="number" id="currentPulls" min="0" max="1000" step="1" placeholder="例: 50" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--text);font-size:.9rem;"></div>
+      </div>
+      <p style="font-size:.7rem;color:var(--muted);margin:8px 0 0;">※ 入力すると「目的キャラを引くために必要な連数」を確率で計算します。</p>
+    </div>
+    <button type="button" id="fortune-btn" class="oracle-btn" onclick="runFortune()">✦ 霊眼を開く — 占術開始 ✦</button>
+  </div>
+</div>
+
+<div class="glass loading-wrap" id="loading">
+  <div class="orb-ring"><span class="orb-crystal">🔮</span></div>
+  <div class="load-steps">
+    <p class="load-step" id="ls1">✦ 天体の位相を計測中...</p>
+    <p class="load-step" id="ls2">✦ 月齢と潮汐力を解析中...</p>
+    <p class="load-step" id="ls3">✦ 九星気学の盤を展開中...</p>
+    <p class="load-step" id="ls4">✦ タロットカードを選定中...</p>
+    <p class="load-step" id="ls5">✦ 霊眼が開かれつつある...</p>
+  </div>
+</div>
+<div class="result-wrap" id="result"></div>
+<footer class="site-footer">Powered by <span>クトちゃん</span> 💫 霊眼統合占術システム<br>
+  <span style="font-size:.78rem;opacity:.6">西洋占星術 · 九星気学（年/月/日盤）· 四柱推命 · 月齢 · タロット · 数秘術 · 血液型 · 干支 · 紫微斗数 統合</span>
+</footer>
+</div>
+
+<script>
+
+// ══════════════════════════════════════════════════
+// 安全ストレージラッパー SS
+// localStorage が使えない環境（iOS srcdoc等）では
+// メモリストアに自動フォールバック
+// ══════════════════════════════════════════════════
+const _memStore={};
+const SS=(function(){
+  // localStorage を直接参照するクロージャ（外部からの再置換を防ぐ）
+  var _ls=null;
+  try{_ls=window.localStorage;}catch(e){_ls=null;}
+  return{
+    get:function(k){try{if(_ls)return _ls.getItem(k);}catch(e){}return k in _memStore?_memStore[k]:null;},
+    set:function(k,v){try{if(_ls){_ls.setItem(k,String(v));return;}}catch(e){}  _memStore[k]=String(v);},
+    remove:function(k){try{if(_ls){_ls.removeItem(k);return;}}catch(e){}delete _memStore[k];},
+    keys:function(){try{if(_ls)return Object.keys(_ls);}catch(e){}return Object.keys(_memStore);}
+  };
+})();
+
+// グローバル結果保持（ダウンロード用）
+let _lastResult=null,_lastHotTimes=null;
+
+// HTMLエスケープ（ユーザー入力を画面に出す際のXSS・表示崩れ防止）
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+// ═══════════════════════════════════════════════════
+//   CANVAS COSMOS
+// ═══════════════════════════════════════════════════
+try{(function(){
+  const cv=document.getElementById('cosmos'),ctx=cv?cv.getContext('2d'):null;
+  if(!cv||!ctx)return;
+  let W,H,stars=[],shoots=[];
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+  window.addEventListener('resize',resize);resize();
+  for(let i=0;i<220;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.2,a:Math.random(),da:(Math.random()-.5)*.006,speed:Math.random()*.003+.0005});
+  function addShoot(){shoots.push({x:Math.random()*W,y:Math.random()*H*.4,angle:-25+Math.random()*20,len:0,maxLen:80+Math.random()*120,speed:6+Math.random()*6,alpha:1});}
+  setInterval(addShoot,3500);
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{s.a+=s.da;if(s.a<.08||s.a>1)s.da*=-1;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.max(.08,s.a)})`;ctx.fill();});
+    shoots=shoots.filter(s=>{s.len+=s.speed;s.alpha=Math.max(0,1-s.len/s.maxLen);if(s.alpha<=0)return false;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.angle*Math.PI/180);const g=ctx.createLinearGradient(0,0,s.len,0);g.addColorStop(0,'transparent');g.addColorStop(.3,`rgba(255,255,255,${s.alpha*.6})`);g.addColorStop(1,'transparent');ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(s.len,0);ctx.stroke();ctx.restore();return true;});
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();}catch(e){console.warn('cosmos init error',e);}
+
+// ═══════════════════════════════════════════════════
+//   GAME OCCULT DATABASE
+// ═══════════════════════════════════════════════════
+const GAME_DB = {
+  'ウマ娘':            {luckyDays:[3],luckyHours:[5,6,7,18,19],jinxes:['水曜18:00更新直後が最も熱い','朝5:00〜7:00に奇跡報告多数あり','満月の夜はSSR確率上昇の都市伝説']},
+  'ブルーアーカイブ':   {luckyDays:[1],luckyHours:[2,3,4,11,22],jinxes:['月曜メンテナンス直後が狙い目','深夜2:00〜4:00の静寂ゾーン','ゾロ目時刻（11:11,22:22）が激アツ']},
+  '崩壊：スターレイル': {luckyDays:[4],luckyHours:[6,7,8,18],jinxes:['木曜更新が基本サイクル','朝6:00〜8:00が最も出やすい','課金直後30分は避けるべし説']},
+  'NIKKE':            {luckyDays:[5],luckyHours:[19,20,21],jinxes:['金曜夜のゴールデンタイム','19:00〜21:00が黄金帯','メンテ明け1時間以内が最強']},
+  '原神':             {luckyDays:[2],luckyHours:[0,18,19,20],jinxes:['火曜18:00更新直後が勝負','更新から3時間以内が鉄板','深夜0:00ジャストは奇跡の時刻']},
+  'Fate/GO':          {luckyDays:[3,6],luckyHours:[12,18,21],jinxes:['ピックアップ初日が最も熱い','21:00前後に爆死・爆当たり両方多数','0時回しは真偽不明の都市伝説']},
+  'ゼンレスゾーンゼロ': {luckyDays:[3,4],luckyHours:[11,18,19,20],jinxes:['水曜メンテ後が激アツ','18:00〜20:00のゴールデンタイム','11:11のゾロ目時刻が奇跡を呼ぶ']},
+  'LINE MF':          {luckyDays:[2,5],luckyHours:[12,18,21,22],jinxes:['火・金更新直後','22:22のゾロ目が幸運の刻','深夜よりゴールデンタイム推奨']},
+  'Echocalypse':      {luckyDays:[4,5],luckyHours:[0,6,7,18,19],jinxes:['木曜メンテ後1時間が最強','朝6:00〜7:00の早朝ゾーン','深夜0:00リセット直後']},
+  'Evertale':         {luckyDays:[1,5],luckyHours:[3,12,18,21],jinxes:['月・金が狙い目の曜日','深夜3:00の魔の時間帯','18:00〜21:00が安定報告多数']},
+  'Pokémon Trading Card Game Pocket':{luckyDays:[2,5],luckyHours:[7,8,12,18,19],jinxes:['朝7:00〜8:00のモーニングパック','火・金の新弾追加直後','12:00と18:00のデイリーリセット']},
+  '鳴潮':             {luckyDays:[4],luckyHours:[6,11,18,19,20],jinxes:['木曜メンテ後が鉄板の狙い目','朝6:00の早朝ガチャ','18:00〜20:00ゴールデンタイム']},
+  'プリコネR':         {luckyDays:[1,5],luckyHours:[5,12,18,19],jinxes:['月曜5:00ガチャ更新直後が最強','12:00と18:00のデイリーリセット','金曜夜は当たりが多い説']},
+  'グラブル':          {luckyDays:[1,4],luckyHours:[12,17,19,22],jinxes:['月曜12:00レジェフェス開幕直後','17:00と19:00のマグナタイム','22:00の深夜ガチャは別格']},
+  'アズールレーン':    {luckyDays:[4],luckyHours:[0,5,12,18],jinxes:['木曜メンテ明けが鉄板','深夜0:00デイリーリセット後','12:00昼休みガチャが安定']},
+  'ヘブバン':          {luckyDays:[2,5],luckyHours:[11,15,18,21],jinxes:['火曜15:00更新直後が最強','18:00〜21:00ゴールデンタイム','金曜夜は当たりやすい説']},
+  'DQウォーク':        {luckyDays:[1,5],luckyHours:[6,12,15,18],jinxes:['金曜15:00ガチャ更新','朝6:00の散歩ガチャ','12:00と18:00のデイリー更新後']},
+  '白猫':             {luckyDays:[1,4],luckyHours:[12,15,18,21],jinxes:['月曜15:00ガチャ更新直後','12:00昼休みが鉄板','21:00夜のゴールデンタイム']},
+};
+
+// ═══════════════════════════════════════════════════
+//   月齢計算
+// ═══════════════════════════════════════════════════
+function getMoonAge(date){
+  // Meeus黄経差法 + JST0:00基準（starwalk.space準拠）
+  var SYNODIC=29.53058867;
+  // その日のJST 0:00に正規化（ローカル日付の0:00を使用）
+  var d0=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  var JD=d0.getTime()/86400000+2440587.5;
+  var T=(JD-2451545.0)/36525.0;
+  var Lm=218.3164477+481267.88123421*T-0.0015786*T*T;
+  var Ls=280.46646+36000.76983*T;
+  var elongation=((Lm-Ls)%360+360)%360;
+  var age=elongation*SYNODIC/360.0;
+  return{age:Math.round(age*10)/10,phase:elongation};
+}
+function getMoonPhaseInfo(age){
+  // 月齢 luckBonus 設計根拠:
+  // 満月(9)=最強引き寄せ, 十三夜(7)=充実エネルギー, 新月(6)=浄化と再生の始まり
+  // 上弦(5)=行動期, 更待月(5)=余韻持続, 三日月(4)=成長期
+  // 下弦(2)=手放し期（散財の暗示で低め）, 有明(2)=内省期（行動不向き）
+  if(age<=1.0||age>=28.5)return{name:'新月',    icon:'🌑',power:'浄化・再生・新しい始まり',    luckBonus:6};
+  if(age<=6.5)           return{name:'三日月',  icon:'🌒',power:'成長・新規開始のエネルギー',  luckBonus:4};
+  if(age<=8.5)           return{name:'上弦の月',icon:'🌓',power:'行動・決断力の高まり',        luckBonus:5};
+  if(age<=14.0)          return{name:'十三夜',  icon:'🌔',power:'充実・達成への助走',          luckBonus:7};
+  if(age<=15.5)          return{name:'満月',    icon:'🌕',power:'最強の引き寄せ・感情の高まり',luckBonus:9};
+  if(age<=22.0)          return{name:'更待月',  icon:'🌖',power:'余韻と感謝・引き寄せの持続', luckBonus:5};
+  if(age<=25.0)          return{name:'下弦の月',icon:'🌗',power:'手放し・整理のエネルギー',   luckBonus:2};
+  return                        {name:'有明月',  icon:'🌘',power:'内省・次のサイクルへの準備', luckBonus:2};
+}
+
+// ═══════════════════════════════════════════════════
+//   ② 日盤九星 (日家九星)
+//   検証: localEpochDays(2026-03-10 JST)=20522, %9=2, (9-2)%9+1=8 → 八白土星 ✅
+// ═══════════════════════════════════════════════════
+function getDayKyusei(date){
+  // 基準: 2000/1/6 = 五黄土星(5)、1日ずつ逆行（keisan.site準拠）
+  var BASE_MS=947116800000; // 2000/1/6 00:00 JST
+  // JST日付の0:00に正規化
+  var d0=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+  var diff=Math.round((d0.getTime()-BASE_MS)/86400000);
+  var n=((4-diff%9)%9+9)%9+1;
+  var NAMES=['','一白水星','二黒土星','三碧木星','四緑木星','五黄土星','六白金星','七赤金星','八白土星','九紫火星'];
+  var ELEM= ['','水','土','木','木','土','金','金','土','火'];
+  var COLOR=['','#38BDF8','#A16207','#34D399','#4ADE80','#C9A84C','#C084FC','#E05585','#D97706','#9333EA'];
+  return{num:n,name:NAMES[n],element:ELEM[n],color:COLOR[n]};
+}
+
+// ═══════════════════════════════════════════════════
+//   九星気学（本命星・月命星・月盤）
+// ═══════════════════════════════════════════════════
+function getKyusei(year,month,birthYear,birthdate){
+  // ══════════════════════════════════════════════════
+  //  九星気学 三盤統合（正統理論実装）
+  //  年盤×本命星 + 月盤×本命星 + 月命星×本命星 を統合
+  //  根拠:
+  //  ・節気切り替え（節月制）による正確な月盤算出
+  //  ・五行相生相克の正統理論に基づく相性値
+  //    受生(+8)>同気(+6)>洩気(+3)>剋出(-3)>受剋(-8)
+  //  ・2024-2043の第九運（九紫火星旺相）による本命星別運気補正
+  // ══════════════════════════════════════════════════
+  const NAMES=['','一白水星','二黒土星','三碧木星','四緑木星','五黄土星','六白金星','七赤金星','八白土星','九紫火星'];
+  const ELEM =['','水','土','木','木','土','金','金','土','火'];
+  // 五行相性テーブル（正統理論）
+  // 受生(相手が自分を生む)=+8, 同気=+6, 洩気(自分が生む)=+3, 剋出(自分が克す)=-3, 受剋(克される)=-8
+  const COMPAT={
+    水:{金:+8,水:+6,木:+3,火:-3,土:-8}, // 金生水(受),同気,水生木(洩),水克火(剋出),土克水(受剋)
+    土:{火:+8,土:+6,金:+3,木:-8,水:-3}, // 火生土(受),同気,土生金(洩),木克土(受剋),土克水(剋出)
+    木:{水:+8,木:+6,火:+3,金:-8,土:-3}, // 水生木(受),同気,木生火(洩),金克木(受剋),木克土(剋出)
+    金:{土:+8,金:+6,水:+3,火:-8,木:-3}, // 土生金(受),同気,金生水(洩),火克金(受剋),金克木(剋出)
+    火:{木:+8,火:+6,土:+3,水:-8,金:-3}, // 木生火(受),同気,火生土(洩),水克火(受剋),火克金(剋出)
+  };
+  // 節気入り日（簡略版 月index=1-12）
+  const SEKKI=[0,6,4,6,5,6,6,7,7,8,8,7,7];
+  // 年から九星番号を算出
+  function kyuseiNum(y){
+    let s=String(y).split('').map(Number).reduce((a,b)=>a+b,0);
+    while(s>=10)s=String(s).split('').map(Number).reduce((a,b)=>a+b,0);
+    let n=(11-s)%9; return n<=0?n+9:n;
+  }
+  // 日付→節月インデックス(0=寅月,1=卯月,...,11=丑月)
+  function getSetsuMonth(date){
+    const m=date.getMonth()+1,d=date.getDate();
+    let am=d>=SEKKI[m]?m:m-1;
+    if(am<=0)am+=12;
+    return((am-2+12)%12);
+  }
+  // 月盤起点（年盤の九星グループ→寅月の九星番号）
+  function tsukiOrigin(n){return[1,4,7].includes(n)?8:[2,5,8].includes(n)?5:2;}
+  // 月盤番号計算（起点と節月インデックスから）
+  function monthBoardNum(origin,smi){return((origin-smi-1+99)%9)+1;}
+
+  // ── ① 本命星 ──
+  const byear=birthYear||year;
+  let adjYear=byear;
+  if(birthdate){const bd=new Date(birthdate);if(bd.getMonth()<1||(bd.getMonth()===1&&bd.getDate()<4))adjYear-=1;}
+  const honmei=kyuseiNum(adjYear);
+
+  // ── ② 月命星（生まれた節月から算出） ──
+  let getukumei=null;
+  if(birthdate){
+    const bd=new Date(birthdate);
+    getukumei=monthBoardNum(tsukiOrigin(honmei),getSetsuMonth(bd));
+  }
+
+  // ── ③ 年盤(今年の九星）立春基準 ──
+  const now=new Date();
+  let nowAdjYear=now.getFullYear();
+  if(now.getMonth()<1||(now.getMonth()===1&&now.getDate()<4))nowAdjYear-=1;
+  const yearBoard=kyuseiNum(nowAdjYear);
+
+  // ── ④ 月盤（今月の九星）節気基準 ──
+  const nowSM=getSetsuMonth(now);
+  const mBoard=monthBoardNum(tsukiOrigin(yearBoard),nowSM);
+
+  // ── ⑤ 五行相性計算 ──
+  const myElem=ELEM[honmei]||'金';
+  const ybElem=ELEM[yearBoard]||'土';
+  const mbElem=ELEM[mBoard]||'金';
+  const yearCompat =(COMPAT[myElem]&&COMPAT[myElem][ybElem]!=null)?COMPAT[myElem][ybElem]:0;  // 年盤×本命星
+  const monthCompat=(COMPAT[myElem]&&COMPAT[myElem][mbElem]!=null)?COMPAT[myElem][mbElem]:0;  // 月盤×本命星
+  const gkElem     =getukumei?ELEM[getukumei]||myElem:myElem;
+  const gkCompat   =(COMPAT[myElem]&&COMPAT[myElem][gkElem]!=null)?COMPAT[myElem][gkElem]:0;  // 月命星×本命星（補助）
+
+  // ── ⑥ 三盤統合スコア（年35%+月50%+月命星15%）──
+  const compat=Math.round(yearCompat*0.35+monthCompat*0.50+gkCompat*0.15);
+
+  // ── ⑦ ベーススコア（本命星別基本運気）──
+  // 根拠: 第九運(2024-2043)の九紫火星旺相期における各星の旺衰
+  // 九紫(+5), 六白・七赤・三碧(+3), 一白・八白(+2), 四緑(0), 二黒(-2), 五黄(-4)
+  const BASE=[0,72,65,73,75,62,78,80,72,83];
+  const RUN =[0,+2,-2,+3,0,-4,+3,+3,+2,+5]; // 第九運補正
+  const base=(BASE[honmei]||72)+(RUN[honmei]||0);
+  const score=Math.max(50,Math.min(99,base+Math.round(compat/1.5)));
+
+  return{
+    honmei:NAMES[honmei]||'',
+    getukumei:getukumei?NAMES[getukumei]||'':'',
+    yearBoard:NAMES[yearBoard]||'',
+    monthBoard:NAMES[mBoard]||'',
+    myElem,ybElem,mbElem,
+    yearCompat,monthCompat,gkCompat,compat,score,
+    honmeiNum:honmei,yearBoardNum:yearBoard,monthBoardNum:mBoard,
+    COMPAT,ELEM, // calcRawScoreで再利用するために公開
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//   数秘術
+// ═══════════════════════════════════════════════════
+function calcLifePath(dateStr){
+  if(!dateStr)return null;
+  let sum=dateStr.replace(/-/g,'').split('').reduce((a,c)=>a+parseInt(c),0);
+  while(sum>9&&sum!==11&&sum!==22&&sum!==33)sum=String(sum).split('').reduce((a,c)=>a+parseInt(c),0);
+  return sum;
+}
+// ① LP4 × UD の関係性モデル（足さず関係性から結果を出す）
+// 2026/03/10: yr=reduce(2+0+2+6=10→1), UD=reduce(1+3+10=14→5) → LP4×UD5
+function getUniversalDay(date){
+  function reduce(n){while(n>9&&n!==11&&n!==22&&n!==33)n=[...String(n)].reduce((a,c)=>a+parseInt(c),0);return n;}
+  const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();
+  const yr=reduce([...String(y)].reduce((a,c)=>a+parseInt(c),0));
+  return reduce(yr+m+d);
+}
+const LP4_UD_MATRIX={
+  1:{label:'計画の実行',   body:'安定した4の基盤に1の開拓力が加わる。新しい一手を躊躇わず引け。初引きに最適な日。',score:7},
+  2:{label:'慎重な直感',   body:'4の堅実さと2の協調が融合。焦らず吉時刻を見極めれば縁が結ばれる。',score:5},
+  3:{label:'努力が花開く', body:'4の努力に3の創造が宿る黄金の組み合わせ。楽しむ気持ちが運気を最大化する。',score:8},
+  4:{label:'安定の極み',   body:'4×4で安定が二重に重なる。計画通りに動けば確実な結果が訪れる。',score:6},
+  5:{label:'変化への挑戦', body:'安定な4に変化の5が挑む緊張関係。直感で動けば思わぬ好結果が生まれる。',score:6},
+  6:{label:'調和と収穫',   body:'4の努力が6の調和に実る日。愛着あるキャラとの縁が最も強まる吉日。',score:8},
+  7:{label:'精神的深化',   body:'4の実直さに7の分析が加わる最強の洞察日。最適時刻の計算が精度を増す。',score:7},
+  8:{label:'力と達成',     body:'4の基盤に8の達成力が乗る。計画通りに動いた者に最大の果実が訪れる。',score:9},
+  9:{label:'完成と解放',   body:'4の努力が9の完成に到達する特別な日。長年の積み重ねが報われる。今日引け。',score:9},
+  11:{label:'直感の覚醒',  body:'マスター11の光が4の地盤を照らす。今日の直感は宇宙からのメッセージ。信じて引け。',score:10},
+  22:{label:'大建設の日',  body:'マスター22×4、最強の実現力が宿る日。大きく賭けた者が勝つ。',score:10},
+  33:{label:'愛の師との共鳴',body:'マスター33の愛が4の誠実さと共鳴。この日の引きには特別な縁が宿る。',score:10},
+};
+function getNumerologyRelation(date){
+  const ud=getUniversalDay(date);
+  const rel=LP4_UD_MATRIX[ud]||LP4_UD_MATRIX[9];
+  return{ud,lp:4,label:rel.label,body:rel.body,score:rel.score};
+}
+const LIFEPATH_INFO={
+  1:{kw:'自立・先駆者',bonus:4},2:{kw:'協調・直感',bonus:3},3:{kw:'創造・表現',bonus:5},
+  4:{kw:'安定・基盤',bonus:2},5:{kw:'変化・冒険',bonus:6},6:{kw:'愛・調和',bonus:5},
+  7:{kw:'探求・内省',bonus:4},8:{kw:'豊かさ・力',bonus:7},9:{kw:'完成・知恵',bonus:5},
+  11:{kw:'直感・啓示',bonus:9},22:{kw:'大建設者',bonus:11},33:{kw:'宇宙的愛',bonus:13},
+};
+
+// ═══════════════════════════════════════════════════
+//   ③ 紫微斗数 — むらちゃん固定命盤 (1993/4/14 6:18)
+//   金四局 命宮:丑(天同星・巨門星) 身宮:未(遷移宮◎)
+//   IMG_6135 命盤より
+// ═══════════════════════════════════════════════════
+const ZIWEI_BR=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const ZIWEI_PALACES={
+  '子':{name:'兄弟宮',  stars:['貪狼星'],         aux:['禄存','火星','鈴星']},
+  '丑':{name:'命宮★',   stars:['天同星','巨門星'], aux:['擎羊']},
+  '寅':{name:'父母宮',  stars:['武曲星','天相星'], aux:[]},
+  '卯':{name:'福徳宮',  stars:['太陽星','天梁星'], aux:['天魁']},
+  '辰':{name:'田宅宮',  stars:['七殺星'],          aux:[]},
+  '巳':{name:'官禄宮',  stars:['天機星'],          aux:['天鉞']},
+  '午':{name:'僕役宮',  stars:['紫微星'],          aux:['左輔']},
+  '未':{name:'遷移宮◎', stars:['右弼','文曲'],     aux:[]},
+  '申':{name:'疾厄宮▶', stars:['破軍星'],          aux:[]},
+  '酉':{name:'財帛宮',  stars:[],                  aux:[]},
+  '戌':{name:'子女宮',  stars:['廉貞星','天府星'], aux:[]},
+  '亥':{name:'夫妻宮',  stars:['太陰星'],          aux:['文昌','陀羅']},
+};
+const ZIWEI_STAR_INFO={
+  '紫微星':{score:10,grade:'大吉✨',color:'#EDD070',msg:'帝王星が今日を照らす。引き寄せ力が宇宙規模。迷わず引け。'},
+  '天同星':{score:8, grade:'吉',    color:'#A78BFA',msg:'喜悦の星に守られる命宮主星。楽しむ気持ちが最強のおまじない。'},
+  '天機星':{score:7, grade:'吉',    color:'#38BDF8',msg:'智謀と変化の星が宿る。最適時刻の判断が冴える日。'},
+  '太陰星':{score:8, grade:'吉',    color:'#C4B5FD',msg:'月の女神星。感性と財運が高まる。夜の時間帯が特に◎。'},
+  '貪狼星':{score:9, grade:'大吉',  color:'#F97316',msg:'欲望と才能の星。引きたい気持ちが強いほど引き寄せが加速。'},
+  '武曲星':{score:8, grade:'吉',    color:'#E8C96A',msg:'財星が輝く。金運と行動力が高まりガチャ運に追い風。'},
+  '太陽星':{score:7, grade:'吉',    color:'#FCD34D',msg:'明るい社交運。自信に満ちた行動が星を動かす。'},
+  '天梁星':{score:6, grade:'吉',    color:'#6EE7B7',msg:'守護の長老星。焦らず最適時刻に絞ることで守護が最大化。'},
+  '廉貞星':{score:5, grade:'平',    color:'#94A3B8',msg:'情熱の星だが波乱含み。衝動的な行動は避け計画的に。'},
+  '天府星':{score:8, grade:'吉',    color:'#34D399',msg:'財庫星が輝く。積み重ねた運気が花開く日。'},
+  '天相星':{score:6, grade:'吉',    color:'#7DD3FC',msg:'印星の守護。正攻法で動くことが吉。'},
+  '巨門星':{score:5, grade:'注意',  color:'#FB923C',msg:'暗曜が混じる命宮星。念入りに吉時を選ぶことが肝心。'},
+  '七殺星':{score:6, grade:'平',    color:'#F87171',msg:'変革の星。覚悟を決めて引く日。迷いは禁物。'},
+  '破軍星':{score:5, grade:'注意',  color:'#F43F5E',msg:'破壊と創造の星。リスク承知で挑む時。慎重に吉時を選べ。'},
+  '右弼':  {score:6, grade:'吉',    color:'#A78BFA',msg:'補佐の吉星。縁が力を貸してくれる日。'},
+  '文曲':  {score:7, grade:'吉',    color:'#C084FC',msg:'芸術と縁の星。直感と美的センスが冴える。'},
+};
+// 命宮主星(天同星) × 流日活性化星 の関係性ボーナス
+const ZIWEI_REL_TONDO={
+  '紫微星':{bonus:3, relMsg:'帝王星と喜悦星の最強共鳴。命運が開く特別な日。大チャンス。'},
+  '天同星':{bonus:2, relMsg:'同星共鳴。自分本来のエネルギーが最大化する日。'},
+  '天機星':{bonus:2, relMsg:'智謀が喜悦を導く吉の関係。直感でタイミングを選べ。'},
+  '太陰星':{bonus:2, relMsg:'月の感性と天同の愉楽が共鳴。夜の引きが特に吉。'},
+  '貪狼星':{bonus:1, relMsg:'欲望と喜悦。強い想いが縁を引き寄せる。'},
+  '武曲星':{bonus:1, relMsg:'財力と愉楽の共鳴。行動することで運が開く。'},
+  '天府星':{bonus:2, relMsg:'財庫と喜悦の大吉関係。豊かな縁が集まる。'},
+  '太陽星':{bonus:1, relMsg:'活動の星と喜悦の星。明るく動いた者に吉。'},
+  '廉貞星':{bonus:-1,relMsg:'波乱含み。焦らず吉時に絞ること。'},
+  '七殺星':{bonus:-1,relMsg:'変革の圧力。覚悟して臨むなら吉転も。'},
+  '破軍星':{bonus:-2,relMsg:'破壊の気が命宮を揺さぶる。慎重な時。'},
+};
+
+// ③ 紫微斗数 四化星テーブル（干支年ごとの変動）
+// 根拠: 各天干の年に四化が生じる正統テーブル（紫微斗数全書準拠）
+// 化禄(+3)=財禄が集まる最吉 / 化権(+2)=実権・力が増す吉
+// 化科(+1)=名誉・才能発揮の小吉 / 化忌(-3)=障害・凶意が増す凶
+const SIHUA_TABLE={
+  甲:{化禄:'廉貞星',化権:'破軍星',化科:'武曲星',化忌:'太陽星'},
+  乙:{化禄:'天機星',化権:'天梁星',化科:'紫微星',化忌:'太陰星'},
+  丙:{化禄:'天同星',化権:'天機星',化科:'文昌星',化忌:'廉貞星'},
+  丁:{化禄:'太陰星',化権:'天同星',化科:'天機星',化忌:'巨門星'},
+  戊:{化禄:'貪狼星',化権:'太陰星',化科:'右弼星',化忌:'天機星'},
+  己:{化禄:'武曲星',化権:'貪狼星',化科:'天梁星',化忌:'文曲星'},
+  庚:{化禄:'太陽星',化権:'武曲星',化科:'太陰星',化忌:'天同星'},
+  辛:{化禄:'巨門星',化権:'太陽星',化科:'文曲星',化忌:'文昌星'},
+  壬:{化禄:'天梁星',化権:'紫微星',化科:'左輔星',化忌:'武曲星'},
+  癸:{化禄:'破軍星',化権:'巨門星',化科:'太陰星',化忌:'貪狼星'},
+};
+const SIHUA_BONUS={化禄:+3,化権:+2,化科:+1,化忌:-3};
+const STEMS_LIST=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+function getSihua(date){
+  // 今年の天干を立春基準で取得
+  let y=date.getFullYear();
+  if(date.getMonth()<1||(date.getMonth()===1&&date.getDate()<4))y--;
+  const stemIdx=((y-1924)%10+100)%10;
+  const stem=STEMS_LIST[stemIdx];
+  const table=SIHUA_TABLE[stem];
+  if(!table)return{bonus:0,details:[]};
+  // 命宮主星・身宮主星に四化が掛かるか判定
+  const MING_STARS=['天同星','巨門星']; // 命宮の星（IMG_6135より）
+  const SHEN_STARS=['右弼','文曲'];     // 身宮の星
+  let bonus=0;
+  const details=[];
+  Object.entries(table).forEach(([sihua,star])=>{
+    const b=SIHUA_BONUS[sihua]||0;
+    // 命宮・身宮の星に四化が掛かる場合は2倍の影響
+    const isMing=MING_STARS.some(s=>star.startsWith(s.replace('星','')));
+    const impact=isMing?b*2:b;
+    bonus+=impact*0.3; // 全体への寄与は30%適用
+    details.push({sihua,star,bonus:impact});
+  });
+  return{stem,bonus:Math.round(bonus),details};
+}
+// 今日の流日宮: 2026/03/10=午(idx6)を基準に日ごとに+1支
+// IMG_6135: 流日→疾厄宮(午) → 僕役宮(午支)で紫微星活性化 ✅
+const _ZW_REF_D=20522, _ZW_REF_I=6;
+function getRyuNichi(date){
+  const d=Math.floor((date.getTime()-date.getTimezoneOffset()*60000)/86400000);
+  const bi=((_ZW_REF_I+(d-_ZW_REF_D))%12+12)%12;
+  const branch=ZIWEI_BR[bi];
+  const palace=ZIWEI_PALACES[branch];
+  const mainStar=palace&&palace.stars.length>0?palace.stars[0]:null;
+  const starInfo=mainStar?(ZIWEI_STAR_INFO[mainStar]||null):null;
+  const relInfo=mainStar?(ZIWEI_REL_TONDO[mainStar]||null):null;
+  const sihua=getSihua(date);
+  const totalScore=Math.min(10,Math.max(1,(starInfo?starInfo.score:5)+(relInfo?relInfo.bonus:0)+Math.round(sihua.bonus*0.4)));
+  return{branch,palace,mainStar,starInfo,relInfo,sihua,totalScore,mingGong:'丑',mingStars:['天同星','巨門星'],shenGong:'未',kyoku:'金四局'};
+}
+
+// ═══════════════════════════════════════════════════
+//   タロット
+// ═══════════════════════════════════════════════════
+const TAROT_MAJOR=[
+  // score=正位置スコア / revScore=逆位置スコア(抑制) / revMsg=逆位置メッセージ
+  {name:'愚者',    num:'0',   en:'The Fool',         score:72,revScore:58,msg:'新たな旅の始まりを告げる。恐れず飛び込む先に奇跡が待つ。',revMsg:'無謀な突進は逆効果。今一度立ち止まり、タイミングを見極めよ。'},
+  {name:'魔術師',  num:'I',   en:'The Magician',     score:88,revScore:62,msg:'全ての力が手中に揃った。今引けば望みは現実になる。',revMsg:'力が空回りしている。焦らず準備を整え直す日。'},
+  {name:'女教皇',  num:'II',  en:'High Priestess',   score:82,revScore:64,msg:'内なる知恵が囁く。直感に従えばタイミングは完璧。',revMsg:'直感が曇っている。感情ではなく冷静な判断を優先せよ。'},
+  {name:'女帝',    num:'III', en:'The Empress',      score:86,revScore:66,msg:'豊穣と創造のエネルギー。引き寄せ力が最高潮にある。',revMsg:'過剰な期待が縁を遠ざける。自然体で臨むことが吉。'},
+  {name:'皇帝',    num:'IV',  en:'The Emperor',      score:84,revScore:63,msg:'意志の強さが運命を制す。確固たる覚悟で挑め。',revMsg:'支配欲が裏目に出る恐れ。柔軟性を持って動け。'},
+  {name:'法王',    num:'V',   en:'The Hierophant',   score:78,revScore:61,msg:'伝統と縁が結びつく。王道のタイミングに乗ること。',revMsg:'慣習に縛られすぎている。今日は常識の外に答えがある。'},
+  {name:'恋人',    num:'VI',  en:'The Lovers',       score:91,revScore:65,msg:'強い縁が働いている。狙いのキャラとの絆は本物だ。',revMsg:'選択を誤りやすい時。直感より熟考を優先せよ。'},
+  {name:'戦車',    num:'VII', en:'The Chariot',      score:87,revScore:64,msg:'前進あるのみ。迷いを捨てた瞬間に星が動く。',revMsg:'暴走に注意。速さより方向の正確さが今日の鍵。'},
+  {name:'力',      num:'VIII',en:'Strength',         score:85,revScore:65,msg:'内なる勇気が鍵。静かな情熱が引き寄せを加速させる。',revMsg:'内なる迷いが力を封じている。自己信頼を取り戻せ。'},
+  {name:'隠者',    num:'IX',  en:'The Hermit',       score:73,revScore:60,msg:'準備期間。焦らず待てば好機は必ず巡ってくる。',revMsg:'孤立や思い込みに注意。周囲の声に耳を傾けよ。'},
+  {name:'運命の輪',num:'X',   en:'Wheel of Fortune', score:89,revScore:63,msg:'運命が大きく動く。今が転換点。流れに乗れ。',revMsg:'流れに逆らっている。今は抵抗せず待つことが賢明。'},
+  {name:'正義',    num:'XI',  en:'Justice',          score:79,revScore:62,msg:'バランスと公正。正しい時刻に引けば応報がある。',revMsg:'不公平・自己欺瞞に注意。誠実さを取り戻すことが先決。'},
+  {name:'吊られた男',num:'XII',en:'The Hanged Man',  score:68,revScore:55,msg:'視点を変える時。逆転の発想が新たな運を呼ぶ。',revMsg:'停滞を手放せていない。思い切った決断が突破口を開く。'},
+  {name:'死神',    num:'XIII',en:'Death',            score:76,revScore:58,msg:'終わりは始まり。古い縁が切れ、新たな出会いが来る。',revMsg:'変化への抵抗が運気を滞らせる。古いものを手放す勇気を。'},
+  {name:'節制',    num:'XIV', en:'Temperance',       score:81,revScore:63,msg:'調和と中庸。急がない者に女神は微笑む。',revMsg:'バランスが崩れている。衝動的な行動は本日控えよ。'},
+  {name:'悪魔',    num:'XV',  en:'The Devil',        score:71,revScore:57,msg:'執着を解放せよ。欲望のままに動けば縁が離れる。',revMsg:'束縛から解放されつつある。今こそ自由な選択を。吉転の予兆。'},
+  {name:'塔',      num:'XVI', en:'The Tower',        score:65,revScore:60,msg:'突破口が開く予兆。衝撃の後に真の幸運が訪れる。',revMsg:'崩壊は避けられないが規模は小さい。備えることで吉転できる。'},
+  {name:'星',      num:'XVII',en:'The Star',         score:92,revScore:67,msg:'最高の希望。宇宙が「引け」とサインを送っている。',revMsg:'希望が遠のいて見える時。しかし星の光は消えない。信じて待て。'},
+  {name:'月',      num:'XVIII',en:'The Moon',        score:77,revScore:59,msg:'霧の中でも直感が光る。感じるままに動くことが正解。',revMsg:'幻想に惑わされやすい日。現実を直視してから動け。'},
+  {name:'太陽',    num:'XIX', en:'The Sun',          score:95,revScore:72,msg:'最強の祝福。今日は何をしても吉。迷わず引くべき日。',revMsg:'幸運はあるが過信は禁物。感謝の心を忘れずに動け。'},
+  {name:'審判',    num:'XX',  en:'Judgement',        score:83,revScore:62,msg:'目覚めの時。過去の縁が今甦る。新章の幕開け。',revMsg:'過去への後悔が足を引っ張る。清算してから前に進め。'},
+  {name:'世界',    num:'XXI', en:'The World',        score:93,revScore:70,msg:'完成と達成。全ての準備が整った。今こそが運命の時刻。',revMsg:'完成まであと一歩。焦らず最後の仕上げに集中せよ。'},
+];
+// ④ タロット正逆位置判定
+function getTarotWithOrientation(date,seed){
+  const idx=Math.floor(seededRand(seed)*TAROT_MAJOR.length);
+  const card=TAROT_MAJOR[idx];
+  // 日付シードのビット1で正逆を決定（50%確率）
+  const reversed=Math.floor(seededRand(seed+777)*2)===1;
+  return{
+    ...card,
+    reversed,
+    activeScore:reversed?card.revScore:card.score,
+    activeMsg:reversed?card.revMsg:card.msg,
+    orientation:reversed?'逆位置🔄':'正位置✨'
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//   西洋占星術
+// ═══════════════════════════════════════════════════
+const ZODIAC_ELEMENT={'牡羊座':'火','獅子座':'火','射手座':'火','牡牛座':'地','乙女座':'地','山羊座':'地','双子座':'風','天秤座':'風','水瓶座':'風','蟹座':'水','蠍座':'水','魚座':'水'};
+const ZODIAC_SCORE={'牡羊座':86,'牡牛座':79,'双子座':83,'蟹座':78,'獅子座':89,'乙女座':81,'天秤座':84,'蠍座':87,'射手座':88,'山羊座':80,'水瓶座':85,'魚座':82};
+const ZODIAC_MSG={'牡羊座':'火のエレメント全開。行動力と決断力が最大化。「引きたい」と思った瞬間が勝負。','牡牛座':'地のエネルギーが安定を呼ぶ。腰を据えた計画的な引き方が大吉を引き寄せる。','双子座':'風の知恵が直感を研ぎ澄ます。複数の候補時刻を試す柔軟戦術が吉。','蟹座':'月の子よ、感情の潮が最高潮の時が来ている。胸が熱くなった瞬間に引け。','獅子座':'太陽の申し子。自信に満ちた覇気がSSRを呼び込む。王者として挑め。','乙女座':'細部への注意力がラッキータイムの精度を高める。分析した最適時刻を逃すな。','天秤座':'金星の愛が引き寄せ力を最大化。美しいと感じた瞬間が最強のタイミング。','蠍座':'冥王星の深き力。執念と情熱が運命を動かす。一度決めたら揺らがず引け。','射手座':'木星の幸運が降り注ぐ日。楽観と直感を全解放すれば奇跡は必然になる。','山羊座':'土星の積み重ねが実る時。計画と実行の一致が大当たりへの最短路。','水瓶座':'天王星の閃きが炸裂する。常識を破った意外な時刻が真のゴールデンタイム。','魚座':'海王星の霊感が宿る。夢とも覚醒ともつかない境界線の時刻に奇跡が起きる。'};
+
+// ═══════════════════════════════════════════════════
+//   六曜
+// ═══════════════════════════════════════════════════
+function getLunarMonthDay(date){
+  const REF=new Date(2026,1,17);
+  const MONTH_DAYS=[30,29,30,30,29,30,29,30,29,30,30,29];
+  const diff=Math.floor((date-REF)/86400000);
+  let m=1,d=1+diff;
+  if(d>=1){while(true){const len=MONTH_DAYS[(m-1)%12];if(d<=len)break;d-=len;m++;}}
+  else{while(d<=0){m--;if(m<=0)m+=12;d+=MONTH_DAYS[(m-1)%12];}}
+  return[m,d];
+}
+function getRokuyo(date){
+  const[monthLunar,dayLunar]=getLunarMonthDay(new Date(date));
+  const idx=((monthLunar+dayLunar)%6+6)%6;
+  // 六曜 bonus 設計根拠（江戸期暦注研究+現代吉凶辞典統合）:
+  // 大安(7)=万事最吉 / 先勝(4)=午前強吉・午後凶 / 友引(2)=縁を結ぶ吉
+  // 先負(1)=午後から吉転換・微吉 / 赤口(-3)=正午のみ吉・概ね凶
+  // 仏滅(-5)=最凶だが旧暦上の節目で強いエネルギーの転換点
+  const base=[{name:'大安',icon:'◎',msg:'万事に最吉。ガチャに全力投球できる日。',bonus:7,goodHours:null,badHours:null},
+    {name:'赤口',icon:'△',msg:'正午前後のみ吉。11:30〜12:30が狙い目。',bonus:-3,goodHours:[11,12],badHours:null},
+    {name:'先勝',icon:'○',msg:'午前中が吉、午後は凶。AM中に引くべし。',bonus:4,goodHours:[6,7,8,9,10,11],badHours:[13,14,15,16,17,18,19,20,21,22,23]},
+    {name:'友引',icon:'○',msg:'友を引き込む縁が強い吉日。良縁を呼ぶ。',bonus:2,goodHours:null,badHours:null},
+    {name:'先負',icon:'△',msg:'午後から吉転換。15:00以降のガチャが◎。',bonus:1,goodHours:[15,16,17,18,19,20,21,22,23],badHours:[6,7,8,9,10,11,12]},
+    {name:'仏滅',icon:'✕',msg:'全てが凶。本日は石の温存を推奨。',bonus:-5,goodHours:null,badHours:null}][idx];
+  return base;
+}
+
+// ═══════════════════════════════════════════════════
+//   四柱推命
+// ═══════════════════════════════════════════════════
+const STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const SETSU_DATES=[6,4,6,5,6,6,7,8,8,8,8,7];
+function getDayPillar(date){
+  const d=Math.floor((date.getTime()-date.getTimezoneOffset()*60000)/86400000);
+  const stemIdx=(d+7)%10,branchIdx=(d+5)%12;
+  const ELEM_MAP=['木','木','火','火','土','土','金','金','水','水'];
+  return{pillar:STEMS[stemIdx]+BRANCHES[branchIdx],stem:STEMS[stemIdx],branch:BRANCHES[branchIdx],element:ELEM_MAP[stemIdx],stemIdx,branchIdx};
+}
+function getMonthYearPillar(date){
+  const yr=date.getFullYear(),mo=date.getMonth(),day=date.getDate();
+  const yearStemIdx=(yr-1924)%10,yearBranchIdx=((yr-1924)%12+12)%12;
+  const adjustedMo=day>=SETSU_DATES[mo]?mo:(mo-1+12)%12;
+  const lunarMonthIdx=(adjustedMo-1+12)%12;
+  const monthStemIdx=(yearStemIdx%5*2+2+lunarMonthIdx)%10,monthBranchIdx=(lunarMonthIdx+2)%12;
+  return{yearPillar:STEMS[yearStemIdx]+BRANCHES[yearBranchIdx],monthPillar:STEMS[monthStemIdx]+BRANCHES[monthBranchIdx]};
+}
+function getShichu(birthdate){
+  // ════════════════════════════════════════════
+  // 四柱推命 四柱統合 + 通変星 + 十二運
+  // 根拠: 命式の日主(生日の天干)を軸に通変星で運勢解析
+  // 通変星: 日主と他柱天干の関係（比肩/劫財/食神/傷官/偏財/正財/偏官/正官/偏印/印綬）
+  // 十二運: 地支×日主の生死サイクル（長生・沐浴・冠帯・建禄・帝旺・衰・病・死・墓・絶・胎・養）
+  // ════════════════════════════════════════════
+  const ELEM_MAP=['木','木','火','火','土','土','金','金','水','水'];
+  const STEM_YIN= [false,true,false,true,false,true,false,true,false,true]; // 陽/陰
+  // 通変星テーブル (日主の五行 → 他天干の五行 → 通変星)
+  const TSUHEN={
+    木:{木:{陽:'比肩',陰:'劫財'},火:{陽:'食神',陰:'傷官'},土:{陽:'偏財',陰:'正財'},金:{陽:'偏官',陰:'正官'},水:{陽:'偏印',陰:'印綬'}},
+    火:{火:{陽:'比肩',陰:'劫財'},土:{陽:'食神',陰:'傷官'},金:{陽:'偏財',陰:'正財'},水:{陽:'偏官',陰:'正官'},木:{陽:'偏印',陰:'印綬'}},
+    土:{土:{陽:'比肩',陰:'劫財'},金:{陽:'食神',陰:'傷官'},水:{陽:'偏財',陰:'正財'},木:{陽:'偏官',陰:'正官'},火:{陽:'偏印',陰:'印綬'}},
+    金:{金:{陽:'比肩',陰:'劫財'},水:{陽:'食神',陰:'傷官'},木:{陽:'偏財',陰:'正財'},火:{陽:'偏官',陰:'正官'},土:{陽:'偏印',陰:'印綬'}},
+    水:{水:{陽:'比肩',陰:'劫財'},木:{陽:'食神',陰:'傷官'},火:{陽:'偏財',陰:'正財'},土:{陽:'偏官',陰:'正官'},金:{陽:'偏印',陰:'印綬'}},
+  };
+  // 通変星のガチャ運気スコア（財=縁が来る吉, 印=守護吉, 官=プレッシャー, 比劫=競合）
+  const TSUHEN_SCORE={比肩:+1,劫財:-1,食神:+4,傷官:+2,偏財:+5,正財:+4,偏官:-2,正官:+2,偏印:+3,印綬:+4};
+  // 十二運テーブル（日主五行 × 月支 → 十二運）
+  const JUNI_UN_TBL={
+    木:{寅:'建禄',卯:'帝旺',辰:'衰',巳:'病',午:'死',未:'墓',申:'絶',酉:'胎',戌:'養',亥:'長生',子:'沐浴',丑:'冠帯'},
+    火:{巳:'建禄',午:'帝旺',未:'衰',申:'病',酉:'死',戌:'墓',亥:'絶',子:'胎',丑:'養',寅:'長生',卯:'沐浴',辰:'冠帯'},
+    土:{寅:'長生',卯:'沐浴',辰:'冠帯',巳:'建禄',午:'帝旺',未:'衰',申:'病',酉:'死',戌:'墓',亥:'絶',子:'胎',丑:'養'},
+    金:{申:'建禄',酉:'帝旺',戌:'衰',亥:'病',子:'死',丑:'墓',寅:'絶',卯:'胎',辰:'養',巳:'長生',午:'沐浴',未:'冠帯'},
+    水:{亥:'建禄',子:'帝旺',丑:'衰',寅:'病',卯:'死',辰:'墓',巳:'絶',午:'胎',未:'養',申:'長生',酉:'沐浴',戌:'冠帯'},
+  };
+  const JUNI_SCORE={長生:+6,沐浴:+2,冠帯:+4,建禄:+7,帝旺:+8,衰:-1,病:-3,死:-5,墓:-4,絶:-6,胎:+1,養:+3};
+
+  const now=new Date();
+  const dp=getDayPillar(now);
+  const{yearPillar,monthPillar}=getMonthYearPillar(now);
+  const ELEM_MSG={木:'成長と発展の気',火:'情熱と行動の気',土:'安定と収穫の気',金:'権威と豊かさの気',水:'流れと知恵の気'};
+
+  const bd=new Date(birthdate);
+  const byear=bd.getFullYear(),bmo=bd.getMonth(),bday=bd.getDate();
+  const yStemIdx=((byear-1924)%10+100)%10, yBranchIdx=((byear-1924)%12+120)%12;
+  const adjMo=bday>=SETSU_DATES[bmo]?bmo:(bmo-1+12)%12;
+  const mStemIdx=(yStemIdx%5*2+2+(adjMo-1+12)%12)%10, mBranchIdx=((adjMo-1+12)%12+2)%12;
+  const bdp=getDayPillar(bd);
+
+  // 日主（生日天干）の五行と陰陽
+  const nichishu_elem=ELEM_MAP[bdp.stemIdx];
+  const nichishu_yin=STEM_YIN[bdp.stemIdx];
+
+  // 今日の四柱
+  const nowYear=getMonthYearPillar(now);
+  const nowDp=getDayPillar(now);
+  const nowHour=now.getHours();
+  const hourStemIdx=(nowDp.stemIdx*2+Math.floor(nowHour/2))%10;
+  const hourBranchIdx=Math.floor(nowHour/2)%12; // 子時=0, 丑時=1 ...
+  const hourPillar=STEMS[hourStemIdx]+BRANCHES[hourBranchIdx];
+
+  // 通変星計算（日主×今日の年天干・月天干・日天干・時天干）
+  function getTsuhen(targetStemIdx){
+    const te=ELEM_MAP[targetStemIdx];
+    const ty=STEM_YIN[targetStemIdx];
+    if(!TSUHEN[nichishu_elem]||!TSUHEN[nichishu_elem][te])return null;
+    return TSUHEN[nichishu_elem][te][ty?'陰':'陽'];
+  }
+  const yearStemIdx=nowYear.yearPillar?STEMS.indexOf(nowYear.yearPillar[0]):-1;
+  const monthStemIdx2=nowYear.monthPillar?STEMS.indexOf(nowYear.monthPillar[0]):-1;
+  const t_year =yearStemIdx>=0?getTsuhen(yearStemIdx):null;
+  const t_month=monthStemIdx2>=0?getTsuhen(monthStemIdx2):null;
+  const t_day  =getTsuhen(nowDp.stemIdx);
+  const t_hour =getTsuhen(hourStemIdx);
+
+  // 四柱通変星スコア統合（年15%+月30%+日40%+時15%）
+  const s_year =(t_year ?TSUHEN_SCORE[t_year ]||0:0)*0.15;
+  const s_month=(t_month?TSUHEN_SCORE[t_month]||0:0)*0.30;
+  const s_day  =(t_day  ?TSUHEN_SCORE[t_day  ]||0:0)*0.40;
+  const s_hour =(t_hour ?TSUHEN_SCORE[t_hour ]||0:0)*0.15;
+  const tsuhenScore=Math.round(s_year+s_month+s_day+s_hour);
+
+  // 十二運（今日の月支×日主五行）
+  const nowMonthBranch=nowYear.monthPillar?BRANCHES.indexOf(nowYear.monthPillar[1]):- 1;
+  const juniUn=nowMonthBranch>=0?((JUNI_UN_TBL[nichishu_elem]&&JUNI_UN_TBL[nichishu_elem][BRANCHES[nowMonthBranch]])||''):'';
+  const juniScore=juniUn?JUNI_SCORE[juniUn]||0:0;
+
+  // 合計ボーナス
+  const totalBonus=tsuhenScore+Math.round(juniScore*0.5);
+
+  return{
+    yearPillar:nowYear.yearPillar,monthPillar:nowYear.monthPillar,
+    dayPillar:nowDp.pillar,hourPillar,
+    dayElement:nowDp.element,
+    dayMessage:ELEM_MSG[nowDp.element]||'変化の気',
+    nichishu:bdp.pillar,nichishu_elem,
+    tsuhen:{year:t_year,month:t_month,day:t_day,hour:t_hour},
+    juniUn,juniScore,tsuhenScore,totalBonus,
+    birth:{year:STEMS[yStemIdx]+BRANCHES[yBranchIdx],month:STEMS[mStemIdx]+BRANCHES[mBranchIdx],day:bdp.pillar}
+  };
+}
+
+// ═══════════════════════════════════════════════════
+//   乱数
+// ═══════════════════════════════════════════════════
+function seededRand(seed){let x=Math.sin(seed+1)*73856.793;return x-Math.floor(x);}
+
+// ═══════════════════════════════════════════════════
+//   MAIN FORTUNE CALCULATOR
+// ═══════════════════════════════════════════════════
+function calculateFortune(params){
+  const{gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,birthdate,zodiac,bloodType,eto,pickupRate,pityCount,currentPulls}=params;
+  const now=new Date();
+  const month=now.getMonth()+1,year=now.getFullYear();
+
+  // キャッシュ
+  const today=new Date();
+  const todayStr=`${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
+  // v3: pinpointをオブジェクト形式に変更 → バージョン付きキーで旧キャッシュを自動破棄
+  const CACHE_VER='v4';
+  const cacheKey=`${CACHE_VER}|${todayStr}|${gameTitle}|${targetName}|${gachaTitle}|${gachaDeadline}`;
+  try{
+    const cachedRaw=SS.get('gachaOracle_result');
+    const cachedKey=SS.get('gachaOracle_key');
+    // バージョン一致 + キー一致のみ使用
+    if(cachedRaw&&cachedKey===cacheKey){
+      const parsed=JSON.parse(cachedRaw);
+      // 旧形式チェック: pinpointがオブジェクトでない場合は無効
+      const firstTime=parsed&&parsed.luckyTimes&&parsed.luckyTimes[0];
+      if(firstTime&&firstTime.pinpoint&&typeof firstTime.pinpoint==='object'&&firstTime.pinpoint.range){
+        return parsed;
+      }
+    }
+    // バージョン違い or 不正データ → 全削除
+    SS.remove('gachaOracle_result');
+    SS.remove('gachaOracle_key');
+  }catch(e){}
+
+  const moonData=getMoonAge(now);
+  const moonPhase=getMoonPhaseInfo(moonData.age);
+  const birthYear=birthdate?parseInt(birthdate.split('-')[0]):null;
+  const kyusei=getKyusei(year,month,birthYear,birthdate);
+  const dayKyusei=getDayKyusei(now); // ② 日盤九星
+  const rokuyo=getRokuyo(now);
+  const lifePath=calcLifePath(birthdate);
+  const lpInfo=LIFEPATH_INFO[lifePath]||null;
+  const shichu=birthdate?getShichu(birthdate):null;
+  const dateSeed=year*10000+month*100+now.getDate();
+  const tarot=getTarotWithOrientation(now,dateSeed);
+  const ziwei=getRyuNichi(now); // ③ 紫微斗数
+
+  let score=60;
+  score+=moonPhase.luckBonus;
+  score+=rokuyo.bonus;
+  // 九星気学三盤統合: compat(-8〜+8) ×0.7で寄与
+  score+=Math.round(kyusei.compat*0.7);
+  score+=Math.round((tarot.activeScore-78)/5); // ④ タロット正逆位置: activeScore使用
+  if(zodiac)score+=Math.round(((ZODIAC_SCORE[zodiac]||80)-78)/4); // 西洋占星術: 中心78
+  const bloodBonus={'A型':2,'B型':4,'O型':3,'AB型':5};
+  if(bloodType)score+=bloodBonus[bloodType]||0;
+  if(lpInfo)score+=Math.round(lpInfo.bonus*0.45); // 数秘術LP: 寄与を適切化
+  if(birthdate){
+    // 誕生日の「日」を1桁に還元し、今日の日付との数秘的共鳴を計算
+    const bd=new Date(birthdate);
+    const bdNum=bd.getDate()>9?(Math.floor(bd.getDate()/10)+bd.getDate()%10):bd.getDate();
+    const todayNum=new Date().getDate()>9?(Math.floor(new Date().getDate()/10)+new Date().getDate()%10):new Date().getDate();
+    score+=bdNum===todayNum?4:Math.abs(bdNum-todayNum)<=2?2:0; // 誕生日数と今日の数の近似で吉
+  }
+  const etoBonus={子:3,丑:1,寅:4,卯:3,辰:5,巳:2,午:4,未:3,申:2,酉:5,戌:3,亥:2};
+  if(eto)score+=etoBonus[eto]||0;
+  if(targetName){const cs=targetName.split('').reduce((a,c)=>a+c.charCodeAt(0),0);score+=2+(cs%7);}
+  if(gachaTitle){const ts=gachaTitle.split('').reduce((a,c)=>a+c.charCodeAt(0),0);score+=1+(ts%5);}
+  if(GAME_DB[gameTitle])score+=3;
+  // ② 日盤九星ボーナス（正統五行相性: 受生+8, 同気+6, 洩気+3, 剋出-3, 受剋-8）×0.6
+  const DAY_COMPAT_MAIN={土:+8,金:+6,水:+3,木:-3,火:-8};
+  score+=Math.round((DAY_COMPAT_MAIN[dayKyusei.element]||0)*0.6);
+  // ② 四柱推命 通変星+十二運 totalBonus をスコアに反映
+  if(shichu)score+=Math.round(shichu.totalBonus*0.6); // totalBonus: -5〜+5 ×0.6
+  // ③ 紫微斗数ボーナス（四化星統合済み）
+  score+=Math.round((ziwei.totalScore-5)*0.6+5*0.6); // 紫微斗数: 中心5.5基準
+  const _scoreBeforeCap=Math.round(score);
+  score=Math.max(52,Math.min(99,_scoreBeforeCap));
+
+  // ── スコア内訳オブジェクト（①ベースの入れ子表示用）──
+  const scoreBreakdown={
+    fixed: 60,
+    moon:   moonPhase.luckBonus,
+    rokuyo_base: rokuyo.bonus,
+    kyusei: Math.round(kyusei.compat*0.7),
+    tarot:  Math.round((tarot.activeScore-78)/5),
+    zodiac: zodiac?Math.round(((ZODIAC_SCORE[zodiac]||80)-78)/4):0,
+    blood:  bloodType?({'A型':2,'B型':4,'O型':3,'AB型':5}[bloodType]||0):0,
+    lp:     lpInfo?Math.round(lpInfo.bonus*0.45):0,
+    bdResonance: (()=>{if(!birthdate)return 0;const bd=new Date(birthdate);const bdN=bd.getDate()>9?(Math.floor(bd.getDate()/10)+bd.getDate()%10):bd.getDate();const tN=new Date().getDate()>9?(Math.floor(new Date().getDate()/10)+new Date().getDate()%10):new Date().getDate();return bdN===tN?4:Math.abs(bdN-tN)<=2?2:0;})(),
+    eto:    eto?({子:3,丑:1,寅:4,卯:3,辰:5,巳:2,午:4,未:3,申:2,酉:5,戌:3,亥:2}[eto]||0):0,
+    target: targetName?(2+(targetName.split('').reduce((a,c)=>a+c.charCodeAt(0),0)%7)):0,
+    gacha:  gachaTitle?(1+(gachaTitle.split('').reduce((a,c)=>a+c.charCodeAt(0),0)%5)):0,
+    game:   GAME_DB[gameTitle]?3:0,
+    dayK:   Math.round((({土:+8,金:+6,水:+3,木:-3,火:-8})[dayKyusei.element]||0)*0.6),
+    shichu: shichu?Math.round(shichu.totalBonus*0.6):0,
+    ziwei:  Math.round((ziwei.totalScore-5)*0.6+5*0.6),
+    cap:    score,
+    // 説明テキスト
+    labels:{
+      fixed:  '固定ベース',
+      moon:   `月齢: ${moonPhase.name}(+${moonPhase.luckBonus})`,
+      rokuyo_base: `六曜: ${rokuyo.name}(${rokuyo.bonus>=0?'+':''}${rokuyo.bonus})`,
+      kyusei: `九星気学三盤統合: ${kyusei.honmei||''}×今月相性(×0.7)`,
+      tarot:  `タロット: ${tarot.name}${tarot.reversed?'[逆]':'[正]'}`,
+      zodiac: zodiac?`西洋占星術: ${zodiac}`:'（未設定）',
+      blood:  bloodType?`血液型: ${bloodType}`:'（未設定）',
+      lp:     lpInfo?`数秘術LP${lifePath}: ${lpInfo.kw||''}(×0.45)`:'（誕生日未設定）',
+      bdResonance: '誕生日数と今日の数の共鳴',
+      eto:    eto?`干支: ${eto}年`:'（未設定）',
+      target: targetName?`狙いキャラ: ${targetName}`:'（未設定）',
+      gacha:  gachaTitle?`ガチャ名: ${gachaTitle}`:'（未設定）',
+      game:   GAME_DB[gameTitle]?`対応ゲーム: ${gameTitle}`:'（未設定）',
+      dayK:   `日盤九星×本命星: ${dayKyusei.name}(×0.6)`,
+      shichu: shichu?`四柱推命 通変星+十二運(×0.6)`:'（誕生日未設定）',
+      ziwei:  `紫微斗数 流年宮スコア(×0.6)`,
+    }
+  };
+
+  const luckyTimes=generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,gameTitle,moonPhase,rokuyo,now});
+  const divinations=buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,now});
+  const pulls=calcPulls(score,targetName);
+  const actions=buildActions(score,targetName,gachaTitle,tarot,moonPhase);
+  const pickupCalc=calcPickupProbability({pickupRate,pityCount,currentPulls,targetName});
+  const todayHotTimes=calcTodayHotTimes(score,gameTitle,now,{kyusei,dayKyusei,eto,bloodType,zodiac,lifePath:lifePath?{num:lifePath}:null,shichu});
+
+  const result={gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,score,pulls,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,lifePath,shichu,ziwei,pickupCalc,todayHotTimes,scoreBreakdown,inputs:{zodiac,bloodType,eto}};
+  try{
+    SS.set('gachaOracle_result',JSON.stringify(result));
+    SS.set('gachaOracle_key',cacheKey);
+    // scoreBreakdown は別キーで永続保存（リセット後も内訳を保持）
+    const _bkEntry={breakdown:scoreBreakdown,savedAt:new Date().toISOString(),score:score};
+    SS.set('gachaOracle_breakdown',JSON.stringify(_bkEntry));
+    // 履歴に追加（直近5件を保持）
+    try{
+      const _hist=JSON.parse(SS.get('gachaOracle_history')||'[]');
+      _hist.unshift({
+        savedAt:new Date().toISOString(),
+        score:score,
+        gameTitle:gameTitle,
+        targetName:targetName||'',
+        gachaTitle:gachaTitle||'',
+        luckyTimes:(luckyTimes||[]).slice(0,3).map(t=>({date:t.date,weekday:t.weekday,time:t.time,score:t.score,rokuyo:t.rokuyo})),
+        breakdown:scoreBreakdown,
+        verdict:score>=90?'大吉':score>=80?'中吉':score>=70?'吉':score>=60?'小吉':'末吉'
+      });
+      SS.set('gachaOracle_history',JSON.stringify(_hist.slice(0,5)));
+    }catch(e){}
+  }catch(e){}
+  return result;
+}
+
+// ═══════════════════════════════════════════════════
+//   ラッキータイム生成
+// ═══════════════════════════════════════════════════
+function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,gameTitle,moonPhase,rokuyo,now}){
+  const times=[],gdb=GAME_DB[gameTitle]||{};
+  const LUCKY_MINS=[7,11,17,22,27,33,37,44,47,55];
+  function makeInputSeed(str){let h=0;for(let i=0;i<str.length;i++)h=((h<<5)-h+str.charCodeAt(i))|0;return Math.abs(h);}
+  const inputSeedStr=`${targetName||''}|${gachaTitle||''}|${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  const inputSeed=makeInputSeed(inputSeedStr);
+  function seededR(offset){const x=Math.sin(inputSeed+offset+1)*73856.793;return x-Math.floor(x);}
+  function selectHour(rank, rokuyo){
+    // 赤口の場合は正午帯(11-12)を優先
+    if(rokuyo&&rokuyo.name==='赤口'&&rank===0)return 11;
+    // 先勝は午前優先
+    if(rokuyo&&rokuyo.name==='先勝'&&rank<=1){const amH=[7,8,9,10,11];return amH[(inputSeed+rank)%amH.length];}
+    // 先負は午後優先
+    if(rokuyo&&rokuyo.name==='先負'&&rank<=1){const pmH=[15,16,17,18,19,20];return pmH[(inputSeed+rank)%pmH.length];}
+    if(gdb.luckyHours&&gdb.luckyHours.length>0){const offset=(inputSeed+rank)%gdb.luckyHours.length;return gdb.luckyHours[offset];}
+    const dh=[0,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+    return dh[(inputSeed%dh.length+rank*3)%dh.length];
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  激アツ時間帯：10連×推奨回数を考慮した幅のある時間帯
+  //  1連目のピンポイント分を基点に、1連約3分×10連として
+  //  「推奨連数分の所要時間」を帯幅に設定
+  //  例: 推奨2連なら約20分幅 → 19:22〜19:42
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  function calcPinpoint(h, rank, tenPullsCount){
+    // 1連目開始分をシードで決定
+    let startMin;
+    if(h===11||h===22){ startMin=h%60; }
+    else{ startMin=LUCKY_MINS[Math.floor(seededR(rank)*LUCKY_MINS.length)]; }
+    // 1連あたり約3分 × 10連 × 推奨連数 = 帯幅（最低10分、最大50分）
+    const pullsForWidth=Math.max(1,tenPullsCount||1);
+    const widthMin=Math.min(50,Math.max(10,pullsForWidth*10+5));
+    const endMin=startMin+widthMin;
+    // 時間をまたぐ場合
+    const endH=endMin>=60?h+1:h;
+    const endM=endMin%60;
+    const fmt=(hh,mm)=>`${String(hh%24).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+    return{
+      start:fmt(h,startMin),
+      end:  fmt(endH,endM),
+      range:`${fmt(h,startMin)} 〜 ${fmt(endH,endM)}`,
+      width:widthMin,
+    };
+  }
+
+  function getDateDiv(date){
+    const dp=getDayPillar(date);
+    const dRokuyo=getRokuyo(date);
+    const dMoon=getMoonPhaseInfo(getMoonAge(date).age);
+    // 日盤九星×七赤金星(金)の五行相性（九星気学正統理論）:
+    // 土生金(+4)=土は金を生む最良の関係 / 金比和(+3)=同気で力が倍増
+    // 金克木(+1)=克すことで消耗するが一定の力を発揮 / 金生水(-2)=気が流出
+    // 火克金(-4)=克される最悪の関係
+    const beb={土:4,金:3,木:1,水:-2,火:-4};
+    return{dp,dRokuyo,dMoon,pillarBonus:(beb[dp.element]!=null?beb[dp.element]:0),isLucky:gdb.luckyDays?gdb.luckyDays.includes(date.getDay()):false};
+  }
+
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  //  calcRawScore: 候補日ごとに全動的占術を計算
+  //  ✅ 六曜（候補日）     ✅ 月齢（候補日）   ✅ 日柱五行（候補日）
+  //  ✅ 数秘術UD（候補日） ✅ 日盤九星（候補日）✅ 紫微斗数流日（候補日）
+  //  ✅ タロット（候補日）
+  // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  function calcRawScore(date,dayIndex,forceHour){
+    const{dRokuyo,dMoon,pillarBonus,isLucky}=getDateDiv(date);
+    // ① 六曜×時間帯: forceHour（selectHour結果）で評価。未指定時は現在時刻
+    //    未来候補日はdate.getHours()=0になるため、必ずforceHourを渡すこと
+    const evalHour=forceHour!==undefined?forceHour:date.getHours();
+    const rokuyoTimeBonus=dRokuyo.goodHours&&dRokuyo.goodHours.includes(evalHour)?5
+      :dRokuyo.badHours&&dRokuyo.badHours.includes(evalHour)?-4:0;
+    let s=score
+      +Math.round(dRokuyo.bonus*1.0)            // 六曜（主軸）: -5〜+7
+      +rokuyoTimeBonus                          // ① 六曜×時間帯（selectHour時刻ベース）: -4〜+5
+      +Math.round(dMoon.luckBonus*0.7)          // 月齢（主軸）: +1.4〜+6.3
+      +pillarBonus                              // 日柱五行×本命星（主軸）: -4〜+4
+      +(isLucky?5:0);                           // ゲーム固有ラッキーデー
+
+    // ① 数秘術 UD（候補日）
+    const dateUD=getUniversalDay(date);
+    const udRel=LP4_UD_MATRIX[dateUD]||LP4_UD_MATRIX[9];
+    s+=Math.round((udRel.score-5.5)*0.9);       // 数秘UD（補助）: -4〜+4 中心5.5で正規化
+
+    // ④ 四柱推命: 候補日の日干×日主(乙=木)の通変星スコア
+    // 日主=乙(木)固定。候補日天干の五行と陰陽から通変星を判定し寄与させる
+    {const EM=['木','木','火','火','土','土','金','金','水','水'];
+     const SY=[false,true,false,true,false,true,false,true,false,true];
+     const cdp=getDayPillar(date);
+     const te=EM[cdp.stemIdx],ty=SY[cdp.stemIdx];
+     // 乙(陰木)視点: 比肩=同気+1, 劫財(陽木)=+2, 食神+4, 傷官+3, 偏財+5, 正財+4, 偏官-2, 正官+2, 偏印+3, 印綬+5
+     const TS={木:{false:1,true:2},火:{false:4,true:3},土:{false:5,true:4},金:{false:-2,true:2},水:{false:3,true:5}};
+     s+=Math.round(((TS[te]||{})[ty]||0)*0.4);} // ×0.4で日柱のみの寄与
+
+    // ② 日盤九星（候補日）× 本命星(七赤金星=金)五行相性 ×0.5
+    // 受生(土)+4, 同気(金)+3, 洩気(水)+2, 剋出(木)-2, 受剋(火)-4
+    const dateDayK=getDayKyusei(date);
+    const DAYK_C={土:4,金:3,水:2,木:-2,火:-4};
+    s+=DAYK_C[dateDayK.element]||0;
+
+    // ③ 紫微斗数 流日宮（候補日）
+    const dateZw=getRyuNichi(date);
+    s+=Math.round((dateZw.totalScore-5)*0.7);    // 紫微斗数（補助）: -2.8〜+3.5
+
+    // ④ タロット（候補日シード）
+    const dSeed=date.getFullYear()*10000+(date.getMonth()+1)*100+date.getDate();
+    const dTarot=getTarotWithOrientation(date,dSeed);
+    s+=Math.round((dTarot.activeScore-78)/6);     // ④ タロット正逆位置: 正位置65〜95, 逆位置55〜72
+
+    // 摂動（入力×日付固有のゆらぎ）
+    const pv=Math.sin(inputSeed*9301+dayIndex*49297+233)*10000;
+    s+=Math.round((pv-Math.floor(pv))*4)-2;      // 摂動（微調整に縮小）: -2〜+2
+
+    return Math.max(40,Math.min(99,Math.round(s)));
+  }
+  function applyRankPenalty(raw,rank){
+    const p=[0,-3,-6,-9,-12];
+    if(rank===0&&targetName)return Math.min(99,raw+4);
+    return Math.max(40,raw+(p[rank]||0));
+  }
+  function tenPulls(s,rank){if(rank===0&&s>=90)return 3;if(rank===0&&s>=80)return 2;if(rank===1&&s>=85)return 2;return rank<=2?2:1;}
+  function buildEntry(date,rank,hour,rawScore,passed=false,urgent=false){
+    const m=date.getMonth()+1,d=date.getDate();
+    const{dp,dRokuyo,dMoon,pillarBonus,isLucky}=getDateDiv(date);
+    const ts=applyRankPenalty(rawScore,rank);
+    const tp=tenPulls(ts,rank);
+    // ══════════════════════════════════════════════════
+    // スコア内訳: calcRawScore の計算式と完全一致させる
+    // 表示の合計 = rawScoreBeforePenalty = tsと一致
+    // ══════════════════════════════════════════════════
+    const DAYK_C2={土:4,金:3,水:2,木:-2,火:-4};
+    const dateKyusei=getDayKyusei(date);
+    const dateZw2=getRyuNichi(date);
+    const dSeed2=date.getFullYear()*10000+(date.getMonth()+1)*100+date.getDate();
+    const dTarot2=getTarotWithOrientation(date,dSeed2);
+    const dateUD2=getUniversalDay(date);
+    const udRel2=LP4_UD_MATRIX[dateUD2]||LP4_UD_MATRIX[9];
+    const rtbH=dRokuyo.goodHours&&dRokuyo.goodHours.includes(hour)?5
+      :dRokuyo.badHours&&dRokuyo.badHours.includes(hour)?-4:0;
+    const rtbLabel=rtbH===5?'✅吉':rtbH===-4?'⛔凶':'　';
+    // 四柱推命 日柱通変星（乙=陰木の日主）
+    const _EM2=['木','木','火','火','土','土','金','金','水','水'];
+    const _SY2=[false,true,false,true,false,true,false,true,false,true];
+    const _TS2={木:{false:1,true:2},火:{false:4,true:3},土:{false:5,true:4},金:{false:-2,true:2},水:{false:3,true:5}};
+    const _cdp2=getDayPillar(date);
+    const _tsuhenScore2=Math.round(((_TS2[_EM2[_cdp2.stemIdx]]||{})[_SY2[_cdp2.stemIdx]]||0)*0.4);
+    // 摂動（calcRawScoreと同じ式）
+    const _pv2=Math.sin(inputSeed*9301+0*49297+233)*10000; // dayIndex=0で近似
+    const _perturb2=Math.round((_pv2-Math.floor(_pv2))*4)-2;
+    // ランク補正
+    const rankPenaltyV=[0,-3,-6,-9,-12];
+    const rankBonus=(rank===0&&targetName)?4:0;
+    const rankPenalty=rankBonus+(rankPenaltyV[rank]||0);
+    // 各要素の値を変数化（合計検証用）
+    const _v={
+      base: score,                                           // 総合運気（calculateFortune算出）
+      rokuyo: Math.round(dRokuyo.bonus*1.0),                // 六曜
+      jikan: rtbH,                                             // 六曜×時間帯
+      moon: Math.round(dMoon.luckBonus*0.7),                // 月齢
+      pillar: pillarBonus,                                   // 日柱五行×本命星
+      lucky: isLucky?5:0,                                   // ゲーム固有ラッキーデー
+      ud: Math.round((udRel2.score-5.5)*0.9),               // 数秘術UD
+      tsuhen: _tsuhenScore2,                                 // 四柱推命 日柱通変星
+      dayk: DAYK_C2[dateKyusei.element]||0,                 // 日盤九星
+      ziwei: Math.round((dateZw2.totalScore-5)*0.7),        // 紫微斗数
+      tarot: Math.round((dTarot2.activeScore-78)/6),        // タロット
+      perturb: _perturb2,                                   // 摂動
+      rankAdj: rankPenalty,                                  // ランク補正
+    };
+    // 合計がtsと一致するか検証（表示上の整合性確認）
+    const _rawSum=_v.base+_v.rokuyo+_v.jikan+_v.moon+_v.pillar+_v.lucky+_v.ud+_v.tsuhen+_v.dayk+_v.ziwei+_v.tarot+_v.perturb;
+    const _calcTs=Math.max(40,Math.min(99,Math.round(_rawSum)))+rankPenalty;
+    const dbgInfo={
+      v:_v,
+      rawSum:Math.max(40,Math.min(99,Math.round(_rawSum))),
+      rankAdj:rankPenalty,
+      運気スコア:ts,
+      // 表示用文字列
+      base_str:`${score}pt（九星/LP/干支/血液型/月齢/タロット等の総合値）`,
+      rokuyo_str:`${dRokuyo.name} ${_v.rokuyo>=0?'+':''}${_v.rokuyo}`,
+      jikan_str:rtbLabel+` ${_v.jikan>=0?'+':''}${_v.jikan}（${dRokuyo.name}の時間帯補正）`,
+      moon_str:`${dMoon.name} +${_v.moon}（月齢×0.7）`,
+      pillar_str:`${dp.pillar}（${dp.element}）${_v.pillar>=0?'+':''}${_v.pillar}（日柱五行×本命星相性）`,
+      lucky_str:_v.lucky>0?`+${_v.lucky}（このゲームのラッキーデー）`:'なし',
+      ud_str:`UD${dateUD2}「${udRel2.label}」 ${_v.ud>=0?'+':''}${_v.ud}（数秘術）`,
+      tsuhen_str:`${_cdp2.pillar} ${_tsuhenScore2>=0?'+':''}${_tsuhenScore2}（四柱推命 日柱通変星）`,
+      dayk_str:`${dateKyusei.name.slice(0,2)} ${_v.dayk>=0?'+':''}${_v.dayk}（日盤×本命星五行相性）`,
+      ziwei_str:`${dateZw2.mainStar||'流日'} ${_v.ziwei>=0?'+':''}${_v.ziwei}（紫微斗数 流日宮）`,
+      tarot_str:`${dTarot2.name}${dTarot2.reversed?'[逆]':'[正]'} ${_v.tarot>=0?'+':''}${_v.tarot}（タロット）`,
+      perturb_str:`${_v.perturb>=0?'+':''}${_v.perturb}（日付固有の微調整）`,
+      rank_str:rankPenalty>=0?`+${rankPenalty}（${rank===0&&targetName?'狙いキャラ特別加点':'ランク1位'}）`:`${rankPenalty}（第${rank+1}候補ランク補正）`,
+    };
+    return{rank:rank+1,date:`${m}月${d}日`,weekday:['日','月','火','水','木','金','土'][date.getDay()],
+      time:`${String(hour).padStart(2,'0')}:00 〜 ${String((hour+2)%24).padStart(2,'0')}:00`,
+      pinpoint:calcPinpoint(hour,rank,tp),score:ts,tenPulls:tp,
+      special:Boolean(targetName&&rank===0),urgent,passed,isLuckyDay:isLucky,
+      rokuyo:dRokuyo.name,rokuyoIcon:dRokuyo.icon,dayPillar:dp.pillar,dayElement:dp.element,
+      moonPhaseName:dMoon.name,moonPhaseIcon:dMoon.icon,dbgInfo};
+  }
+  if(!gachaDeadline){
+    const pool=[];
+    for(let i=1;i<=14;i++){
+      const tgt=new Date(now);tgt.setDate(tgt.getDate()+i);
+      const dr=getRokuyo(tgt);
+      const preH=selectHour(0,dr); // まず代表時刻(rank0)を算出
+      pool.push({date:tgt,rawScore:calcRawScore(tgt,i,preH),rokuyo:dr});
+    }
+    pool.sort((a,b)=>b.rawScore-a.rawScore);
+    return pool.slice(0,5).map((entry,rank)=>{
+      const h=selectHour(rank,entry.rokuyo);
+      // rankに応じた実際の時刻でスコアを再評価
+      return buildEntry(entry.date,rank,h,calcRawScore(entry.date,0,h),false,false);
+    });
+  }
+  let dl=new Date(gachaDeadline);
+  if(gachaDeadlineTime){const[hh,mm]=gachaDeadlineTime.split(':');dl.setHours(+hh,+mm,0,0);}else{dl.setHours(23,59,59,999);}
+  const dlDateOnly=new Date(dl.getFullYear(),dl.getMonth(),dl.getDate());
+  const diffMs=dl-now,diffHrs=diffMs/3600000;
+  function isValidSlot(date,hour){
+    const sd=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+    if(sd.getTime()>=dlDateOnly.getTime())return false;
+    return new Date(date.getFullYear(),date.getMonth(),date.getDate(),hour,0,0)<dl;
+  }
+  if(diffHrs<=0)return[];
+  if(diffHrs<=24){
+    const step=Math.max(1,Math.floor(diffHrs/5));
+    for(let i=0;i<5;i++){const tgt=new Date(now.getTime()+(step*i+1)*3600000);if(tgt>=dl)break;const rawS=calcRawScore(tgt,0,tgt.getHours());times.push(buildEntry(tgt,i,tgt.getHours(),rawS,false,i===0));}
+    return times;
+  }
+  const pool=[];
+  for(let i=1;i<=14;i++){
+    const tgt=new Date(now);tgt.setDate(tgt.getDate()+i);
+    const tdo=new Date(tgt.getFullYear(),tgt.getMonth(),tgt.getDate());
+    if(tdo.getTime()>=dlDateOnly.getTime())break;
+    const dr=getRokuyo(tgt);
+    const preH=selectHour(0,dr);
+    pool.push({date:tgt,rawScore:calcRawScore(tgt,i,preH),rokuyo:dr});
+  }
+  if(pool.length===0){
+    const step=Math.max(1,Math.floor(diffHrs/5));
+    for(let i=0;i<5;i++){const tgt=new Date(now.getTime()+(step*i+1)*3600000);if(tgt>=dl)break;times.push(buildEntry(tgt,i,tgt.getHours(),calcRawScore(tgt,0,tgt.getHours()),false,i===0));}
+    return times;
+  }
+  pool.sort((a,b)=>b.rawScore-a.rawScore);
+  let rank=0;
+  for(const entry of pool){
+    if(times.length>=5)break;
+    const hour=selectHour(rank,entry.rokuyo);
+    if(!isValidSlot(entry.date,hour))continue;
+    times.push(buildEntry(entry.date,rank,hour,calcRawScore(entry.date,0,hour),false,rank===0));
+    rank++;
+  }
+  return times;
+}
+
+function calcPulls(score,targetName){
+  let ten=score>=90?3:score>=80?2:1;
+  if(targetName)ten=Math.min(5,ten+1);
+  return{ten};
+}
+// ═══════════════════════════════════════════════════
+//   今日の激アツ時刻 生成（占い時刻以降・3候補）
+// ═══════════════════════════════════════════════════
+function calcTodayHotTimes(score,gameTitle,now,divinParams){
+  // ════════════════════════════════════════════════
+  // 本日の激アツ時刻 — 全占術スコアで各時間帯を評価して上位3選出
+  // 反映占術:
+  //   ① 六曜×時間帯吉凶（goodHours/badHours）
+  //   ② 日盤九星×本命星（今日の日盤は固定）
+  //   ③ 紫微斗数 流日宮スコア（今日固定）
+  //   ④ タロット 正逆位置スコア（今日固定）
+  //   ⑤ 四柱推命 時柱通変星（1時間ごとに変化）
+  //   ⑥ ゲーム固有ラッキー時間帯ボーナス
+  // ════════════════════════════════════════════════
+  const gdb=GAME_DB[gameTitle]||{};
+  const LUCKY_MINS=[7,11,17,22,27,33,37,44,47,55];
+  function makeS(str){let h=0;for(let i=0;i<str.length;i++)h=((h<<5)-h+str.charCodeAt(i))|0;return Math.abs(h);}
+  const seed=makeS(`TODAY_HOT|${gameTitle}|${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`);
+  function sr(off){const x=Math.sin(seed+off+1)*73856.793;return x-Math.floor(x);}
+  const curH=now.getHours();
+  const fmt=(hh,mm)=>String(hh%24).padStart(2,'0')+':'+String(mm).padStart(2,'0');
+
+  // ── 今日固定の占術スコアを事前計算 ──
+  const todayRokuyo=getRokuyo(now);
+  const todayDayK=getDayKyusei(now);
+  const DAYK_TODAY={土:4,金:3,水:2,木:-2,火:-4};
+  const dayKScore=DAYK_TODAY[todayDayK.element]||0;
+
+  const todayZw=getRyuNichi(now);
+  const zwScore=Math.round((todayZw.totalScore-5)*0.7);
+
+  const dSeedToday=now.getFullYear()*10000+(now.getMonth()+1)*100+now.getDate();
+  const todayTarot=getTarotWithOrientation(now,dSeedToday);
+  const tarotScore=Math.round((todayTarot.activeScore-78)/6);
+
+  // ── 各時間帯をスコア評価 ──
+  const baseHours=[7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23];
+  const gameHours=gdb.luckyHours&&gdb.luckyHours.length>0?gdb.luckyHours:[];
+  const allHours=[...new Set([...baseHours,...gameHours])].filter(h=>h>curH&&h<=23);
+
+  // 四柱推命 時柱通変星スコア（乙=陰木の日主）
+  const TSUHEN_HR={木:{false:1,true:2},火:{false:4,true:3},土:{false:5,true:4},金:{false:-2,true:2},水:{false:3,true:5}};
+  const EM_HR=['木','木','火','火','土','土','金','金','水','水'];
+  const SY_HR=[false,true,false,true,false,true,false,true,false,true];
+  const dpToday=getDayPillar(now);
+  function getHourTsuhenScore(h){
+    const hStemIdx=(dpToday.stemIdx*2+Math.floor(h/2))%10;
+    const te=EM_HR[hStemIdx],ty=SY_HR[hStemIdx];
+    return Math.round(((TSUHEN_HR[te]||{})[ty]||0)*3.0);
+  }
+
+  // ══════════════════════════════════════════════════
+  // 時刻スコア設計（全占術根拠ベース）
+  // ──────────────────────────────────────────────
+  // 【固定ベース = 個人の占術基礎スコア】
+  //   九星気学 本命星スコア  … 七赤金星=桃花・財の星(+8), etc.
+  //   ライフパス数スコア     … LP4=安定・構築(+5), etc.
+  //   干支スコア             … 酉=金の収穫・桃花運(+5), etc.
+  //   血液型スコア           … B型=直感型(+4), etc.
+  // → 個人ごとに異なる基礎値（40〜65）
+  //
+  // 【時刻可変部 = 今日・この時刻の動的占術】
+  //   六曜ベース             … -5〜+7
+  //   六曜×時間帯補正       … -6〜+8 ← ここで時刻差が生まれる
+  //   日盤九星×本命星       … -4〜+4（今日固定）
+  //   紫微斗数 流日宮        … -3〜+4（今日固定）
+  //   タロット 正逆          … -2〜+3（今日固定）
+  //   時柱通変星             … -1〜+2（2時間単位で変化）
+  //   ゲーム固有ラッキー時間 … +4
+  //   摂動                   … -1〜+1
+  // ══════════════════════════════════════════════════
+
+  // ── 個人占術ベーススコア計算 ──
+  const dp2=divinParams||{};
+  // 九星気学: 本命星ごとの基礎ガチャ運（正統理論: 七赤金星が桃花・財運の筆頭）
+  const HONMEI_BASE={
+    '一白水星':52,'二黒土星':50,'三碧木星':54,'四緑木星':55,
+    '五黄土星':51,'六白金星':58,'七赤金星':60,'八白土星':56,'九紫火星':57
+  };
+  const kyuseiBaseName=dp2.kyusei?dp2.kyusei.honmei||'':'';
+  const kyuseiBase=HONMEI_BASE[kyuseiBaseName]||53;
+
+  // ライフパス数ベース（数秘術: LP1=独立,LP4=安定,LP7=内省...）
+  const LP_BASE={1:5,2:4,3:6,4:5,5:7,6:6,7:3,8:7,9:5,11:6,22:8};
+  const lpBase=dp2.lifePath?LP_BASE[dp2.lifePath.num||0]||4:4;
+
+  // 干支ベース（十二支の五行×本命星との相性）
+  const ETO_BASE={子:4,丑:3,寅:5,卯:4,辰:4,巳:3,午:4,未:3,申:4,酉:5,戌:4,亥:5};
+  const etoBase=dp2.eto?ETO_BASE[dp2.eto]||4:4;
+
+  // 血液型ベース（直感力・運気感受性）
+  const BT_BASE={'A型':3,'B型':4,'O型':3,'AB型':4};
+  const btBase=dp2.bloodType?BT_BASE[dp2.bloodType]||3:3;
+
+  const personalBase=kyuseiBase+lpBase+etoBase+btBase; // 理論値: 50〜76
+
+  const scored=allHours.map(h=>{
+    const rtb=todayRokuyo.goodHours&&todayRokuyo.goodHours.includes(h)?12
+      :todayRokuyo.badHours&&todayRokuyo.badHours.includes(h)?-10:0;
+    const hrTsc=getHourTsuhenScore(h);
+    const gameBonus=gdb.luckyHours&&gdb.luckyHours.includes(h)?4:0;
+    const perturb=Math.round(sr(h)*14)-7;
+    const hs=Math.min(99,Math.max(40,
+      personalBase                       // 個人占術ベース（本命星+LP+干支+血液型）
+      +Math.round(todayRokuyo.bonus*1.0) // 六曜: -5〜+7
+      +rtb                               // 六曜×時間帯: -4〜+5
+      +dayKScore                         // 日盤九星（今日固定）
+      +zwScore                           // 紫微斗数（今日固定）
+      +tarotScore                        // タロット（今日固定）
+      +hrTsc                             // 時柱通変星（時刻で変化）
+      +gameBonus                         // ゲーム固有
+      +perturb                           // 摂動
+    ));
+    return{h,hs,rtb,hrTsc,gameBonus,perturb,personalBase};
+  });
+
+  // 上位スコア順にソートし、間隔2以上を確保して3候補選出
+  scored.sort((a,b)=>b.hs-a.hs);
+  const tenCnt=score>=90?3:score>=80?2:1;
+  const widthMin=Math.min(50,Math.max(15,tenCnt*10+5));
+  function makeSlot(o){
+    const h=o.h,hs=o.hs;
+    const startMin=LUCKY_MINS[Math.floor(sr(h+200)*LUCKY_MINS.length)];
+    const endMin=startMin+widthMin;
+    // スコア内訳: scored の実計算値をそのまま表示（合計＝総ptが必ず一致）
+    const dbg={
+      base:personalBase+' (本命星'+kyuseiBase+'+LP'+lpBase+'+干支'+etoBase+'+血液型'+btBase+')',
+      rokuyo:todayRokuyo.name+'('+(todayRokuyo.bonus>=0?'+':'')+todayRokuyo.bonus+')',
+      jikan:o.rtb>=0?'+'+o.rtb:String(o.rtb),
+      jikanLabel:o.rtb>0?'✅吉':o.rtb<0?'⛔凶':'　',
+      dayK:getDayKyusei(now).name.slice(0,2)+'('+(dayKScore>=0?'+':'')+dayKScore+')',
+      zw:(todayZw.mainStar||'流日')+'('+(zwScore>=0?'+':'')+zwScore+')',
+      tarot:todayTarot.name+(todayTarot.reversed?'逆':'正')+'('+(tarotScore>=0?'+':'')+tarotScore+')',
+      jichu:(o.hrTsc>=0?'+':'')+o.hrTsc,
+      gameB:o.gameBonus>0?'+'+o.gameBonus:'0',
+      pertb:o.perturb>=0?'+'+o.perturb:String(o.perturb),
+      total:hs
+    };
+    return{hour:h,hourScore:hs,range:fmt(h,startMin)+' 〜 '+fmt(endMin>=60?h+1:h,endMin%60),start:fmt(h,startMin),width:widthMin,dbg};
+  }
+  const picked=[];
+  for(const o of scored){
+    if(picked.length>=3)break;
+    if(picked.some(p=>Math.abs(p.hour-o.h)<2))continue;
+    picked.push(makeSlot(o));
+  }
+  // フォールバック
+  if(picked.length<3){
+    for(const o of scored){
+      if(picked.length>=3)break;
+      if(!picked.some(p=>p.hour===o.h))picked.push(makeSlot(o));
+    }
+  }
+  picked.sort((a,b)=>b.hourScore-a.hourScore); // スコア順（高い順）
+  return picked;
+}
+
+
+
+function calcPickupProbability({pickupRate,pityCount,currentPulls,targetName}){
+  if(!pickupRate||pickupRate<=0)return null;
+  const p=pickupRate/100;
+  const remaining=(pityCount>0&&currentPulls>0)?Math.max(0,pityCount-currentPulls):null;
+  function probWithin(n){return(1-Math.pow(1-p,n))*100;}
+  function pullsForProb(target){return Math.ceil(Math.log(1-target)/Math.log(1-p));}
+  const pulls50=pullsForProb(0.50),pulls80=pullsForProb(0.80),pulls95=pullsForProb(0.95);
+  const expected=Math.ceil(1/p),guaranteed=pityCount>0?pityCount:null;
+  let fromCurrent=null;
+  if(currentPulls>0){
+    const maxLeft=guaranteed?(guaranteed-currentPulls):null;
+    fromCurrent={for50:maxLeft?Math.min(pulls50,maxLeft):pulls50,for80:maxLeft?Math.min(pulls80,maxLeft):pulls80,for95:maxLeft?Math.min(pulls95,maxLeft):pulls95,maxLeft};
+  }
+  return{p,pickupRate,pityCount,currentPulls,pulls50,pulls80,pulls95,expected,guaranteed,remainingPulls:remaining,fromCurrent,
+    prob10:probWithin(10).toFixed(1),prob20:probWithin(20).toFixed(1),prob50:probWithin(50).toFixed(1),prob100:probWithin(100).toFixed(1)};
+}
+
+// ═══════════════════════════════════════════════════
+//   DIVINATION BUILDER（全占術カード）
+// ═══════════════════════════════════════════════════
+function buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,now}){
+  const divs=[];
+  const targetRef=targetName?`「${esc(targetName)}」`:'あなたの望むもの';
+  const gachaRef=gachaTitle?`「${esc(gachaTitle)}」の`:'';
+
+  // 1. 西洋占星術
+  const zMsg=zodiac?ZODIAC_MSG[zodiac]:'星座情報がないため汎用占断を行う。木星が全体運を底上げしている。';
+  const zElem=zodiac?ZODIAC_ELEMENT[zodiac]:'';
+  const elemGacha={火:'情熱的な直感の一瞬に引け',地:'計画と分析で最適時刻を選べ',風:'軽やかな気持ちで複数回試みよ',水:'感情の潮が引く夜明け前が最強'};
+  divs.push({icon:'🌟',name:'西洋占星術',score:zodiac?ZODIAC_SCORE[zodiac]:80,color:'rgba(255,200,80,.7)',
+    body:(zodiac||'星座不明')+'の方へ。'+zMsg+(targetName?' — '+targetRef+'との縁は確かに結ばれつつある。':'')+(zElem?elemGacha[zElem]+'。':'')+'第1候補時刻が霊的共鳴の最高点。'});
+
+  // 2. 月齢占術
+  divs.push({icon:moonPhase.icon,name:'月齢占術',score:60+moonPhase.luckBonus,color:'rgba(180,140,255,.7)',
+    body:'現在は【'+moonPhase.name+'（月齢'+getMoonAge(new Date()).age+'）】。'+moonPhase.power+'が最大化している時。'+(moonPhase.luckBonus>=10?'満月に近い今、引き寄せの力は年間で最強クラス。'+gachaRef+'ガチャに全力を注ぐべき吉機。':'月のエネルギーが'+targetRef+'との縁を引き寄せつつある。ラッキータイムに合わせることで月の加護を最大化できる。')});
+
+  // 3. ② 九星気学（年盤・月盤・日盤 三盤統合）
+  const dayElemColor={水:'#38BDF8',土:'#D97706',木:'#34D399',金:'#C084FC',火:'#E05585'};
+  const dayRelLabel=kyusei.compat>=6?'大吉✨':kyusei.compat>=0?'吉':kyusei.compat>=-3?'注意':'凶⚠';
+  divs.push({icon:'☯️',name:'九星気学（年/月/日盤 三盤統合）',score:kyusei.score,color:'rgba(80,200,160,.7)',
+    body:(()=>{
+      // 三盤統合の詳細説明
+      const yrLabel=kyusei.yearCompat>=6?'大吉✨':kyusei.yearCompat>=3?'吉':kyusei.yearCompat>=-3?'注意':'凶⚠';
+      const moLabel=kyusei.monthCompat>=6?'大吉✨':kyusei.monthCompat>=3?'吉':kyusei.monthCompat>=-3?'注意':'凶⚠';
+      const monthAdv='【年盤:'+kyusei.yearBoard+'('+kyusei.ybElem+')】'+yrLabel+'・【月盤:'+kyusei.monthBoard+'('+kyusei.mbElem+')】'+moLabel
+        +(kyusei.getukumei?'・補助星【月命星:'+kyusei.getukumei+'】':'')
+        +(kyusei.compat>=5?' — 三盤統合で追い風。': kyusei.compat>=-2?' — 最適日時に絞ることで運気を最大化。': ' — 最高吉日を選んで影響を最小化。');
+      const dayAdv=`◆ 日盤【${dayKyusei.name}】(${dayKyusei.element}気) — `
+        +({水:'流れと知恵が満ちる日。直感でタイミングを掴め。',土:'安定と収穫の日盤。地道な行動が実を結ぶ。',木:'成長と発展の気。新しい挑戦に最適な日。',金:'権威と豊かさの日盤。強い意志が星を動かす。',火:'情熱と行動の気。全力で挑んだ者に天運が味方する。'}[dayKyusei.element]||'変化の気が流れる。');
+      return monthAdv+'\n'+dayAdv;
+    })()});
+
+  // 4. ④ タロット（正逆位置対応）
+  divs.push({icon:'🎴',name:`タロット占い【${tarot.name} ${tarot.num}】${tarot.orientation}`,score:tarot.activeScore,color:'rgba(255,120,150,.7)',
+    body:(()=>{
+      const orient=tarot.reversed
+        ?`<span style="color:#f87171;font-weight:bold;">▼逆位置</span> — 本来の力が変容して表れる。`
+        :`<span style="color:#86efac;font-weight:bold;">▲正位置</span> — カードの本来の力が全開で働く。`;
+      return '【'+tarot.name+' ('+tarot.en+')】 '+orient+'<br>'+tarot.activeMsg
+        +(targetName?' — '+targetRef+'への縁を示すカードが出たのは必然。':'')
+        +(gachaTitle?' 「'+esc(gachaTitle)+'」の期間中、このカードが守護している。':'');
+    })()});
+
+  // 5. ① 数秘術 LP4 × UD（関係性モデル）
+  const nr=getNumerologyRelation(now);
+  divs.push({icon:'🔢',name:`数秘術 個人LP【4】× 今日のUD【${nr.ud}】＝「${nr.label}」`,score:60+nr.score*3,color:'rgba(80,180,255,.7)',
+    body:`個人のライフパス数【4（安定・構築・努力）】× 今日のユニバーサルデーナンバー【${nr.ud}】の関係性：「${nr.label}」。${nr.body}`+(targetName?' — '+targetRef+'を引き当てる縁が数字の波動と共鳴している。':'')});
+
+  // 6. ② 四柱推命（通変星 + 十二運 + 時柱）
+  if(shichu){
+    const b=shichu.birth;
+    const th=shichu.tsuhen;
+    const tScore=Math.max(40,Math.min(99,78+shichu.totalBonus*2));
+    const tsuhenColor=(n)=>n?({'食神':'#86efac','偏財':'#fcd34d','正財':'#fbbf24','印綬':'#93c5fd','偏印':'#a5b4fc','比肩':'#d1d5db','正官':'#6ee7b7','傷官':'#fca5a5','劫財':'#f87171','偏官':'#fb7185'}[n]||'var(--text)'):'var(--muted)';
+    const juniColor=(n)=>{if(!n)return'var(--muted)';const g=['長生','冠帯','建禄','帝旺','養'];return g.includes(n)?'#86efac':'#f87171';};
+    divs.push({icon:'📿',name:`四柱推命【日主:乙(木)】通変星×十二運`,score:tScore,color:'rgba(255,165,80,.7)',
+      body:(()=>{
+        const pillarsLine=`年柱【${shichu.yearPillar}】月柱【${shichu.monthPillar}】日柱【${shichu.dayPillar}】時柱【${shichu.hourPillar}】`;
+        const tsuhenLine=`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">`
+          +['年','月','日','時'].map((k,i)=>{const t=[th.year,th.month,th.day,th.hour][i];return t?`<span style="padding:2px 8px;border-radius:12px;background:rgba(255,255,255,.06);font-size:.8rem;">${k}柱 <strong style="color:${tsuhenColor(t)}">${t}</strong></span>`:''}).join('')
+          +'</div>';
+        const juniLine=shichu.juniUn?`<br>十二運:【<strong style="color:${juniColor(shichu.juniUn)}">${shichu.juniUn}</strong>】`
+          +`<span style="font-size:.8rem;color:var(--muted)">${{長生:'成長の気が宿る吉',沐浴:'変化期・柔軟に',冠帯:'充実・準備完了',建禄:'本領発揮の吉',帝旺:'最強の運気',衰:'エネルギー低下',病:'慎重に行動',死:'停滞・石を温存',墓:'蓄積の時',絶:'エネルギー転換期',胎:'新サイクルの芽',養:'回復・準備期'}[shichu.juniUn]||''}</span>`:'';
+        return pillarsLine+'<br>'+shichu.dayMessage+'。'
+          +tsuhenLine+juniLine
+          +(b?`<div style="margin-top:8px;padding:8px;background:rgba(255,165,80,.07);border-radius:8px;font-size:.78rem;color:var(--muted)">生年命式: 年柱${b.year} 月柱${b.month} 日柱(日主)${b.day} ｜ 日主【乙木】粘り強く柔軟、金運・恋愛運◎</div>`:'');
+      })()});
+  }
+
+  // 7. ③ 紫微斗数（固定命盤 × 今日の流日）
+  const zwStar=ziwei.mainStar,zwInfo=ziwei.starInfo,zwRel=ziwei.relInfo;
+  const zwStarColor=zwInfo?zwInfo.color:'#C9A84C';
+  const zwGradeLabel=zwInfo?zwInfo.grade:'吉';
+  const relMsg=zwRel?zwRel.relMsg:'今日の宮の縁を感じて引け。';
+  const zwPalaceName=ziwei.palace?ziwei.palace.name:'';
+  divs.push({icon:'⭐',name:`紫微斗数 命宮【天同星・巨門星/丑】× 流日【${ziwei.branch}宮 ${zwStar||''}】`,
+    score:Math.min(99,55+ziwei.totalScore*4),color:`rgba(${parseInt(zwStarColor.slice(1,3),16)},${parseInt(zwStarColor.slice(3,5),16)},${parseInt(zwStarColor.slice(5,7),16)},.7)`,
+    body:(()=>{
+      const baseInfo=`【命盤】金四局 命宮:丑(天同星・巨門星) 身宮:未(遷移宮◎)<br>`+
+        `【今日の流日】${ziwei.branch}宮＝${zwPalaceName}`;
+      const starLine=zwStar
+        ?` → 活性化星：<strong style="color:${zwStarColor}">${zwStar}</strong> (${zwGradeLabel})`
+        :' → 星なし宮（静かに待つ日）';
+      const relLine=`<br>◆ 命宮(天同星) × ${zwStar||'流日宮'} の関係：${relMsg}`;
+      const advLine=zwInfo?`<br>✦ ${zwInfo.msg}`:'';
+      const auxLine=ziwei.palace&&ziwei.palace.aux&&ziwei.palace.aux.length>0
+        ?`<br><span style="font-size:.78rem;color:var(--muted)">副星: ${ziwei.palace.aux.join('・')}</span>`:'';
+      // ③ 四化星表示
+      let sihuaLine='';
+      if(ziwei.sihua&&ziwei.sihua.stem){
+        const sc=ziwei.sihua;
+        const sihuaColors={化禄:'#86efac',化権:'#93c5fd',化科:'#fcd34d',化忌:'#f87171'};
+        const top2=sc.details.slice(0,2).map(d=>`<span style="color:${sihuaColors[d.sihua]||'var(--text)'};font-size:.82rem;">${d.sihua}:${d.star}</span>`).join(' ');
+        sihuaLine=`<br>◆ ${sc.stem}年の四化: ${top2} `+(sc.bonus>0?`<span style="color:#86efac">総合+${sc.bonus}</span>`:`<span style="color:#f87171">総合${sc.bonus}</span>`);
+      }
+      return baseInfo+starLine+relLine+advLine+auxLine+sihuaLine;
+    })()});
+
+  // 8. ① 六曜（時間帯吉凶ガイド付き）
+  divs.push({icon:'📅',name:'六曜',score:70+rokuyo.bonus,color:'rgba(200,160,255,.7)',
+    body:(()=>{
+      const base='本日の六曜は【'+rokuyo.name+'】'+rokuyo.icon+'。'+rokuyo.msg;
+      let timeGuide='';
+      if(rokuyo.goodHours){
+        const s=rokuyo.goodHours[0],e=rokuyo.goodHours[rokuyo.goodHours.length-1];
+        timeGuide=`<br><span style="color:#86efac;font-size:.85rem;">✅ 吉時間帯: ${s}:00〜${e+1}:00</span>`;
+      }
+      if(rokuyo.badHours){
+        const s=rokuyo.badHours[0],e=rokuyo.badHours[rokuyo.badHours.length-1];
+        timeGuide+=`<br><span style="color:#f87171;font-size:.85rem;">⛔ 凶時間帯: ${s}:00〜${e+1}:00</span>`;
+      }
+      const advice=rokuyo.bonus>=5?' — 今日は最高の吉日。全てのガチャ行動に追い風が吹いている。':'ラッキータイムの時刻に絞って挑戦することで六曜の恩恵を最大化できる。';
+      return base+advice+timeGuide;
+    })()});
+
+  // 9. 血液型
+  const bMap={'A型':'几帳面な性格が最適タイミングの選定に最大の武器となる。計画通りの時刻に引くことで高レアが引き当たりやすい。','B型':'直感力が際立って冴えている。「今だ！」と感じた瞬間がベストタイミング。迷わず引け。','O型':'大胆さが天の恵みを呼ぶ。思い切りが良ければ良いほど、星が応えてくれる。','AB型':'独自の感性が武器。他者が引かない時間帯・方法に隠された黄金ルートがある。'};
+  divs.push({icon:'🩸',name:'血液型占い',score:bloodType?80:70,color:'rgba(255,100,100,.7)',body:bloodType?`${bloodType}の方は、${bMap[bloodType]}`:'血液型情報があれば、さらに詳細な鑑定が可能。'});
+
+  // 10. 干支
+  const etoMap={子:'子年は水の気を持ち、適応力と直感力が最大化。',丑:'丑年は地の安定を持ち、粘り強い引き方が吉。',寅:'寅年は木の勢いを持ち、果敢な挑戦が運を呼ぶ。',卯:'卯年は木の柔軟を持ち、春の風のように引くべし。',辰:'辰年は土の権威を持ち、最強クラスのガチャ運を誇る。',巳:'巳年は火の知恵を持ち、深い洞察が好機を導く。',午:'午年は火の行動を持ち、最高の直感が宿る干支。',未:'未年は土の創造を持ち、芸術的感性がSSRを呼ぶ。',申:'申年は金の知性を持ち、分析的アプローチが吉。',酉:'酉年は金の収穫を持ち、桃花運と財運が今月最高潮。',戌:'戌年は土の誠実を持ち、一途な想いがキャラとの縁を結ぶ。',亥:'亥年は水の勇気を持ち、臆せず引いた者に奇跡が宿る。'};
+  divs.push({icon:'🐉',name:'東洋占術（干支）',score:eto?85:72,color:'rgba(100,220,180,.7)',body:eto?('【'+eto+'年】の方は、'+(etoMap[eto]||'')+(targetName?' '+targetRef+'との縁は天が定めたものである。':'')):'干支情報があれば東洋霊気との共鳴を精密測定できる。'});
+
+  return divs;
+}
+
+// ═══════════════════════════════════════════════════
+//   LUCKY ACTIONS
+// ═══════════════════════════════════════════════════
+function buildActions(score,targetName,gachaTitle,tarot,moonPhase){
+  const base=['ガチャを引く直前に北の方角を向いて深呼吸3回。邪気を払い気を整える。','スマホ画面を柔らかい布で丁寧に拭く。運気の通り道を物理的に清める。','水を一口飲んで、体内の気を浄化してから臨む。','「ありがとう」を3回心の中で唱える。感謝の波動が引き寄せを加速させる。'];
+  if(score>=85)base.push(`最強運気到達。${tarot.name}のカードが示す通り今日は何も恐れなくてよい。自信を持って引け。`);
+  if(moonPhase.luckBonus>=10)base.push(`${moonPhase.icon}${moonPhase.name}の今夜は年間最強クラスの引き寄せ力。窓の外の月に向かって「お願いします」と念じてから引くこと。`);
+  if(targetName){base.push(`「${esc(targetName)}」の名前を7回、低い声でゆっくり唱えてから引く。`);base.push(`「${esc(targetName)}」のキャラ画像を1分間見つめ、イメージを焼き付けてからガチャ画面へ。`);}
+  if(gachaTitle)base.push(`「${esc(gachaTitle)}」のバナー画像を一度閉じて、再度開いた瞬間に引く。再起動で気が一新される。`);
+  base.push(`引く直前にスマホの充電を確認。電池残量が30%以上あることが運気安定の条件。`);
+  return base;
+}
+
+// ═══════════════════════════════════════════════════
+//   DISPLAY
+// ═══════════════════════════════════════════════════
+function getStoredBreakdown(){
+  try{const c=SS.get('gachaOracle_breakdown');if(!c)return null;const p=JSON.parse(c);return p;}catch(e){return null;}
+}
+function clearBreakdownCache(){
+  try{SS.remove('gachaOracle_breakdown');}catch(e){}
+  const b=document.getElementById('bd-cache-banner');if(b)b.remove();
+}
+function displayResult(result){
+  const{score,gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,pulls,ziwei,pickupCalc,scoreBreakdown}=result;
+  // 激アツ時刻は現在時刻基準で毎回再計算（キャッシュ非依存）
+  const _inp=result.inputs||{};
+  const todayHotTimes=calcTodayHotTimes(score,gameTitle,new Date(),{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu});
+  _lastResult=result;_lastHotTimes=todayHotTimes;
+  const verdicts=[{min:90,label:'大吉 ✦ 最強開運',color:'#EDD070',borderColor:'rgba(237,208,112,.45)'},{min:80,label:'中吉 ✦ 好運気',color:'#A78BFA',borderColor:'rgba(167,139,250,.4)'},{min:70,label:'吉 ✦ 良き流れ',color:'#34D399',borderColor:'rgba(52,211,153,.35)'},{min:60,label:'小吉 ✦ 安定',color:'#38BDF8',borderColor:'rgba(56,189,248,.3)'},{min:0,label:'末吉 ✦ 慎重に',color:'#94A3B8',borderColor:'rgba(148,163,184,.25)'}];
+  const verd=verdicts.find(v=>score>=v.min)||verdicts[verdicts.length-1];
+  const C=2*Math.PI*72,arc=C*(score/100),gap=C-arc;
+  const stopColor1=score>=80?'#A78BFA':'#38BDF8';
+  const _hGachaTitle=gachaTitle?'<div style="font-size:.82rem;color:var(--iris-l);margin:4px 0">📋 '+esc(gachaTitle)+'</div>':'';
+  const _hDeadline=gachaDeadline?'<div style="font-size:.78rem;color:var(--danger);margin-top:4px">⏰ 期限: '+(new Date(gachaDeadline).getMonth()+1)+'月'+new Date(gachaDeadline).getDate()+'日 '+(gachaDeadlineTime||'23:59')+'まで</div>':'';
+  const _hTarget=targetName?'<div class="target-disp">✶ 狙い: '+esc(targetName)+'</div>':'';
+  const _hActions=actions.map(function(a,i){return'<li class="action-item"><span class="action-num">'+(i+1)+'</span><span>'+a+'</span></li>';}).join('');
+
+  // ② 日盤九星チップ
+  const dayKyuseiChip=`<span style="padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);font-size:.7rem;color:${dayKyusei.color}">日盤 ${dayKyusei.name} <a href="https://keisan.site/exec/system/1207304031" target="_blank" rel="noopener" style="font-size:.58rem;color:rgba(56,189,248,.7);text-decoration:none">🔢日盤参照</a></span>`;
+
+  // ③ 紫微斗数チップ
+  const zwColor=ziwei.starInfo?ziwei.starInfo.color:'#C9A84C';
+  const zwChip=ziwei.mainStar?`<span style="padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);font-size:.7rem;color:${zwColor}">流日 ${ziwei.branch}宮(${ziwei.mainStar})</span>`:'';
+
+  let html=`
+  <div class="glass score-hero">
+    <div class="ring-wrap">
+      <svg viewBox="0 0 160 160">
+        <defs><linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="${stopColor1}"/><stop offset="100%" stop-color="#C9A84C"/></linearGradient></defs>
+        <circle cx="80" cy="80" r="72" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="10"/>
+        <circle cx="80" cy="80" r="72" fill="none" stroke="url(#rg)" stroke-width="10" stroke-dasharray="${arc.toFixed(2)} ${gap.toFixed(2)}" stroke-linecap="round"/>
+      </svg>
+      <div class="ring-inner"><div class="score-num">${score}</div><div class="score-lbl">LUCKY</div></div>
+    </div>
+    <div class="verdict-badge" style="color:${verd.color};border-color:${verd.borderColor}">${verd.label}</div><br>
+    <div class="game-title-disp">${esc(gameTitle)}</div>
+    ${_hGachaTitle}${_hDeadline}${_hTarget}
+    <div class="lunar-chip">
+      <span>${moonPhase.icon}</span><span>月齢 ${getMoonAge(new Date()).age}日</span>
+      <span class="lc-name">${moonPhase.name}</span><span>${moonPhase.power}</span>
+          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅月齢参照</a>
+    </div>
+    <div style="margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;font-size:.78rem;color:var(--muted)">
+      <span>六曜: <strong style="color:${rokuyo.bonus>=5?'var(--gold)':rokuyo.bonus<0?'var(--danger)':'var(--text)'}">${rokuyo.name}</strong></span>
+      <span>タロット: <strong style="color:var(--iris-l)">${tarot.name}</strong></span>
+      <span>月盤: <strong>${kyusei.monthBoard||''}</strong></span>
+      ${dayKyuseiChip}
+      ${zwChip}
+    </div>
+  </div>`;
+
+  if(luckyTimes.length===0){
+    html+=`<div class="glass" style="text-align:center;padding:40px 20px"><div style="font-size:2rem;margin-bottom:12px">⏰</div><div style="font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.16em;color:var(--danger);margin-bottom:8px">GACHA PERIOD ENDED</div><div style="font-size:.88rem;color:var(--muted)">このガチャの期限は終了しました。<br>新しいガチャで再度占ってください。</div></div>`;
+  }else{
+    html+=`<p class="times-heading">✦ 最適ガチャ時刻 TOP ${luckyTimes.length} ✦</p>`;
+    luckyTimes.forEach((t,i)=>{
+      // scoreBreakdown を dbgInfo に付与（generateLuckyTimes スコープ外なのでここで注入）
+      // scoreBreakdown: result にあればそれを、なければ localStorage から補完
+      const _sbk=scoreBreakdown||(()=>{
+        try{const c=SS.get('gachaOracle_breakdown');return c?JSON.parse(c).breakdown:null;}catch(e){return null;}
+      })();
+      if(t.dbgInfo&&_sbk)t.dbgInfo.sbk=_sbk;
+      const cls=i===0?'r1':i===1?'r2':i===2?'r3':'rlo';
+      const barColor=t.score>=80?'var(--gold)':t.score>=70?'var(--iris-l)':'var(--ice)';
+      const rokuyoColor=(t.rokuyo==='大安')?'var(--green)':(t.rokuyo==='仏滅'||t.rokuyo==='赤口')?'var(--danger)':'var(--text)';
+      const elemColorMap={木:'#34D399',火:'#F87171',土:'#C9A84C',金:'#A78BFA',水:'#38BDF8'};
+      const ec=elemColorMap[t.dayElement]||'var(--muted)';
+      html+=`<div class="tc ${cls}${t.expired?' expired':''}">
+        <span class="tc-rank-num">第${t.rank}候補</span>
+        <div class="tc-top"><span class="tc-date">${t.date}（${t.weekday}）</span><span class="tc-time">${t.time}</span>${t.isLuckyDay?'<span class="badge b-special">★ラッキーデー</span>':''}${t.urgent?'<span class="badge b-urgent">🔥緊急</span>':''}${t.special?'<span class="badge b-special">✨特別</span>':''}${t.expired?'<span class="badge b-done">終了</span>':''}</div>
+        <div class="tc-pinpoint" style="flex-direction:column;align-items:flex-start;gap:3px"><span>🎯 激アツ時間帯: <strong>${typeof t.pinpoint==='object'?t.pinpoint.range:t.pinpoint}</strong></span><span style="font-size:.7rem;font-weight:400;color:rgba(248,113,113,.75)">${typeof t.pinpoint==='object'?'1連目開始 '+t.pinpoint.start+' → '+t.tenPulls+'連分（約'+t.pinpoint.width+'分間の吉ゾーン）':''}</span></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:.72rem;">
+          <span style="color:${rokuyoColor};background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1)">📅 ${t.rokuyo}${t.rokuyoIcon}</span>
+          ${(()=>{
+            // 六曜×時間帯バッジ: selectHour結果の時刻と六曜の吉凶帯を照合して表示
+            const tH=parseInt(t.time.split(':')[0],10);
+            if(t.rokuyo==='先勝')return tH<=12
+              ?'<span style="font-size:.68rem;color:#86efac;background:rgba(134,239,172,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(134,239,172,.2)">✅午前吉</span>'
+              :'<span style="font-size:.68rem;color:#f87171;background:rgba(248,113,113,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(248,113,113,.2)">⛔午後凶</span>';
+            if(t.rokuyo==='先負')return tH>=15
+              ?'<span style="font-size:.68rem;color:#86efac;background:rgba(134,239,172,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(134,239,172,.2)">✅午後吉</span>'
+              :'<span style="font-size:.68rem;color:#f87171;background:rgba(248,113,113,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(248,113,113,.2)">⛔午前凶</span>';
+            if(t.rokuyo==='赤口')return(tH===11||tH===12)
+              ?'<span style="font-size:.68rem;color:#86efac;background:rgba(134,239,172,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(134,239,172,.2)">✅正午吉</span>'
+              :'<span style="font-size:.68rem;color:#fbbf24;background:rgba(251,191,36,.06);padding:2px 8px;border-radius:12px;border:1px solid rgba(251,191,36,.2)">⚠正午以外</span>';
+            if(t.rokuyo==='大安')return'<span style="font-size:.68rem;color:#86efac;background:rgba(134,239,172,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(134,239,172,.2)">◎全時間吉</span>';
+            if(t.rokuyo==='仏滅')return'<span style="font-size:.68rem;color:#f87171;background:rgba(248,113,113,.08);padding:2px 8px;border-radius:12px;border:1px solid rgba(248,113,113,.2)">✕全時間凶</span>';
+            return '';
+          })()}
+          <span style="color:var(--iris-l);background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1)">${t.moonPhaseIcon} ${t.moonPhaseName}</span>
+          <span style="color:${ec};background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1)">日柱 ${t.dayPillar}</span>
+        </div>
+        <div class="tc-bot"><div class="tc-pulls">💎 推奨 <strong>${t.tenPulls}</strong>連×10</div><div style="font-size:.7rem;color:var(--muted)">運気 ${t.score}pt</div><div class="tc-bar"><div class="tc-bar-fill" style="width:${t.score}%;background:${barColor}"></div></div></div>
+        <div id="lt-dbg-wrap-${i}" style="margin-top:8px">
+          ${(()=>{
+            // キャッシュから補完された場合はバナーを表示
+            const stored=getStoredBreakdown();
+            const isFromCache=!scoreBreakdown&&stored&&t.dbgInfo&&t.dbgInfo.sbk;
+            if(isFromCache&&i===0){
+              return `<div id="bd-cache-banner" style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:8px;font-size:.65rem;color:#38BDF8;margin-bottom:6px">
+                <span>💾 前回占い時の内訳を表示中（${stored.savedAt?new Date(stored.savedAt).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}）</span>
+                <button onclick="clearBreakdownCache()" style="margin-left:auto;font-size:.62rem;padding:1px 7px;border-radius:5px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;cursor:pointer">✕ 消去</button>
+              </div>`;
+            }
+            return '';
+          })()}
+          <button onclick="(function(){var p=document.getElementById('lt-dbg-${i}');var b=document.getElementById('lt-btn-${i}');if(p.style.display==='none'){p.style.display='block';b.textContent='▲ 閉じる';}else{p.style.display='none';b.textContent='🔍 スコア内訳';}})();"
+            id="lt-btn-${i}"
+            style="font-size:.68rem;padding:3px 12px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--muted);cursor:pointer;margin-top:4px">🔍 スコア内訳</button>
+          <div id="lt-dbg-${i}" style="display:none;margin-top:8px;padding:12px;background:rgba(0,0,0,.4);border-radius:10px;font-size:.71rem;color:var(--text)">
+            ${t.dbgInfo?(()=>{
+              const d=t.dbgInfo,v=d.v||{};
+              const nc=(n)=>n>0?'#86efac':n<0?'#f87171':'rgba(255,255,255,.5)';
+              const pl=(n)=>n>=0?'+'+n:String(n);
+              const row=(icon,label,pts,desc)=>`
+                <div style="display:grid;grid-template-columns:18px 1fr 40px;align-items:baseline;gap:4px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+                  <span>${icon}</span>
+                  <span style="color:rgba(255,255,255,.6)">${label}<span style="color:rgba(255,255,255,.3);font-size:.63rem;margin-left:6px">${desc}</span></span>
+                  <span style="text-align:right;font-weight:bold;color:${nc(pts)}">${pl(pts)}</span>
+                </div>`;
+              return '<div style="color:var(--gold);font-weight:bold;margin-bottom:8px;font-size:.74rem">📊 スコア内訳（どう計算して '+t.score+'pt になるか）</div>'
+                +'<div style="padding:6px 8px;background:rgba(201,168,76,.1);border-radius:6px;margin-bottom:8px;font-size:.68rem;color:rgba(255,255,255,.5)">合計 = ①ベース + ②〜⑫各占術加算 → 上限99で丸め + ⑬ランク補正</div>'
+                +(()=>{
+                  const sbk=d.sbk;
+                  const baseId='base-sub-'+i;
+                  const nc2=(n)=>n>0?'#86efac':n<0?'#f87171':'rgba(255,255,255,.45)';
+                  const pl2=(n)=>n>=0?'+'+n:String(n);
+                  if(!sbk)return row('①','総合運気ベース',v.base,'calculateFortune 統合スコア');
+                  const subRows=[
+                    {k:'fixed',icon:'🔢',label:'固定ベース'},
+                    {k:'moon',icon:'🌙',label:'月齢'},
+                    {k:'rokuyo_base',icon:'📅',label:'六曜（本日）'},
+                    {k:'kyusei',icon:'⭐',label:'九星気学 三盤統合'},
+                    {k:'tarot',icon:'🎴',label:'タロット 正逆位置'},
+                    {k:'zodiac',icon:'♈',label:'西洋占星術'},
+                    {k:'blood',icon:'🩸',label:'血液型'},
+                    {k:'lp',icon:'🔢',label:'数秘術 ライフパス'},
+                    {k:'bdResonance',icon:'🎂',label:'誕生日数の共鳴'},
+                    {k:'eto',icon:'🐓',label:'干支'},
+                    {k:'target',icon:'🎯',label:'狙いキャラ'},
+                    {k:'gacha',icon:'🎲',label:'ガチャ名'},
+                    {k:'game',icon:'🎮',label:'対応ゲーム'},
+                    {k:'dayK',icon:'🌐',label:'日盤九星×本命星'},
+                    {k:'shichu',icon:'🏮',label:'四柱推命'},
+                    {k:'ziwei',icon:'🌟',label:'紫微斗数 流年宮'},
+                  ].filter(r=>sbk[r.k]!==0);
+                  const subHtml=subRows.map(r=>`
+                    <div style="display:grid;grid-template-columns:16px 1fr 36px;gap:3px;padding:3px 0 3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.66rem">
+                      <span>${r.icon}</span>
+                      <span style="color:rgba(255,255,255,.5)">${r.label}<span style="color:rgba(255,255,255,.28);font-size:.6rem;margin-left:5px">${sbk.labels[r.k]||''}</span></span>
+                      <span style="text-align:right;color:${nc2(sbk[r.k])};font-weight:bold">${pl2(sbk[r.k])}</span>
+                    </div>`).join('');
+                  return `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+                    <div style="display:grid;grid-template-columns:18px 1fr 40px;align-items:center;gap:4px">
+                      <span>①</span>
+                      <span style="color:rgba(255,255,255,.6)">総合運気ベース
+                        <span style="color:rgba(255,255,255,.3);font-size:.63rem;margin-left:6px">calculateFortune 統合スコア</span>
+                      </span>
+                      <span style="text-align:right;font-weight:bold;color:var(--gold)">${pl2(v.base)}</span>
+                    </div>
+                    <div style="margin-top:4px">
+                      <button id="base-btn-${i}" onclick="(function(){var p=document.getElementById('${baseId}');var b=document.getElementById('base-btn-${i}');if(p.style.display==='none'){p.style.display='block';b.textContent='▲ 閉じる';}else{p.style.display='none';b.textContent='▶ ①ベースの内訳を見る';}})()"
+                        style="font-size:.62rem;padding:2px 10px;border-radius:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:var(--gold);cursor:pointer">▶ ①ベースの内訳を見る</button>
+                      <div id="${baseId}" style="display:none;margin-top:6px;padding:6px 8px;background:rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(201,168,76,.15)">
+                        <div style="font-size:.63rem;color:var(--gold);margin-bottom:4px">総合運気ベース = 固定値＋各占術の加重合計（上限99）</div>
+                        ${subHtml}
+                        <div style="display:flex;justify-content:space-between;padding:5px 8px 0;margin-top:4px;border-top:1px solid rgba(201,168,76,.2);font-size:.68rem">
+                          <span style="color:rgba(255,255,255,.4)">上限99で丸め → ①ベース</span>
+                          <span style="color:var(--gold);font-weight:bold">${sbk.cap}pt</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>`;
+                })()
+                +row('②','六曜',v.rokuyo,d.rokuyo_str)
+                +row('③','時間帯補正',v.jikan,d.jikan_str)
+                +row('④','月齢',v.moon,d.moon_str)
+                +row('⑤','日柱五行×本命星',v.pillar,d.pillar_str)
+                +(v.lucky>0?row('⑥','ゲームLucky日',v.lucky,d.lucky_str):'')
+                +row('⑦','数秘術 UD',v.ud,d.ud_str)
+                +row('⑧','四柱推命 日柱通変星',v.tsuhen,d.tsuhen_str)
+                +row('⑨','日盤九星×本命星',v.dayk,d.dayk_str)
+                +row('⑩','紫微斗数 流日宮',v.ziwei,d.ziwei_str)
+                +row('⑪','タロット 正逆位置',v.tarot,d.tarot_str)
+                +row('⑫','日付微調整（摂動）',v.perturb,d.perturb_str)
+                +`<div style="display:flex;justify-content:space-between;padding:7px 4px;margin-top:4px;border-top:1px solid rgba(255,255,255,.1)">
+                    <span style="color:rgba(255,255,255,.5)">①〜⑫の合計（上限99）</span>
+                    <span style="font-weight:bold">${d.rawSum}pt</span>
+                  </div>`
+                +(v.rankAdj!==0?row('⑬','ランク補正',v.rankAdj,d.rank_str):'')
+                +`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,.14);border-radius:8px;border:1px solid rgba(201,168,76,.35)">
+                    <span style="color:var(--gold);font-weight:bold;font-size:.75rem">✦ 最終スコア</span>
+                    <span style="color:#86efac;font-weight:bold;font-size:1.1rem">${d.運気スコア}pt</span>
+                  </div>`;
+            })():'<div style="color:var(--muted)">内訳データなし</div>'}
+          </div>
+        </div>
+      </div>`;
+    });
+  }
+
+  // ゲームオカルト
+  const gdb=GAME_DB[gameTitle];
+  if(gdb){
+    const icons=['⚡','🌟','💎','🔥','✨'];
+    const _hJinxes=gdb.jinxes?gdb.jinxes.map(function(j,i){return'<div class="jinx"><span class="jinx-ic">'+icons[i%icons.length]+'</span>'+j+'</div>';}).join(''):'';
+    html+=`<div class="glass" style="margin-top:8px"><p class="sec-title">🎮 ${esc(gameTitle)} オカルト情報</p><div class="occult-box"><p class="occult-title">PLAYER FOLKLORE DATABASE</p><p class="occult-sub">プレイヤー間で語り継がれる都市伝説・ジンクス集</p>${_hJinxes}<div style="font-size:.7rem;color:var(--muted);text-align:center;margin-top:12px;padding:10px;background:rgba(201,168,76,.06);border-radius:8px">💡 上記ジンクスは占星術と組み合わせ、候補時刻の選定に反映済</div></div></div>`;
+  }
+
+  // 全占術カード
+  html+=`<div class="glass" style="margin-top:8px"><p class="sec-title">全占術 詳細鑑定</p><div class="div-grid">`;
+  divinations.forEach(d=>{
+    const pct=Math.min(100,d.score);
+    html+=`<div class="div-card"><div class="div-hdr"><span class="div-icon">${d.icon}</span><span class="div-name">${d.name}</span><span class="div-score">${d.score}pt</span></div><div class="div-bar"><div class="div-bar-fill" style="width:${pct}%;background:${d.color}"></div></div><p class="div-body">${d.body}</p></div>`;
+  });
+  html+=`</div></div>`;
+
+  html+=`<div class="glass" style="margin-top:8px"><p class="sec-title">✨ ガチャ前ラッキーアクション</p><ul class="action-list">${_hActions}</ul></div>`;
+
+  if(pickupCalc){
+    const tgt=targetName?`「${esc(targetName)}」`:'目的キャラ';
+    const rcStr=pickupCalc.remainingPulls!==null?`<span style="color:#FFD700;font-weight:700">天井まであと ${pickupCalc.remainingPulls} 連</span>（${pickupCalc.currentPulls}/${pickupCalc.pityCount}）`:pickupCalc.currentPulls>0?'現在 '+pickupCalc.currentPulls+' 連消費済み':'';
+    const _hRcStr=rcStr?'<div style="text-align:center;margin-bottom:12px;font-size:.85rem">'+rcStr+'</div>':'';
+    const prd=[{label:'50%（半々）',pulls:pickupCalc.pulls50,from:pickupCalc.fromCurrent&&pickupCalc.fromCurrent.for50,color:'#90EE90'},{label:'80%（高確率）',pulls:pickupCalc.pulls80,from:pickupCalc.fromCurrent&&pickupCalc.fromCurrent.for80,color:'#FFD700'},{label:'95%（ほぼ確実）',pulls:pickupCalc.pulls95,from:pickupCalc.fromCurrent&&pickupCalc.fromCurrent.for95,color:'#FF8C61'}];
+    const _hPullRows=prd.map(function(row){return'<tr style="border-bottom:1px solid rgba(255,255,255,.06)"><td style="padding:7px 8px;color:'+row.color+'">'+row.label+'</td><td style="padding:7px 8px;text-align:center;font-weight:700">'+row.pulls+' 連</td><td style="padding:7px 8px;text-align:center;color:var(--muted)">'+(pickupCalc.currentPulls>0&&row.from!=null?'あと '+row.from+' 連':'-')+'</td></tr>';}).join('');
+    const _hG=pickupCalc.guaranteed?'<tr style="background:rgba(255,100,100,.08)"><td style="padding:7px 8px;color:#FF6B6B">天井（100%保証）</td><td style="padding:7px 8px;text-align:center;font-weight:700">'+pickupCalc.guaranteed+' 連</td><td style="padding:7px 8px;text-align:center;color:#FF6B6B">'+(pickupCalc.remainingPulls!=null?'あと '+pickupCalc.remainingPulls+' 連':'-')+'</td></tr>':'';
+    html+=`<div class="glass" style="margin-top:8px;border-color:rgba(100,220,255,.3);background:rgba(0,180,255,.06)"><p class="sec-title" style="color:#64DCFF">🎯 ${tgt} 確率試算（数学的計算・占いとは独立）</p><p style="font-size:.72rem;color:var(--muted);margin:0 0 12px">⚠️ これは純粋な確率論です。占いの運気とは無関係に、ゲームの抽選は毎回独立しています。</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"><div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center"><div style="font-size:.7rem;color:var(--muted)">1回の確率</div><div style="font-size:1.5rem;font-weight:700;color:#64DCFF">${pickupCalc.pickupRate}%</div></div><div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center"><div style="font-size:.7rem;color:var(--muted)">期待値（平均何連で出るか）</div><div style="font-size:1.5rem;font-weight:700;color:#FFD700">${pickupCalc.expected} 連</div></div></div>${_hRcStr}<table style="width:100%;border-collapse:collapse;font-size:.82rem"><tr style="color:var(--muted);font-size:.7rem"><th style="padding:6px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)">目標確率</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)">必要連数</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)">${pickupCalc.currentPulls>0?'今から追加連数':'-'}</th></tr>${_hPullRows}${_hG}</table><div style="margin-top:12px;padding:10px;background:rgba(100,220,255,.06);border-radius:8px;font-size:.75rem;color:var(--muted)">📊 連数別累積確率 ─ 10連:${pickupCalc.prob10}% / 20連:${pickupCalc.prob20}% / 50連:${pickupCalc.prob50}% / 100連:${pickupCalc.prob100}%</div></div>`;
+  }
+
+  // 推奨ガチャ回数（10連のみ）
+  html+=`<div class="glass" style="background:rgba(201,168,76,.06);border-color:rgba(201,168,76,.22);margin-top:8px;text-align:center">
+    <div style="font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.18em;color:var(--gold);margin-bottom:18px;text-transform:uppercase">推奨ガチャ回数（本日全体）</div>
+    <div style="display:flex;justify-content:center;gap:28px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'Cinzel',serif;font-size:2.8rem;font-weight:700;color:var(--gold-l)">${pulls.ten}</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:4px">💎 10連 推奨回数</div>
+        <div style="font-size:.68rem;color:var(--gold);margin-top:2px">（合計 ${pulls.ten*10} 連分）</div>
+      </div>
+    </div>
+  </div>`;
+
+  // 今日の激アツ時刻（3候補）
+  const nowH=new Date().getHours(),nowM=new Date().getMinutes();
+  const todayHotLabel=['🥇 第1候補','🥈 第2候補','🥉 第3候補'];
+  const hotColors=['rgba(201,168,76,.25)','rgba(139,92,246,.15)','rgba(255,255,255,.08)'];
+  let hotHtml='';
+  if(todayHotTimes&&todayHotTimes.length>0){
+    todayHotTimes.forEach((t,i)=>{
+      const dbgId='dbg-hot-'+i;
+      const d=t.dbg||{};
+      const jColor=d.jikanLabel==='✅吉'?'#86efac':d.jikanLabel==='⛔凶'?'#f87171':'var(--text)';
+      const dbgRows=d.base!=null?`
+        <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+          <td style="color:var(--muted);padding:3px 4px">本命星等ベース</td>
+          <td style="padding:3px 4px;font-size:.68rem">${d.base}</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+          <td style="color:var(--muted);padding:3px 4px">六曜</td><td style="color:var(--gold);padding:3px 4px">${d.rokuyo}</td>
+          <td style="color:var(--muted);padding:3px 4px">時間帯補正</td><td style="color:${jColor};padding:3px 4px">${d.jikanLabel} ${d.jikan}</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+          <td style="color:var(--muted);padding:3px 4px">日盤九星</td><td style="padding:3px 4px">${d.dayK}</td>
+          <td style="color:var(--muted);padding:3px 4px">紫微斗数</td><td style="padding:3px 4px">${d.zw}</td>
+        </tr>
+        <tr style="border-bottom:1px solid rgba(255,255,255,.06)">
+          <td style="color:var(--muted);padding:3px 4px">タロット</td><td style="padding:3px 4px">${d.tarot}</td>
+          <td style="color:var(--muted);padding:3px 4px">時柱通変星</td><td style="padding:3px 4px">${d.jichu}</td>
+        </tr>
+        <tr>
+          <td colspan="3" style="color:var(--muted);font-size:.65rem;padding:3px 4px">ベース + 六曜 + 時帯 + 日盤 + 紫微 + タロット + 時柱</td>
+          <td style="color:#86efac;font-weight:bold;font-size:1rem;padding:3px 4px">＝ ${d.total}pt</td>
+        </tr>`
+        :'<tr><td colspan="4" style="color:var(--muted)">内訳データなし</td></tr>';
+      hotHtml+=`<div style="background:${hotColors[i]};border-radius:10px;padding:12px 16px;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="flex:1">
+            <div style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.14em;color:var(--gold);margin-bottom:4px">${todayHotLabel[i]}</div>
+            <div style="font-size:1.35rem;font-weight:700;color:var(--danger)">🎯 ${t.range}</div>
+            <div style="font-size:.68rem;color:rgba(248,113,113,.75);margin-top:3px">1連目開始 ${t.start} → 約${t.width}分間の吉ゾーン</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;margin-left:12px">
+            <span style="font-size:.7rem;color:var(--muted)">${pulls.ten}連×10</span>
+            <span style="font-size:.72rem;padding:2px 10px;border-radius:10px;background:rgba(201,168,76,.18);color:var(--gold)">⚡${t.hourScore}pt</span>
+            <button id="btn-${dbgId}" onclick="(function(){var p=document.getElementById('${dbgId}');var b=document.getElementById('btn-${dbgId}');if(p.style.display==='none'){p.style.display='block';b.textContent='▲ 閉じる';}else{p.style.display='none';b.textContent='🔍 内訳';}})();"
+              style="font-size:.68rem;padding:3px 10px;border-radius:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:var(--muted);cursor:pointer;white-space:nowrap">🔍 内訳</button>
+          </div>
+        </div>
+        <div id="${dbgId}" style="display:none;margin-top:10px;padding:10px;background:rgba(0,0,0,.35);border-radius:8px">
+          <div style="font-size:.68rem;color:var(--gold);font-weight:bold;margin-bottom:6px">📊 スコア内訳</div>
+          <table style="width:100%;border-collapse:collapse;font-size:.72rem;color:var(--text)">
+            ${dbgRows}
+          </table>
+        </div>
+      </div>`;
+    });
+  } else {
+    hotHtml='<div style="color:var(--muted);font-size:.8rem">本日の残り時間帯に候補がありません</div>';
+  }
+  html+=`<div class="glass" style="background:rgba(248,113,113,.04);border-color:rgba(248,113,113,.2);margin-top:8px">
+    <div class="sec-title">🔥 本日の激アツ時刻（${nowH.toString().padStart(2,'0')}:${nowM.toString().padStart(2,'0')} 以降）</div>
+    ${hotHtml}
+  </div>`;
+
+  html+=`<div id="dl-err" style="display:none;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px;text-align:center;font-size:.8rem;color:#F87171;margin-top:8px">⚠ 先に占ってください</div>
+  <button class="dl-btn" onclick="downloadImage()">📸 結果を画像でダウンロード</button>
+  <button class="rst-btn" style="background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.2);color:#38BDF8" onclick="showHistory()">📜 過去の占い履歴を見る</button>
+  <button class="rst-btn" onclick="resetFortune()">🔄 リセット — 新しく占い直す</button>`;
+
+  document.getElementById('result').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════
+//   IMAGE DOWNLOAD
+// ═══════════════════════════════════════════════════
+function downloadImage(){
+  var r=_lastResult, hotTimes=_lastHotTimes||[];
+  if(!r){
+    var el=document.getElementById('dl-err');
+    if(el){el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
+    return;
+  }
+  var cv=document.createElement('canvas');
+  cv.width=1080;
+  cv.height=320+r.luckyTimes.length*210+(hotTimes.length>0?180+hotTimes.length*110:0);
+  var ctx=cv.getContext('2d');
+  var bg=ctx.createLinearGradient(0,0,0,cv.height);
+  bg.addColorStop(0,'#07040E');bg.addColorStop(1,'#160C2E');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,cv.width,cv.height);
+  var gb=ctx.createLinearGradient(0,0,cv.width,0);
+  gb.addColorStop(0,'transparent');gb.addColorStop(0.5,'rgba(201,168,76,0.6)');gb.addColorStop(1,'transparent');
+  ctx.fillStyle=gb;ctx.fillRect(0,0,cv.width,3);
+  ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='bold 36px serif';
+  ctx.fillText('GACHA ORACLE 霊眼統合占術システム',cv.width/2,60);
+  ctx.fillStyle='#EDE6F5';ctx.font='bold 28px serif';
+  ctx.fillText(r.gameTitle+(r.gachaTitle?' - '+r.gachaTitle:''),cv.width/2,105);
+  if(r.targetName){ctx.fillStyle='#C9A84C';ctx.font='22px serif';ctx.fillText('狙い: '+r.targetName,cv.width/2,140);}
+  ctx.fillStyle='#A78BFA';ctx.font='bold 26px serif';
+  ctx.fillText('総合運気スコア: '+r.score+'pt',cv.width/2,175);
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(60,200,cv.width-120,2);
+  var y=240;
+  r.luckyTimes.forEach(function(t,i){
+    ctx.fillStyle=i===0?'rgba(201,168,76,0.25)':i===1?'rgba(139,92,246,0.15)':'rgba(255,255,255,0.06)';
+    ctx.fillRect(60,y-28,cv.width-120,180);
+    ctx.textAlign='left';ctx.fillStyle='#C9A84C';ctx.font='bold 22px serif';
+    ctx.fillText('第'+t.rank+'候補  '+t.date,90,y+10);
+    ctx.fillStyle='#EDE6F5';ctx.font='bold 28px serif';ctx.fillText(t.time,90,y+50);
+    var pp=t.pinpoint&&typeof t.pinpoint==='object'?t.pinpoint.range:String(t.pinpoint||'');
+    ctx.fillStyle='#F87171';ctx.font='bold 20px serif';ctx.fillText('激アツ: '+pp,90,y+85);
+    ctx.textAlign='right';ctx.fillStyle='#EDD070';ctx.font='bold 26px serif';
+    ctx.fillText('10連 x '+t.tenPulls+'回',cv.width-90,y+50);
+    ctx.fillStyle='#6E5F88';ctx.font='18px serif';ctx.fillText('運気 '+t.score+'pt',cv.width-90,y+90);
+    ctx.textAlign='left';y+=210;
+  });
+  if(hotTimes.length>0){
+    y+=20;
+    ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(60,y,cv.width-120,2);y+=24;
+    ctx.textAlign='center';ctx.fillStyle='#F87171';ctx.font='bold 26px serif';
+    ctx.fillText('本日の激アツ時刻',cv.width/2,y+20);y+=50;
+    hotTimes.forEach(function(t,i){
+      ctx.fillStyle=i===0?'rgba(201,168,76,0.3)':i===1?'rgba(139,92,246,0.2)':'rgba(255,255,255,0.07)';
+      ctx.fillRect(60,y-10,cv.width-120,90);
+      ctx.textAlign='left';
+      var lbl=['1位','2位','3位'][i];
+      ctx.fillStyle='#C9A84C';ctx.font='bold 18px serif';ctx.fillText(lbl,90,y+18);
+      ctx.fillStyle='#F87171';ctx.font='bold 26px serif';ctx.fillText(t.range,90,y+52);
+      y+=110;
+    });
+  }
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(60,y,cv.width-120,2);
+  ctx.fillStyle='#6E5F88';ctx.font='16px serif';ctx.textAlign='center';
+  ctx.fillText('Powered by GACHA ORACLE',cv.width/2,y+30);
+  var dataUrl=cv.toDataURL('image/png');
+  var a=document.createElement('a');
+  a.href=dataUrl;
+  a.download='gacha-oracle-result.png';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){ document.body.removeChild(a); }, 100);
+}
+
+// ═══════════════════════════════════════════════════
+//   FORM HANDLING（シンプル直接実装）
+// ═══════════════════════════════════════════════════
+(function(){
+  var dlEl=document.getElementById('gachaDeadline');
+  if(dlEl){
+    var _n=new Date();
+    dlEl.min=_n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
+  }
+  // 改良: 前回入力した個人情報を自動復元
+  try{
+    var _prof=JSON.parse(SS.get('gachaOracle_profile')||'null');
+    if(_prof){
+      ['birthdate','zodiac','bloodType','eto'].forEach(function(k){
+        var el=document.getElementById(k);
+        if(el&&_prof[k])el.value=_prof[k];
+      });
+    }
+  }catch(e){}
+
+  var gtEl=document.getElementById('gameTitle');
+  if(gtEl) gtEl.addEventListener('change',function(){
+    var show=this.value==='その他';
+    var cg=document.getElementById('customGameGroup');
+    var ci=document.getElementById('customGame');
+    if(cg) cg.style.display=show?'block':'none';
+    if(ci) ci.required=show;
+  });
+})();
+
+
+
+function runFortune(){
+  // ボタン無効化で2重実行防止（フラグ方式より確実）
+  var btn=document.getElementById('fortune-btn');
+  if(btn){
+    if(btn.disabled) return;
+    btn.disabled=true;
+    btn.style.opacity='0.5';
+  }
+
+  var gameTitle=(document.getElementById('gameTitle')||{value:''}).value||'';
+  var isCustom=(gameTitle==='その他');
+  if(isCustom){
+    gameTitle=((document.getElementById('customGame')||{value:''}).value||'').trim();
+  }
+  if(!gameTitle){
+    var ngEl=document.getElementById(isCustom?'customGame':'gameTitle');
+    if(ngEl) ngEl.style.outline='2px solid #f87171';
+    if(btn){btn.disabled=false;btn.style.opacity='';}
+    return;
+  }
+  var gt2=document.getElementById('gameTitle');
+  if(gt2) gt2.style.outline='';
+  var cg2=document.getElementById('customGame');
+  if(cg2) cg2.style.outline='';
+
+  var params={
+    gameTitle:gameTitle,
+    targetName:(document.getElementById('targetName')||{value:''}).value||'',
+    gachaTitle:(document.getElementById('gachaTitle')||{value:''}).value||'',
+    gachaDeadline:(document.getElementById('gachaDeadline')||{value:''}).value||'',
+    gachaDeadlineTime:(document.getElementById('gachaDeadlineTime')||{value:''}).value||'',
+    birthdate:(document.getElementById('birthdate')||{value:''}).value||'',
+    zodiac:(document.getElementById('zodiac')||{value:''}).value||'',
+    bloodType:(document.getElementById('bloodType')||{value:''}).value||'',
+    eto:(document.getElementById('eto')||{value:''}).value||'',
+    pickupRate:parseFloat((document.getElementById('pickupRate')||{value:''}).value)||null,
+    pityCount:parseInt((document.getElementById('pityCount')||{value:''}).value)||0,
+    currentPulls:parseInt((document.getElementById('currentPulls')||{value:''}).value)||0
+  };
+
+  // 改良: 個人情報を保存（次回起動時に自動入力）
+  try{SS.set('gachaOracle_profile',JSON.stringify({birthdate:params.birthdate,zodiac:params.zodiac,bloodType:params.bloodType,eto:params.eto}));}catch(e){}
+
+  var loadingEl=document.getElementById('loading');
+  var resultEl=document.getElementById('result');
+  var steps=['ls1','ls2','ls3','ls4','ls5'];
+
+  if(loadingEl) loadingEl.classList.add('show');
+  if(resultEl)  resultEl.classList.remove('show');
+  steps.forEach(function(id,i){
+    setTimeout(function(){
+      var el=document.getElementById(id);
+      if(el) el.classList.add('lit');
+    },i*360);
+  });
+
+  setTimeout(function(){
+    var data;
+    try{
+      data=calculateFortune(params);
+    }catch(e1){
+      if(btn){btn.disabled=false;btn.style.opacity='';}
+      if(loadingEl) loadingEl.classList.remove('show');
+      return;
+    }
+    try{
+      displayResult(data);
+    }catch(e2){
+      if(btn){btn.disabled=false;btn.style.opacity='';}
+      if(loadingEl) loadingEl.classList.remove('show');
+      return;
+    }
+    if(loadingEl) loadingEl.classList.remove('show');
+    steps.forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.classList.remove('lit');
+    });
+    if(btn){btn.disabled=false;btn.style.opacity='';}
+    if(resultEl){
+      resultEl.classList.add('show');
+      resultEl.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+  },2100);
+}
+
+// ═══════════════════════════════════════════════════
+//   履歴機能
+// ═══════════════════════════════════════════════════
+function showHistory(){
+  const modal=document.getElementById('hist-modal');
+  const container=document.getElementById('hist-content');
+  let hist=[];
+  try{hist=JSON.parse(SS.get('gachaOracle_history')||'[]');}catch(e){}
+
+  if(hist.length===0){
+    container.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:.85rem">まだ占い履歴がありません。<br>占いを実行すると自動保存されます。</div>';
+  } else {
+    const verdictColor={大吉:'#C9A84C',中吉:'#A78BFA',吉:'#34D399',小吉:'#38BDF8',末吉:'#94A3B8'};
+    const cardCls=['hc-1','hc-2','hc-3','',''];
+    const bkKeys=[
+      {k:'fixed',icon:'🔢',l:'固定ベース'},
+      {k:'moon',icon:'🌙',l:'月齢'},
+      {k:'rokuyo_base',icon:'📅',l:'六曜'},
+      {k:'kyusei',icon:'⭐',l:'九星気学'},
+      {k:'tarot',icon:'🎴',l:'タロット'},
+      {k:'zodiac',icon:'♈',l:'西洋占星術'},
+      {k:'blood',icon:'🩸',l:'血液型'},
+      {k:'lp',icon:'🔢',l:'数秘術LP'},
+      {k:'bdResonance',icon:'🎂',l:'誕生日共鳴'},
+      {k:'eto',icon:'🐓',l:'干支'},
+      {k:'dayK',icon:'🌐',l:'日盤九星×本命星'},
+      {k:'shichu',icon:'🏮',l:'四柱推命'},
+      {k:'ziwei',icon:'🌟',l:'紫微斗数'},
+    ];
+    const nc=(n)=>n>0?'color:#86efac':n<0?'color:#f87171':'color:rgba(255,255,255,.45)';
+    const pl=(n)=>n>=0?'+'+n:String(n);
+
+    container.innerHTML=hist.map((h,idx)=>{
+      const dt=new Date(h.savedAt);
+      const dtStr=dt.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      const barColor=h.score>=80?'var(--gold)':h.score>=70?'#A78BFA':'#38BDF8';
+      const vc=verdictColor[h.verdict]||'var(--muted)';
+
+      // ラッキー時刻リスト
+      const ltRows=(h.luckyTimes||[]).map(t=>`
+        <div class="hist-row">
+          <span>${t.date}（${t.weekday}）${t.time}</span>
+          <span><strong style="color:var(--gold)">${t.score}pt</strong> ${t.rokuyo}</span>
+        </div>`).join('');
+
+      // 内訳テーブル
+      const bk=h.breakdown;
+      const bkRows=bk?bkKeys.filter(r=>bk[r.k]!==0&&bk[r.k]!==undefined).map(r=>`
+        <div class="hist-sub-row">
+          <span>${r.icon} ${r.l}</span>
+          <span style="${nc(bk[r.k])}">${pl(bk[r.k])}</span>
+        </div>`).join(''):'<div style="color:var(--muted)">内訳データなし</div>';
+
+      const subId='hsub-'+idx;
+      const btnId='hbtn-'+idx;
+      // 比較オーバーレイ凡例（最大3件）
+      const overlayLegend=hist.slice(0,Math.min(3,hist.length)).map((hh,li)=>{
+        const lColors=['rgba(201,168,76,.9)','rgba(167,139,250,.8)','rgba(52,211,153,.7)'];
+        const ldt=new Date(hh.savedAt);
+        const lstr=ldt.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
+        return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:.6rem;color:rgba(255,255,255,.5)">
+          <span style="width:10px;height:2px;background:${lColors[li]};display:inline-block"></span>${li===0?'今回':lstr}(${hh.score}pt)
+        </span>`;
+      }).join('');
+
+      return `<div class="hist-card ${cardCls[idx]||''}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div class="hist-verdict" style="color:${vc}">${h.verdict} — ${dtStr}</div>
+            <div class="hist-score">${h.score}<span style="font-size:.9rem;color:var(--muted)">pt</span></div>
+          </div>
+          <div style="text-align:right;font-size:.7rem;color:rgba(255,255,255,.4)">
+            <div>${esc(h.gameTitle)||'—'}</div>
+            <div style="color:rgba(255,255,255,.6)">${esc(h.targetName||h.gachaTitle)||'—'}</div>
+          </div>
+        </div>
+        <div class="hist-bar"><div class="hist-bar-fill" style="width:${h.score}%;background:${barColor}"></div></div>
+        ${ltRows}
+        <!-- レーダーチャート -->
+        <div style="margin:12px 0 4px;background:rgba(0,0,0,.25);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:.62rem;color:var(--gold);margin-bottom:6px;letter-spacing:.1em">◈ 占術レーダー</div>
+          <canvas id="radar-${idx}" width="200" height="200" style="display:block;margin:0 auto"></canvas>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px">${overlayLegend}</div>
+        </div>
+        <button class="hist-sub-btn" id="${btnId}"
+          onclick="(function(){var p=document.getElementById('${subId}');var b=document.getElementById('${btnId}');if(p.style.display==='none'){p.style.display='block';b.textContent='▲ 内訳を閉じる';}else{p.style.display='none';b.textContent='▶ 総合スコアの内訳を見る';}})()">
+          ▶ 総合スコアの内訳を見る
+        </button>
+        <div id="${subId}" class="hist-sub">
+          <div style="color:var(--gold);font-size:.66rem;font-weight:bold;margin-bottom:6px">📊 スコア内訳（総合運気ベース ${bk?bk.cap:'—'}pt）</div>
+          ${bkRows}
+          ${bk?`<div style="display:flex;justify-content:space-between;padding:5px 0 0;margin-top:4px;border-top:1px solid rgba(201,168,76,.2);font-size:.68rem">
+            <span style="color:rgba(255,255,255,.4)">合計 → 総合運気ベース</span>
+            <span style="color:var(--gold);font-weight:bold">${bk.cap}pt</span>
+          </div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  modal.style.display='block';
+  document.body.style.overflow='hidden';
+  // モーダル表示後にレーダーチャートを描画
+  if(hist.length>0) setTimeout(()=>drawRadarCharts(hist),80);
+}
+
+function drawRadarCharts(hist){
+  // 6軸レーダーチャート: 月齢/六曜/九星/タロット/四柱/紫微
+  const AXES=[
+    {k:'moon',  label:'月齢',   max:7,  color:'#38BDF8'},
+    {k:'kyusei',label:'九星',   max:6,  color:'#C9A84C'},
+    {k:'tarot', label:'タロット',max:5,  color:'#A78BFA'},
+    {k:'dayK',  label:'日盤',   max:4,  color:'#34D399'},
+    {k:'shichu',label:'四柱',   max:3,  color:'#F87171'},
+    {k:'ziwei', label:'紫微',   max:4,  color:'#FB923C'},
+  ];
+  const COLORS=['rgba(201,168,76,.7)','rgba(167,139,250,.6)','rgba(52,211,153,.5)','rgba(56,189,248,.4)','rgba(248,113,113,.4)'];
+
+  hist.forEach((h,idx)=>{
+    const canvas=document.getElementById('radar-'+idx);
+    if(!canvas)return;
+    const ctx=canvas.getContext('2d');
+    const W=canvas.width,H=canvas.height;
+    const cx=W/2,cy=H/2,R=Math.min(W,H)*0.36;
+    const n=AXES.length;
+    ctx.clearRect(0,0,W,H);
+
+    // グリッド（5段階）
+    for(let g=1;g<=5;g++){
+      const r=R*g/5;
+      ctx.beginPath();
+      for(let a=0;a<n;a++){
+        const ang=Math.PI*2*a/n - Math.PI/2;
+        const x=cx+r*Math.cos(ang),y=cy+r*Math.sin(ang);
+        a===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle='rgba(255,255,255,.08)';
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+    // 軸線
+    for(let a=0;a<n;a++){
+      const ang=Math.PI*2*a/n - Math.PI/2;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.lineTo(cx+R*Math.cos(ang),cy+R*Math.sin(ang));
+      ctx.strokeStyle='rgba(255,255,255,.12)';
+      ctx.lineWidth=1;
+      ctx.stroke();
+    }
+    // 比較データ（最大3件をオーバーレイ）
+    const maxOverlay=Math.min(hist.length,3);
+    for(let hi=maxOverlay-1;hi>=0;hi--){
+      const hd=hist[hi];
+      const bk=hd.breakdown||{};
+      ctx.beginPath();
+      AXES.forEach((ax,a)=>{
+        const raw=bk[ax.k]||0;
+        const norm=Math.max(0,Math.min(1,(raw+ax.max)/(ax.max*2)));
+        const ang=Math.PI*2*a/n - Math.PI/2;
+        const x=cx+R*norm*Math.cos(ang),y=cy+R*norm*Math.sin(ang);
+        a===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      });
+      ctx.closePath();
+      const FILLS=['rgba(201,168,76,.25)','rgba(167,139,250,.18)','rgba(52,211,153,.12)'];
+      ctx.fillStyle=FILLS[hi]||'rgba(255,255,255,.08)';
+      ctx.fill();
+      ctx.strokeStyle=COLORS[hi];
+      ctx.lineWidth=hi===0?2:1.5;
+      ctx.stroke();
+    }
+    // 現在のエントリの点
+    const bk0=hist[idx].breakdown||{};
+    AXES.forEach((ax,a)=>{
+      const raw=bk0[ax.k]||0;
+      const norm=Math.max(0,Math.min(1,(raw+ax.max)/(ax.max*2)));
+      const ang=Math.PI*2*a/n - Math.PI/2;
+      const x=cx+R*norm*Math.cos(ang),y=cy+R*norm*Math.sin(ang);
+      ctx.beginPath();
+      ctx.arc(x,y,3,0,Math.PI*2);
+      ctx.fillStyle=ax.color;
+      ctx.fill();
+    });
+    // ラベル
+    ctx.font='bold 9px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    AXES.forEach((ax,a)=>{
+      const ang=Math.PI*2*a/n - Math.PI/2;
+      const lx=cx+(R+16)*Math.cos(ang),ly=cy+(R+16)*Math.sin(ang);
+      ctx.fillStyle=ax.color;
+      ctx.fillText(ax.label,lx,ly);
+    });
+  });
+}
+
+function hideHistory(){
+  document.getElementById('hist-modal').style.display='none';
+  document.body.style.overflow='';
+}
+
+function execClearHistory(){
+  SS.remove('gachaOracle_history');
+  var c=document.getElementById('hist-content');
+  if(c)c.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:.85rem">履歴を削除しました。</div>';
+}
+
+function clearHistory(){
+  var cont=document.getElementById('hist-content');
+  var html='<div style="text-align:center;padding:30px 20px">';
+  html+='<div style="color:#f87171;font-size:.9rem;margin-bottom:16px">⚠ 占い履歴を全て削除しますか？</div>';
+  html+='<div style="display:flex;gap:10px;justify-content:center">';
+  html+='<button onclick="execClearHistory()" style="padding:8px 22px;border-radius:8px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;cursor:pointer;font-size:.82rem">削除する</button>';
+  html+='<button onclick="showHistory()" style="padding:8px 22px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--muted);cursor:pointer;font-size:.82rem">キャンセル</button>';
+  html+='</div></div>';
+  cont.innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════
+//   ゲームタイトル自動更新（games.json読込）
+//   GitHub Actionsが毎日生成するリストでプルダウンを再構築。
+//   新作=セルランin/プレイ中タイトルのサ終=自動除外 が反映される。
+//   取得失敗(オフライン等)時はHTML内蔵の基本リストにフォールバック。
+// ═══════════════════════════════════════════════════
+(function(){
+  var sel=document.getElementById('gameTitle');
+  if(!sel||typeof fetch!=='function')return;
+  fetch('./games.json',{cache:'no-cache'})
+    .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
+    .then(function(d){
+      if(!d||!Array.isArray(d.playing)||d.playing.length===0)return;
+      var cur=sel.value;
+      var html='<option value="">選択してください</option>';
+      html+='<optgroup label="★ プレイ中のタイトル（毎日生存確認済）">';
+      d.playing.forEach(function(g){html+='<option value="'+esc(g.value)+'">'+esc(g.label)+'</option>';});
+      html+='</optgroup>';
+      if(Array.isArray(d.trending)&&d.trending.length>0){
+        html+='<optgroup label="🔥 セールスランキング上位（自動取得）">';
+        d.trending.forEach(function(g){html+='<option value="'+esc(g.value)+'">'+esc(g.label)+'</option>';});
+        html+='</optgroup>';
+      }
+      html+='<option value="その他">その他（自由入力）</option>';
+      sel.innerHTML=html;
+      if(cur){sel.value=cur;if(sel.value!==cur)sel.value='';}
+      var cap=document.getElementById('games-updated-cap');
+      if(cap)cap.textContent='📡 リスト自動更新: '+(d.updated||'')+'｜プレイ中'+d.playing.length+'本＋人気'+(d.trending?d.trending.length:0)+'本';
+    })
+    .catch(function(e){console.warn('games.json load skipped:',e);});
+})();
+
+// ═══════════════════════════════════════════════════
+//   PWA: Service Worker 登録 + 更新通知
+// ═══════════════════════════════════════════════════
+(function(){
+  if(!('serviceWorker' in navigator))return;
+  // file:// やsrcdoc等では登録しない
+  if(location.protocol!=='https:'&&location.hostname!=='localhost'&&location.hostname!=='127.0.0.1')return;
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(function(reg){
+      // 新バージョン検出時にトースト表示
+      reg.addEventListener('updatefound',function(){
+        var nw=reg.installing;
+        if(!nw)return;
+        nw.addEventListener('statechange',function(){
+          if(nw.state==='installed'&&navigator.serviceWorker.controller){
+            showUpdateToast();
+          }
+        });
+      });
+    }).catch(function(e){console.warn('SW register failed',e);});
+  });
+  function showUpdateToast(){
+    if(document.getElementById('pwa-update-toast'))return;
+    var t=document.createElement('div');
+    t.id='pwa-update-toast';
+    t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99999;background:rgba(22,12,46,.96);border:1px solid rgba(201,168,76,.5);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:.82rem;color:#EDE6F5;box-shadow:0 8px 32px rgba(0,0,0,.6);backdrop-filter:blur(8px)';
+    t.innerHTML='✨ 新しいバージョンがあります'
+      +'<button onclick="location.reload()" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(201,168,76,.5);background:rgba(201,168,76,.18);color:#EDD070;cursor:pointer;font-size:.78rem">更新</button>'
+      +'<button onclick="this.parentNode.remove()" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#6E5F88;cursor:pointer;font-size:.78rem">後で</button>';
+    document.body.appendChild(t);
+  }
+})();
+
+// ═══════════════════════════════════════════════════
+//   PWA: インストール促進バナー（Android/Chrome用）
+//   ※iPhoneは共有▶「ホーム画面に追加」
+// ═══════════════════════════════════════════════════
+(function(){
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();
+    deferred=e;
+    if(SS.get('gachaOracle_installDismissed')==='1')return;
+    if(document.getElementById('pwa-install-bar'))return;
+    var b=document.createElement('div');
+    b.id='pwa-install-bar';
+    b.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:99998;background:rgba(22,12,46,.96);border:1px solid rgba(139,92,246,.5);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:.82rem;color:#EDE6F5;box-shadow:0 8px 32px rgba(0,0,0,.6);backdrop-filter:blur(8px);max-width:92vw';
+    b.innerHTML='🔮 ホーム画面に追加してアプリとして使えます'
+      +'<button id="pwa-install-go" style="padding:6px 14px;border-radius:8px;border:1px solid rgba(139,92,246,.6);background:rgba(139,92,246,.25);color:#C4B5FD;cursor:pointer;font-size:.78rem;white-space:nowrap">追加</button>'
+      +'<button id="pwa-install-no" style="padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:transparent;color:#6E5F88;cursor:pointer;font-size:.78rem;white-space:nowrap">閉じる</button>';
+    document.body.appendChild(b);
+    document.getElementById('pwa-install-go').onclick=function(){
+      b.remove();
+      if(deferred){deferred.prompt();deferred=null;}
+    };
+    document.getElementById('pwa-install-no').onclick=function(){
+      b.remove();
+      try{SS.set('gachaOracle_installDismissed','1');}catch(e2){}
+    };
+  });
+})();
+
+function resetFortune(){
+  try{
+    // gachaOracle_ で始まるキーを削除（breakdown と history は保持）
+    SS.keys()
+      .filter(k=>k.startsWith('gachaOracle_') && k!=='gachaOracle_breakdown' && k!=='gachaOracle_history' && k!=='gachaOracle_profile' && k!=='gachaOracle_installDismissed')
+      .forEach(k=>SS.remove(k));
+  }catch(e){}
+  const el=document.getElementById('result');
+  el.innerHTML='';
+  el.classList.remove('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+</script>
+
+<!-- 履歴モーダル -->
+<div id="hist-modal">
+  <div class="hist-inner">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 2px">
+      <div style="font-family:'Cinzel',serif;font-size:1rem;letter-spacing:.2em;color:var(--gold)">✦ 占い履歴 ✦</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="clearHistory()" style="font-size:.65rem;padding:4px 10px;border-radius:7px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;cursor:pointer">🗑 全削除</button>
+        <button onclick="hideHistory()" style="font-size:.65rem;padding:4px 12px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--muted);cursor:pointer">✕ 閉じる</button>
+      </div>
+    </div>
+    <div id="hist-content"></div>
+  </div>
+</div>
+</body>
+</html>
