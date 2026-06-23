@@ -3,7 +3,7 @@
    - アプリシェルをキャッシュしてオフライン動作
    - 更新時は CACHE_VERSION を上げると自動入れ替え
    ═══════════════════════════════════════════════ */
-const CACHE_VERSION = 'gacha-oracle-v2';
+const CACHE_VERSION = 'gacha-oracle-v3';
 const APP_SHELL = [
   './',
   './index.html',
@@ -12,7 +12,8 @@ const APP_SHELL = [
   './icon-512.png',
   './icon-512-maskable.png',
   './apple-touch-icon.png',
-  './games.json'
+  './games.json',
+  './calendar.json'
 ];
 
 self.addEventListener('install', (e) => {
@@ -54,7 +55,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
 
   // games.json: 常に最新を取得（オフライン時のみキャッシュ）
-  if (url.pathname.endsWith('games.json')) {
+  if (url.pathname.endsWith('games.json') || url.pathname.endsWith('calendar.json')) {
     e.respondWith(
       fetch(req).then((res) => {
         if (res && res.status === 200) {
