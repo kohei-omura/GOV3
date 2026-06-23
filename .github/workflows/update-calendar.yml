@@ -1,0 +1,35 @@
+name: Update calendar (rokuyo & moon age)
+
+on:
+  schedule:
+    - cron: '0 20 1 * *'    # 毎月1日 5:00 JST に翌月以降を取得
+    - cron: '0 20 15 * *'   # 毎月15日にも更新（朔のズレ補正）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Generate calendar.json
+        run: python update_calendar.py
+      - name: Commit & push
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add calendar.json
+          if git diff --cached --quiet; then
+            echo 'No changes'; exit 0
+          fi
+          git commit -m 'chore: update calendar.json (rokuyo/moon, auto)'
+          for i in 1 2 3; do
+            if git push; then exit 0; fi
+            git pull --rebase; sleep 5
+          done
+          exit 1
