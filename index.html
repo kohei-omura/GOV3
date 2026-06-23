@@ -411,18 +411,23 @@ function getMoonAge(date){
   return{age:age,phase:age/SYNODIC*360};
 }
 function getMoonPhaseInfo(age){
-  // 月齢 luckBonus 設計根拠:
-  // 満月(9)=最強引き寄せ, 十三夜(7)=充実エネルギー, 新月(6)=浄化と再生の始まり
-  // 上弦(5)=行動期, 更待月(5)=余韻持続, 三日月(4)=成長期
-  // 下弦(2)=手放し期（散財の暗示で低め）, 有明(2)=内省期（行動不向き）
-  if(age<=1.0||age>=28.5)return{name:'新月',    icon:'🌑',power:'浄化・再生・新しい始まり',    luckBonus:6};
-  if(age<=6.5)           return{name:'三日月',  icon:'🌒',power:'成長・新規開始のエネルギー',  luckBonus:4};
-  if(age<=8.5)           return{name:'上弦の月',icon:'🌓',power:'行動・決断力の高まり',        luckBonus:5};
-  if(age<=14.0)          return{name:'十三夜',  icon:'🌔',power:'充実・達成への助走',          luckBonus:7};
-  if(age<=15.5)          return{name:'満月',    icon:'🌕',power:'最強の引き寄せ・感情の高まり',luckBonus:9};
-  if(age<=22.0)          return{name:'更待月',  icon:'🌖',power:'余韻と感謝・引き寄せの持続', luckBonus:5};
-  if(age<=25.0)          return{name:'下弦の月',icon:'🌗',power:'手放し・整理のエネルギー',   luckBonus:2};
-  return                        {name:'有明月',  icon:'🌘',power:'内省・次のサイクルへの準備', luckBonus:2};
+  // ─────────────────────────────────────────────────
+  // 月の呼び名 = starwalk.space(Star Walk)の8フェーズ定義に準拠
+  //   主要4相(新月/上弦/満月/下弦)は瞬間〜前後の狭い幅
+  //   副次4相(三日月/十三夜/更待月/有明月)は各 約7.4日
+  //   朔望月29.53日: 新月0 → 上弦≒7.4 → 満月≒14.8 → 下弦≒22.1
+  //   境界は各主要相の瞬間±0.8日を主要相、その間を副次相に割当
+  //   （検証: 月齢8.0/8.8/9.2 はいずれも「十三夜の月」= Star Walkと一致）
+  // luckBonus 設計: 満月9/十三夜7/新月6/上弦5/更待5/三日月4/下弦2/有明2
+  // ─────────────────────────────────────────────────
+  if(age<=1.1||age>=28.4)return{name:'新月',      icon:'🌑',power:'浄化・再生・新しい始まり',    luckBonus:6};
+  if(age<=6.6)           return{name:'三日月',    icon:'🌒',power:'成長・新規開始のエネルギー',  luckBonus:4};
+  if(age<=7.6)           return{name:'上弦の月',  icon:'🌓',power:'行動・決断力の高まり',        luckBonus:5};
+  if(age<=13.8)          return{name:'十三夜の月',icon:'🌔',power:'充実・達成への助走',          luckBonus:7};
+  if(age<=15.8)          return{name:'満月',      icon:'🌕',power:'最強の引き寄せ・感情の高まり',luckBonus:9};
+  if(age<=21.3)          return{name:'更待月',    icon:'🌖',power:'余韻と感謝・引き寄せの持続', luckBonus:5};
+  if(age<=23.3)          return{name:'下弦の月',  icon:'🌗',power:'手放し・整理のエネルギー',   luckBonus:2};
+  return                        {name:'有明月',    icon:'🌘',power:'内省・次のサイクルへの準備', luckBonus:2};
 }
 
 // ═══════════════════════════════════════════════════
@@ -1506,17 +1511,39 @@ function calcTodayHotTimes(score,gameTitle,now,divinParams){
 function calcPickupProbability({pickupRate,pityCount,currentPulls,targetName}){
   if(!pickupRate||pickupRate<=0)return null;
   const p=pickupRate/100;
-  const remaining=(pityCount>0&&currentPulls>0)?Math.max(0,pityCount-currentPulls):null;
-  function probWithin(n){return(1-Math.pow(1-p,n))*100;}
-  function pullsForProb(target){return Math.ceil(Math.log(1-target)/Math.log(1-p));}
-  const pulls50=pullsForProb(0.50),pulls80=pullsForProb(0.80),pulls95=pullsForProb(0.95);
-  const expected=Math.ceil(1/p),guaranteed=pityCount>0?pityCount:null;
-  let fromCurrent=null;
-  if(currentPulls>0){
-    const maxLeft=guaranteed?(guaranteed-currentPulls):null;
-    fromCurrent={for50:maxLeft?Math.min(pulls50,maxLeft):pulls50,for80:maxLeft?Math.min(pulls80,maxLeft):pulls80,for95:maxLeft?Math.min(pulls95,maxLeft):pulls95,maxLeft};
+  const cur=currentPulls>0?currentPulls:0;
+  const pity=pityCount>0?pityCount:null;
+  const remaining=(pity&&cur>0)?Math.max(0,pity-cur):null;
+
+  // 0連から目標確率に到達する「必要総連数」。天井があれば天井で確定するので超えない。
+  function totalPullsFor(target){
+    let n=Math.ceil(Math.log(1-target)/Math.log(1-p));
+    if(pity&&n>pity)n=pity; // 天井で必ず入手 → 必要連数は天井値が上限
+    return n;
   }
-  return{p,pickupRate,pityCount,currentPulls,pulls50,pulls80,pulls95,expected,guaranteed,remainingPulls:remaining,fromCurrent,
+  // 累積確率（天井到達なら100%）
+  function probWithin(n){
+    if(pity&&n>=pity)return 100;
+    return(1-Math.pow(1-p,n))*100;
+  }
+  const pulls50=totalPullsFor(0.50),pulls80=totalPullsFor(0.80),pulls95=totalPullsFor(0.95);
+  const expected=pity?Math.min(pity,Math.ceil(1/p)):Math.ceil(1/p);
+  const guaranteed=pity;
+
+  // 現在地点(cur連消費・未入手)からの「追加で必要な連数」(確率論的に正しい)
+  // = 必要総連数 - 現在連数。ただし天井までで頭打ち(天井で確定)。
+  let fromCurrent=null;
+  if(cur>0){
+    const toPity=pity?Math.max(0,pity-cur):null;
+    const addFor=(totalNeed)=>{
+      let k=totalNeed-cur;        // あと何連で目標総連数に届くか
+      if(k<0)k=0;                 // 既に到達済み
+      if(toPity!=null)k=Math.min(k,toPity); // 天井で確定
+      return k;
+    };
+    fromCurrent={for50:addFor(pulls50),for80:addFor(pulls80),for95:addFor(pulls95),maxLeft:toPity};
+  }
+  return{p,pickupRate,pityCount:pity,currentPulls:cur,pulls50,pulls80,pulls95,expected,guaranteed,remainingPulls:remaining,fromCurrent,
     prob10:probWithin(10).toFixed(1),prob20:probWithin(20).toFixed(1),prob50:probWithin(50).toFixed(1),prob100:probWithin(100).toFixed(1)};
 }
 
@@ -1710,7 +1737,7 @@ function displayResult(result){
     <div class="lunar-chip">
       <span>${moonPhase.icon}</span><span>月齢 ${getMoonAge(new Date()).age}日</span>
       <span class="lc-name">${moonPhase.name}</span><span>${moonPhase.power}</span>
-          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅月齢参照</a>
+          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅Star Walkで確認</a>
     </div>
     <div style="margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;font-size:.78rem;color:var(--muted)">
       <span>六曜: <strong style="color:${rokuyo.bonus>=5?'var(--gold)':rokuyo.bonus<0?'var(--danger)':'var(--text)'}">${rokuyo.name}</strong></span>
