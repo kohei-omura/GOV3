@@ -285,6 +285,15 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   </div>
 </div>
 
+<details class="glass" id="monthly-lucky" style="margin-bottom:18px">
+  <summary style="cursor:pointer;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.16em;color:var(--gold);list-style:none;display:flex;align-items:center;gap:10px">
+    📅 今月の運気カレンダー TOP5
+    <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
+    <span style="font-size:.58rem;color:var(--muted)">▼ タップで展開</span>
+  </summary>
+  <div id="monthly-lucky-body" style="margin-top:16px"><div style="color:var(--muted);font-size:.8rem">読み込み中…</div></div>
+</details>
+
 <div class="glass loading-wrap" id="loading">
   <div class="orb-ring"><span class="orb-crystal">🔮</span></div>
   <div class="load-steps">
@@ -411,23 +420,18 @@ function getMoonAge(date){
   return{age:age,phase:age/SYNODIC*360};
 }
 function getMoonPhaseInfo(age){
-  // ─────────────────────────────────────────────────
-  // 月の呼び名 = starwalk.space(Star Walk)の8フェーズ定義に準拠
-  //   主要4相(新月/上弦/満月/下弦)は瞬間〜前後の狭い幅
-  //   副次4相(三日月/十三夜/更待月/有明月)は各 約7.4日
-  //   朔望月29.53日: 新月0 → 上弦≒7.4 → 満月≒14.8 → 下弦≒22.1
-  //   境界は各主要相の瞬間±0.8日を主要相、その間を副次相に割当
-  //   （検証: 月齢8.0/8.8/9.2 はいずれも「十三夜の月」= Star Walkと一致）
-  // luckBonus 設計: 満月9/十三夜7/新月6/上弦5/更待5/三日月4/下弦2/有明2
-  // ─────────────────────────────────────────────────
-  if(age<=1.1||age>=28.4)return{name:'新月',      icon:'🌑',power:'浄化・再生・新しい始まり',    luckBonus:6};
-  if(age<=6.6)           return{name:'三日月',    icon:'🌒',power:'成長・新規開始のエネルギー',  luckBonus:4};
-  if(age<=7.6)           return{name:'上弦の月',  icon:'🌓',power:'行動・決断力の高まり',        luckBonus:5};
-  if(age<=13.8)          return{name:'十三夜の月',icon:'🌔',power:'充実・達成への助走',          luckBonus:7};
-  if(age<=15.8)          return{name:'満月',      icon:'🌕',power:'最強の引き寄せ・感情の高まり',luckBonus:9};
-  if(age<=21.3)          return{name:'更待月',    icon:'🌖',power:'余韻と感謝・引き寄せの持続', luckBonus:5};
-  if(age<=23.3)          return{name:'下弦の月',  icon:'🌗',power:'手放し・整理のエネルギー',   luckBonus:2};
-  return                        {name:'有明月',    icon:'🌘',power:'内省・次のサイクルへの準備', luckBonus:2};
+  // 月齢 luckBonus 設計根拠:
+  // 満月(9)=最強引き寄せ, 十三夜(7)=充実エネルギー, 新月(6)=浄化と再生の始まり
+  // 上弦(5)=行動期, 更待月(5)=余韻持続, 三日月(4)=成長期
+  // 下弦(2)=手放し期（散財の暗示で低め）, 有明(2)=内省期（行動不向き）
+  if(age<=1.0||age>=28.5)return{name:'新月',    icon:'🌑',power:'浄化・再生・新しい始まり',    luckBonus:6};
+  if(age<=6.5)           return{name:'三日月',  icon:'🌒',power:'成長・新規開始のエネルギー',  luckBonus:4};
+  if(age<=8.5)           return{name:'上弦の月',icon:'🌓',power:'行動・決断力の高まり',        luckBonus:5};
+  if(age<=14.0)          return{name:'十三夜',  icon:'🌔',power:'充実・達成への助走',          luckBonus:7};
+  if(age<=15.5)          return{name:'満月',    icon:'🌕',power:'最強の引き寄せ・感情の高まり',luckBonus:9};
+  if(age<=22.0)          return{name:'更待月',  icon:'🌖',power:'余韻と感謝・引き寄せの持続', luckBonus:5};
+  if(age<=25.0)          return{name:'下弦の月',icon:'🌗',power:'手放し・整理のエネルギー',   luckBonus:2};
+  return                        {name:'有明月',  icon:'🌘',power:'内省・次のサイクルへの準備', luckBonus:2};
 }
 
 // ═══════════════════════════════════════════════════
@@ -1286,7 +1290,8 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
       pinpoint:calcPinpoint(hour,rank,tp),score:ts,tenPulls:tp,
       special:Boolean(targetName&&rank===0),urgent,passed,isLuckyDay:isLucky,
       rokuyo:dRokuyo.name,rokuyoIcon:dRokuyo.icon,dayPillar:dp.pillar,dayElement:dp.element,
-      moonPhaseName:dMoon.name,moonPhaseIcon:dMoon.icon,dbgInfo};
+      moonPhaseName:dMoon.name,moonPhaseIcon:dMoon.icon,dbgInfo,
+      _calDate:new Date(date.getFullYear(),date.getMonth(),date.getDate())};
   }
   if(!gachaDeadline){
     const pool=[];
@@ -1511,39 +1516,17 @@ function calcTodayHotTimes(score,gameTitle,now,divinParams){
 function calcPickupProbability({pickupRate,pityCount,currentPulls,targetName}){
   if(!pickupRate||pickupRate<=0)return null;
   const p=pickupRate/100;
-  const cur=currentPulls>0?currentPulls:0;
-  const pity=pityCount>0?pityCount:null;
-  const remaining=(pity&&cur>0)?Math.max(0,pity-cur):null;
-
-  // 0連から目標確率に到達する「必要総連数」。天井があれば天井で確定するので超えない。
-  function totalPullsFor(target){
-    let n=Math.ceil(Math.log(1-target)/Math.log(1-p));
-    if(pity&&n>pity)n=pity; // 天井で必ず入手 → 必要連数は天井値が上限
-    return n;
-  }
-  // 累積確率（天井到達なら100%）
-  function probWithin(n){
-    if(pity&&n>=pity)return 100;
-    return(1-Math.pow(1-p,n))*100;
-  }
-  const pulls50=totalPullsFor(0.50),pulls80=totalPullsFor(0.80),pulls95=totalPullsFor(0.95);
-  const expected=pity?Math.min(pity,Math.ceil(1/p)):Math.ceil(1/p);
-  const guaranteed=pity;
-
-  // 現在地点(cur連消費・未入手)からの「追加で必要な連数」(確率論的に正しい)
-  // = 必要総連数 - 現在連数。ただし天井までで頭打ち(天井で確定)。
+  const remaining=(pityCount>0&&currentPulls>0)?Math.max(0,pityCount-currentPulls):null;
+  function probWithin(n){return(1-Math.pow(1-p,n))*100;}
+  function pullsForProb(target){return Math.ceil(Math.log(1-target)/Math.log(1-p));}
+  const pulls50=pullsForProb(0.50),pulls80=pullsForProb(0.80),pulls95=pullsForProb(0.95);
+  const expected=Math.ceil(1/p),guaranteed=pityCount>0?pityCount:null;
   let fromCurrent=null;
-  if(cur>0){
-    const toPity=pity?Math.max(0,pity-cur):null;
-    const addFor=(totalNeed)=>{
-      let k=totalNeed-cur;        // あと何連で目標総連数に届くか
-      if(k<0)k=0;                 // 既に到達済み
-      if(toPity!=null)k=Math.min(k,toPity); // 天井で確定
-      return k;
-    };
-    fromCurrent={for50:addFor(pulls50),for80:addFor(pulls80),for95:addFor(pulls95),maxLeft:toPity};
+  if(currentPulls>0){
+    const maxLeft=guaranteed?(guaranteed-currentPulls):null;
+    fromCurrent={for50:maxLeft?Math.min(pulls50,maxLeft):pulls50,for80:maxLeft?Math.min(pulls80,maxLeft):pulls80,for95:maxLeft?Math.min(pulls95,maxLeft):pulls95,maxLeft};
   }
-  return{p,pickupRate,pityCount:pity,currentPulls:cur,pulls50,pulls80,pulls95,expected,guaranteed,remainingPulls:remaining,fromCurrent,
+  return{p,pickupRate,pityCount,currentPulls,pulls50,pulls80,pulls95,expected,guaranteed,remainingPulls:remaining,fromCurrent,
     prob10:probWithin(10).toFixed(1),prob20:probWithin(20).toFixed(1),prob50:probWithin(50).toFixed(1),prob100:probWithin(100).toFixed(1)};
 }
 
@@ -1737,7 +1720,7 @@ function displayResult(result){
     <div class="lunar-chip">
       <span>${moonPhase.icon}</span><span>月齢 ${getMoonAge(new Date()).age}日</span>
       <span class="lc-name">${moonPhase.name}</span><span>${moonPhase.power}</span>
-          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅Star Walkで確認</a>
+          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅月齢参照</a>
     </div>
     <div style="margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;font-size:.78rem;color:var(--muted)">
       <span>六曜: <strong style="color:${rokuyo.bonus>=5?'var(--gold)':rokuyo.bonus<0?'var(--danger)':'var(--text)'}">${rokuyo.name}</strong></span>
@@ -1766,7 +1749,7 @@ function displayResult(result){
       const ec=elemColorMap[t.dayElement]||'var(--muted)';
       html+=`<div class="tc ${cls}${t.expired?' expired':''}">
         <span class="tc-rank-num">第${t.rank}候補</span>
-        <div class="tc-top"><span class="tc-date">${t.date}（${t.weekday}）</span><span class="tc-time">${t.time}</span>${t.isLuckyDay?'<span class="badge b-special">★ラッキーデー</span>':''}${t.urgent?'<span class="badge b-urgent">🔥緊急</span>':''}${t.special?'<span class="badge b-special">✨特別</span>':''}${t.expired?'<span class="badge b-done">終了</span>':''}</div>
+        <div class="tc-top"><span class="tc-date">${t.date}（${t.weekday}）</span><span class="tc-time">${t.time}</span>${t.isLuckyDay?'<span class="badge b-special">★ラッキーデー</span>':''}${(t._calDate&&!calLookup(t._calDate))?'<span class="badge" style="background:rgba(148,163,184,.14);border:1px solid rgba(148,163,184,.4);color:#94A3B8" title="実測暦データの範囲外。内蔵の較正計算による概算値です。">※概算暦</span>':''}${t.urgent?'<span class="badge b-urgent">🔥緊急</span>':''}${t.special?'<span class="badge b-special">✨特別</span>':''}${t.expired?'<span class="badge b-done">終了</span>':''}</div>
         <div class="tc-pinpoint" style="flex-direction:column;align-items:flex-start;gap:3px"><span>🎯 激アツ時間帯: <strong>${typeof t.pinpoint==='object'?t.pinpoint.range:t.pinpoint}</strong></span><span style="font-size:.7rem;font-weight:400;color:rgba(248,113,113,.75)">${typeof t.pinpoint==='object'?'1連目開始 '+t.pinpoint.start+' → '+t.tenPulls+'連分（約'+t.pinpoint.width+'分間の吉ゾーン）':''}</span></div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;font-size:.72rem;">
           <span style="color:${rokuyoColor};background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1)">📅 ${t.rokuyo}${t.rokuyoIcon}</span>
@@ -2002,6 +1985,7 @@ function displayResult(result){
 
   html+=`<div id="dl-err" style="display:none;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px;text-align:center;font-size:.8rem;color:#F87171;margin-top:8px">⚠ 先に占ってください</div>
   <button class="dl-btn" onclick="downloadImage()">📸 結果を画像でダウンロード</button>
+  <button class="dl-btn" style="background:linear-gradient(135deg,#1E3A8A,#2563EB,#38BDF8);color:#F0F9FF;box-shadow:0 4px 24px rgba(56,189,248,.28)" onclick="downloadICS()">📅 カレンダーに登録(.ics)</button>
   <button class="rst-btn" style="background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.2);color:#38BDF8" onclick="showHistory()">📜 過去の占い履歴を見る</button>
   <button class="rst-btn" onclick="resetFortune()">🔄 リセット — 新しく占い直す</button>`;
 
@@ -2079,6 +2063,90 @@ function downloadImage(){
 }
 
 // ═══════════════════════════════════════════════════
+//   機能3-A: 激アツ時刻を .ics でカレンダー登録
+//   TOP3ラッキー時刻＋本日の激アツ時刻を VCALENDAR 化
+//   （RFC5545準拠・CRLF改行・TZID=Asia/Tokyo・UID重複防止）
+// ═══════════════════════════════════════════════════
+function downloadICS(){
+  var r=_lastResult, hotTimes=_lastHotTimes||[];
+  if(!r){
+    var el=document.getElementById('dl-err');
+    if(el){el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
+    return;
+  }
+  function h2(n){return String(n).padStart(2,'0');}
+  function fmtLocal(d){return d.getFullYear()+h2(d.getMonth()+1)+h2(d.getDate())+'T'+h2(d.getHours())+h2(d.getMinutes())+h2(d.getSeconds());}
+  function fmtUTC(d){return d.getUTCFullYear()+h2(d.getUTCMonth()+1)+h2(d.getUTCDate())+'T'+h2(d.getUTCHours())+h2(d.getUTCMinutes())+h2(d.getUTCSeconds())+'Z';}
+  function parseHM(s){var p=String(s||'').split(':');return{h:parseInt(p[0],10)||0,m:parseInt(p[1],10)||0};}
+  function icsEsc(s){return String(s==null?'':s).replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');}
+  function byteLen(s){return unescape(encodeURIComponent(s)).length;}
+  function fold(line){
+    var chars=Array.from(line); // コードポイント単位（絵文字のサロゲートペア対応）
+    var out='',cur='',bytes=0;
+    for(var i=0;i<chars.length;i++){
+      var ch=chars[i], b=byteLen(ch);
+      if(bytes+b>73){out+=cur+'\r\n ';cur='';bytes=1;}
+      cur+=ch;bytes+=b;
+    }
+    return out+cur;
+  }
+  function seedOf(str){var h=0;for(var i=0;i<str.length;i++)h=((h<<5)-h+str.charCodeAt(i))|0;return Math.abs(h);}
+  var seed=seedOf((r.gameTitle||'')+'|'+(r.targetName||'')+'|'+(r.gachaTitle||'')+'|'+new Date().toDateString());
+  var stamp=fmtUTC(new Date());
+  var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//GACHA ORACLE//\u970a\u773c\u7d71\u5408\u5360\u8853//JP','CALSCALE:GREGORIAN','METHOD:PUBLISH',
+    'BEGIN:VTIMEZONE','TZID:Asia/Tokyo','BEGIN:STANDARD','DTSTART:19700101T000000','TZOFFSETFROM:+0900','TZOFFSETTO:+0900','TZNAME:JST','END:STANDARD','END:VTIMEZONE'];
+  var idx=0;
+  function addEvent(sd,ed,summary,desc){
+    L.push('BEGIN:VEVENT');
+    L.push('UID:'+seed+'-'+(idx++)+'@gacha-oracle');
+    L.push('DTSTAMP:'+stamp);
+    L.push('DTSTART;TZID=Asia/Tokyo:'+fmtLocal(sd));
+    L.push('DTEND;TZID=Asia/Tokyo:'+fmtLocal(ed));
+    L.push('SUMMARY:'+icsEsc(summary));
+    L.push('DESCRIPTION:'+icsEsc(desc));
+    L.push('BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsEsc(summary),'TRIGGER:-PT15M','END:VALARM');
+    L.push('END:VEVENT');
+  }
+  // ① TOP3 ラッキー時刻（将来日を含む）
+  (r.luckyTimes||[]).slice(0,3).forEach(function(t){
+    var base=t._calDate?new Date(t._calDate):new Date();
+    var pp=(t.pinpoint&&typeof t.pinpoint==='object')?t.pinpoint:{start:String(t.time||'').split(' ')[0],width:30};
+    var st=parseHM(pp.start);
+    var sd=new Date(base.getFullYear(),base.getMonth(),base.getDate(),st.h,st.m,0);
+    var ed=new Date(sd.getTime()+((pp.width||30)*60000));
+    var summary='\ud83c\udfb0 '+r.gameTitle+' \u30ac\u30c1\u30e3\u6fc0\u30a2\u30c4\u6642\u9593';
+    var desc='\u7b2c'+t.rank+'\u5019\u88dc\uff08'+t.date+' '+t.rokuyo+'\uff09\u3000\u904b\u6c17\u30b9\u30b3\u30a2 '+t.score+'pt\u3000\u63a8\u5968 10\u9023\u00d7'+t.tenPulls
+      +(r.targetName?('\u3000\u72d9\u3044: '+r.targetName):'')+(r.gachaTitle?('\u3000'+r.gachaTitle):'');
+    addEvent(sd,ed,summary,desc);
+  });
+  // ② 本日の激アツ時刻
+  (hotTimes||[]).forEach(function(t,i){
+    var st=parseHM(t.start);
+    var b=new Date();
+    var sd=new Date(b.getFullYear(),b.getMonth(),b.getDate(),st.h,st.m,0);
+    var ed=new Date(sd.getTime()+((t.width||30)*60000));
+    var summary='\ud83c\udfb0 '+r.gameTitle+' \u30ac\u30c1\u30e3\u6fc0\u30a2\u30c4\u6642\u9593\uff08\u672c\u65e5 \u7b2c'+(i+1)+'\u5019\u88dc\uff09';
+    var desc='\u672c\u65e5\u306e\u6fc0\u30a2\u30c4\u6642\u523b\u3000\u904b\u6c17 '+(t.hourScore||'')+'pt\u3000\u63a8\u5968 10\u9023\u00d7'+((r.pulls&&r.pulls.ten)||1)
+      +(r.targetName?('\u3000\u72d9\u3044: '+r.targetName):'');
+    addEvent(sd,ed,summary,desc);
+  });
+  L.push('END:VCALENDAR');
+  var ics=L.map(fold).join('\r\n')+'\r\n';
+  try{
+    var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url;a.download='gacha-oracle.ics';a.style.display='none';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},120);
+  }catch(e){
+    console.warn('[GACHA ORACLE] .ics 生成エラー:',(e&&e.stack)||e);
+    var el2=document.getElementById('dl-err');
+    if(el2){el2.textContent='⚠ カレンダーファイルの生成に失敗しました';el2.style.display='block';setTimeout(function(){el2.style.display='none';el2.textContent='⚠ 先に占ってください';},3000);}
+  }
+}
+
+// ═══════════════════════════════════════════════════
 //   FORM HANDLING（シンプル直接実装）
 // ═══════════════════════════════════════════════════
 (function(){
@@ -2109,6 +2177,24 @@ function downloadImage(){
 })();
 
 
+
+// ═══ 欠陥#1: 鑑定エラーの可視化（赤エラーパネル＋再試行ボタン） ═══
+function showFortuneError(err,phase){
+  var resultEl=document.getElementById('result');
+  if(!resultEl)return;
+  var msg=(err&&(err.message||String(err)))||'不明なエラー';
+  resultEl.innerHTML=
+    '<div class="glass" style="border-color:rgba(248,113,113,.45);background:rgba(248,113,113,.07);text-align:center;padding:34px 22px">'
+    +'<div style="font-size:2rem;margin-bottom:10px">⚠</div>'
+    +'<div style="font-family:\'Cinzel\',serif;font-size:.8rem;letter-spacing:.16em;color:var(--danger);margin-bottom:10px">FORTUNE ERROR</div>'
+    +'<div style="font-size:.92rem;color:var(--text);line-height:1.7;margin-bottom:6px">鑑定処理でエラーが発生しました。</div>'
+    +'<div style="font-size:.74rem;color:var(--muted);margin-bottom:16px">'+(phase?esc(phase)+'に問題が発生しました。':'')+'もう一度お試しください。</div>'
+    +'<div style="font-size:.66rem;color:rgba(248,113,113,.7);background:rgba(0,0,0,.3);border-radius:8px;padding:8px 10px;margin-bottom:16px;word-break:break-all;font-family:monospace">'+esc(msg)+'</div>'
+    +'<button class="oracle-btn" style="margin-top:0" onclick="runFortune()">🔄 再試行する</button>'
+    +'</div>';
+  resultEl.classList.add('show');
+  resultEl.scrollIntoView({behavior:'smooth',block:'start'});
+}
 
 function runFortune(){
   // ボタン無効化で2重実行防止（フラグ方式より確実）
@@ -2171,15 +2257,21 @@ function runFortune(){
     try{
       data=calculateFortune(params);
     }catch(e1){
-      if(btn){btn.disabled=false;btn.style.opacity='';}
+      console.warn('[GACHA ORACLE] 鑑定計算エラー (calculateFortune):\n',(e1&&e1.stack)||e1);
       if(loadingEl) loadingEl.classList.remove('show');
+      steps.forEach(function(id){var el=document.getElementById(id);if(el) el.classList.remove('lit');});
+      if(btn){btn.disabled=false;btn.style.opacity='';}
+      showFortuneError(e1,'鑑定処理の計算');
       return;
     }
     try{
       displayResult(data);
     }catch(e2){
-      if(btn){btn.disabled=false;btn.style.opacity='';}
+      console.warn('[GACHA ORACLE] 結果表示エラー (displayResult):\n',(e2&&e2.stack)||e2);
       if(loadingEl) loadingEl.classList.remove('show');
+      steps.forEach(function(id){var el=document.getElementById(id);if(el) el.classList.remove('lit');});
+      if(btn){btn.disabled=false;btn.style.opacity='';}
+      showFortuneError(e2,'結果の表示');
       return;
     }
     if(loadingEl) loadingEl.classList.remove('show');
@@ -2419,9 +2511,76 @@ function clearHistory(){
 //   新作=セルランin/プレイ中タイトルのサ終=自動除外 が反映される。
 //   取得失敗(オフライン等)時はHTML内蔵の基本リストにフォールバック。
 // ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//   機能3-B: 今月の吉日ランキング TOP5
+//   当月全日を「六曜bonus＋月齢luckBonus＋(誕生日があれば)日盤九星×本命星」でスコア化。
+//   いずれも既存関数(getRokuyo/getMoonPhaseInfo/getMoonAge/getDayKyusei/getKyusei)を
+//   呼ぶだけで、新しい計算式は追加しない。calendar.json 範囲外の月は「※概算暦」を明示。
+// ═══════════════════════════════════════════════════
+function renderMonthlyRanking(){
+  var body=document.getElementById('monthly-lucky-body');
+  if(!body)return;
+  try{
+    var now=new Date();
+    var y=now.getFullYear(), m=now.getMonth();
+    var daysInMonth=new Date(y,m+1,0).getDate();
+    var prof=null; try{prof=JSON.parse(SS.get('gachaOracle_profile')||'null');}catch(e){}
+    var bdVal=((document.getElementById('birthdate')||{value:''}).value)||(prof&&prof.birthdate)||'';
+    var honmeiElem=null, COMPAT=null;
+    if(bdVal){
+      try{ var by=parseInt(bdVal.split('-')[0],10); var k=getKyusei(y,m+1,by,bdVal); honmeiElem=k.myElem; COMPAT=k.COMPAT; }catch(e){ honmeiElem=null; }
+    }
+    var rows=[], anyEstimate=false;
+    for(var d=1; d<=daysInMonth; d++){
+      var date=new Date(y,m,d);
+      var rk=getRokuyo(date);
+      var moon=getMoonPhaseInfo(getMoonAge(date).age);
+      var dayK=getDayKyusei(date);
+      var personal=0;
+      if(honmeiElem&&COMPAT&&COMPAT[honmeiElem]&&COMPAT[honmeiElem][dayK.element]!=null){
+        personal=Math.round(COMPAT[honmeiElem][dayK.element]*0.6);
+      }
+      var score=rk.bonus + moon.luckBonus + personal;
+      var isEst=!calLookup(date);
+      if(isEst)anyEstimate=true;
+      rows.push({d:d,rokuyo:rk,moon:moon,score:score,isEst:isEst,weekday:['日','月','火','水','木','金','土'][date.getDay()]});
+    }
+    rows.sort(function(a,b){return b.score-a.score || a.d-b.d;});
+    var top=rows.slice(0,5);
+    function grade(s){return s>=14?'S':s>=9?'A':'B';}
+    var gColor={S:'#EDD070',A:'#A78BFA',B:'#38BDF8'};
+    var todayD=now.getDate();
+    var html='<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">'+y+'年'+(m+1)+'月の運気上位日（六曜・月齢'+(honmeiElem?'・日盤九星×本命星':'')+'を統合）'
+      +(anyEstimate?'　<span style="color:#94A3B8">※概算暦（実測データ範囲外を含む）</span>':'')+'</div>';
+    html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.8rem">';
+    html+='<tr style="color:var(--muted);font-size:.66rem;text-align:left"><th style="padding:6px 8px">順位</th><th style="padding:6px 8px">日付</th><th style="padding:6px 8px">六曜</th><th style="padding:6px 8px">月相</th><th style="padding:6px 8px;text-align:right">スコア</th><th style="padding:6px 8px;text-align:center">おすすめ</th></tr>';
+    top.forEach(function(r,i){
+      var g=grade(r.score);
+      var isToday=(r.d===todayD);
+      var rokC=(r.rokuyo.name==='大安')?'var(--green)':(r.rokuyo.name==='仏滅'||r.rokuyo.name==='赤口')?'var(--danger)':'var(--text)';
+      html+='<tr style="border-bottom:1px solid rgba(255,255,255,.06)'+(isToday?';background:rgba(201,168,76,.08)':'')+'">'
+        +'<td style="padding:7px 8px;color:var(--gold);font-family:\'Cinzel\',serif">'+(i+1)+'</td>'
+        +'<td style="padding:7px 8px">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?' <span style="font-size:.6rem;color:var(--gold)">★本日</span>':'')+(r.isEst?' <span style="font-size:.56rem;color:#94A3B8">※概算</span>':'')+'</td>'
+        +'<td style="padding:7px 8px;color:'+rokC+'">'+r.rokuyo.icon+r.rokuyo.name+'</td>'
+        +'<td style="padding:7px 8px">'+r.moon.icon+r.moon.name+'</td>'
+        +'<td style="padding:7px 8px;text-align:right;font-weight:bold">'+r.score+'</td>'
+        +'<td style="padding:7px 8px;text-align:center"><span style="font-family:\'Cinzel\',serif;font-weight:bold;padding:2px 10px;border-radius:12px;color:'+gColor[g]+';background:rgba(255,255,255,.05);border:1px solid '+gColor[g]+'55">'+g+'</span></td>'
+        +'</tr>';
+    });
+    html+='</table></div>';
+    if(!bdVal){
+      html+='<div style="font-size:.66rem;color:var(--muted);margin-top:10px">💡 生年月日を入力して占うと、本命星との相性を加味した精度の高いランキングになります。</div>';
+    }
+    body.innerHTML=html;
+  }catch(e){
+    console.warn('[GACHA ORACLE] 吉日ランキング描画エラー:',(e&&e.stack)||e);
+    body.innerHTML='<div style="color:var(--danger);font-size:.78rem">ランキングの生成に失敗しました。</div>';
+  }
+}
+
 // 暦データ(calendar.json)を起動時に読み込む（six曜・月齢の正確化）
 (function(){
-  if(typeof fetch!=='function')return;
+  if(typeof fetch!=='function'){ try{renderMonthlyRanking();}catch(e){} return; }
   fetch('./calendar.json',{cache:'no-cache'})
     .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
     .then(function(d){
@@ -2430,7 +2589,8 @@ function clearHistory(){
         if(f){var s=document.createElement('span');s.style.cssText='display:block;font-size:.7rem;opacity:.5;margin-top:6px';s.textContent='📅 六曜・月齢データ: '+(d.updated||'')+' 時点（ajnet.ne.jp 暦カレンダー基準）';f.appendChild(s);}
       }
     })
-    .catch(function(e){console.warn('calendar.json load skipped (内蔵計算を使用):',e);});
+    .catch(function(e){console.warn('calendar.json load skipped (内蔵計算を使用):',e);})
+    .then(function(){ try{renderMonthlyRanking();}catch(e){} });
 })();
 
 (function(){
@@ -2456,7 +2616,11 @@ function clearHistory(){
       var cap=document.getElementById('games-updated-cap');
       if(cap)cap.textContent='📡 リスト自動更新: '+(d.updated||'')+'｜プレイ中'+d.playing.length+'本＋人気'+(d.trending?d.trending.length:0)+'本';
     })
-    .catch(function(e){console.warn('games.json load skipped:',e);});
+    .catch(function(e){
+      console.warn('games.json load skipped:',e);
+      var cap=document.getElementById('games-updated-cap');
+      if(cap){cap.textContent='📡 オフライン：内蔵リストを使用中';cap.style.color='#F87171';}
+    });
 })();
 
 // ═══════════════════════════════════════════════════
