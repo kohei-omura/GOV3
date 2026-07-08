@@ -332,6 +332,40 @@ const SS=(function(){
 
 // グローバル結果保持（ダウンロード用）
 let _lastResult=null,_lastHotTimes=null;
+// 高性能化A/B 用の状態（var＝TDZ回避・初回使用より前に宣言）
+var _hotCountdownTimer=null,_lastHotCtx=null,_calViewY=null,_calViewM=null;
+function _parseHM(s){var p=String(s||'').split(':');return{h:+p[0]||0,m:+p[1]||0};}
+// A: 次の激アツ時刻（当日分がすべて過ぎたら翌日の第1候補）
+function nextHotTime(){
+  var now=new Date();
+  if(_lastHotTimes&&_lastHotTimes.length){
+    for(var i=0;i<_lastHotTimes.length;i++){var t=_lastHotTimes[i],hm=_parseHM(t.start);
+      var d=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hm.h,hm.m,0);
+      if(d>now)return{when:d,range:t.range,tomorrow:false};}
+  }
+  if(_lastHotCtx){try{
+    var tm=new Date(now.getTime()+86400000);
+    var list=calcTodayHotTimes(_lastHotCtx.score,_lastHotCtx.gameTitle,new Date(tm.getFullYear(),tm.getMonth(),tm.getDate(),0,0,1),_lastHotCtx.params);
+    if(list&&list.length){var t0=list[0],hm0=_parseHM(t0.start);
+      var d0=new Date(tm.getFullYear(),tm.getMonth(),tm.getDate(),hm0.h,hm0.m,0);
+      return{when:d0,range:t0.range,tomorrow:true};}
+  }catch(e){}}
+  return null;
+}
+function renderHotCountdown(){
+  var el=document.getElementById('hot-countdown');if(!el)return;
+  var nx=nextHotTime();
+  if(!nx){el.style.display='none';return;}
+  el.style.display='';
+  var diff=nx.when-new Date();if(diff<0)diff=0;
+  var mins=Math.floor(diff/60000),h=Math.floor(mins/60),m=mins%60,td=nx.tomorrow?'翌日 ':'';
+  el.innerHTML='⏳ 次の激アツまで あと'+(h>0?h+'時間':'')+m+'分 <b style="color:var(--danger)">（'+td+nx.range+'）</b>';
+}
+function startHotCountdown(){if(_hotCountdownTimer)clearInterval(_hotCountdownTimer);renderHotCountdown();_hotCountdownTimer=setInterval(renderHotCountdown,60000);}
+// B: 吉日ランキングの月送り（calendar.json範囲内のみ有効）
+function _calRange(){if(!CAL_DATA||!CAL_DATA.days)return null;var ks=Object.keys(CAL_DATA.days);if(!ks.length)return null;ks.sort();return{min:ks[0].slice(0,7),max:ks[ks.length-1].slice(0,7)};}
+function _ym(y,m){return y+'-'+String(m+1).padStart(2,'0');}
+function _calNav(delta){var m=_calViewM+delta,y=_calViewY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}_calViewY=y;_calViewM=m;try{renderMonthlyRanking();}catch(e){}}
 
 // ═══════════════════════════════════════════════════
 //   暦データ（ajnet.ne.jpから取得した正確な六曜・月齢）
@@ -1688,6 +1722,7 @@ function displayResult(result){
   const _inp=result.inputs||{};
   const todayHotTimes=calcTodayHotTimes(score,gameTitle,new Date(),{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu});
   _lastResult=result;_lastHotTimes=todayHotTimes;
+  _lastHotCtx={score:score,gameTitle:gameTitle,params:{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu}};
   const verdicts=[{min:90,label:'大吉 ✦ 最強開運',color:'#EDD070',borderColor:'rgba(237,208,112,.45)'},{min:80,label:'中吉 ✦ 好運気',color:'#A78BFA',borderColor:'rgba(167,139,250,.4)'},{min:70,label:'吉 ✦ 良き流れ',color:'#34D399',borderColor:'rgba(52,211,153,.35)'},{min:60,label:'小吉 ✦ 安定',color:'#38BDF8',borderColor:'rgba(56,189,248,.3)'},{min:0,label:'末吉 ✦ 慎重に',color:'#94A3B8',borderColor:'rgba(148,163,184,.25)'}];
   const verd=verdicts.find(v=>score>=v.min)||verdicts[verdicts.length-1];
   const C=2*Math.PI*72,arc=C*(score/100),gap=C-arc;
@@ -1990,11 +2025,21 @@ function displayResult(result){
   <button class="rst-btn" onclick="resetFortune()">🔄 リセット — 新しく占い直す</button>`;
 
   document.getElementById('result').innerHTML=html;
+  (function(){var rc=document.getElementById('result');if(rc){var cd=document.getElementById('hot-countdown');if(!cd){cd=document.createElement('div');cd.id='hot-countdown';cd.className='glass';cd.style.cssText='margin:0 0 14px;padding:12px 16px;text-align:center;font-size:.95rem;font-weight:700;color:var(--gold)';}else if(cd.parentNode){cd.parentNode.removeChild(cd);}rc.insertBefore(cd,rc.firstChild);}startHotCountdown();})();
 }
 
 // ═══════════════════════════════════════════════════
 //   IMAGE DOWNLOAD
 // ═══════════════════════════════════════════════════
+// 配布ヘルパー: iOSでも確実に保存できるよう「共有シート→a[download]→新規タブ」の順で同期実行
+function _toast(msg){try{var t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;left:50%;bottom:32px;transform:translateX(-50%);max-width:88%;text-align:center;background:rgba(20,12,40,.96);color:#EDE6F5;border:1px solid rgba(201,168,76,.4);border-radius:12px;padding:10px 18px;font-size:.8rem;z-index:99999;box-shadow:0 8px 30px rgba(0,0,0,.5)';document.body.appendChild(t);setTimeout(function(){t.style.transition='opacity .4s';t.style.opacity='0';setTimeout(function(){t.remove();},400);},2400);}catch(e){}}
+function _dataUrlToBlob(u){var parts=u.split(','),mime=(parts[0].match(/:(.*?);/)||[])[1]||'image/png',bin=atob(parts[1]),len=bin.length,arr=new Uint8Array(len);for(var i=0;i<len;i++)arr[i]=bin.charCodeAt(i);return new Blob([arr],{type:mime});}
+function _shareOrSave(blob,filename,title){
+  var file=null;try{file=new File([blob],filename,{type:blob.type});}catch(e){}
+  if(file&&navigator.canShare&&navigator.canShare({files:[file]})){navigator.share({files:[file],title:title||filename}).catch(function(){});return;}
+  try{var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download=filename;a.style.display='none';document.body.appendChild(a);a.click();setTimeout(function(){try{document.body.removeChild(a);}catch(e){}URL.revokeObjectURL(url);},150);return;}catch(e){}
+  try{var u2=URL.createObjectURL(blob);window.open(u2,'_blank');_toast('保存できない場合は画像を長押しで保存してください');}catch(e){_toast('保存に失敗しました');}
+}
 function downloadImage(){
   var r=_lastResult, hotTimes=_lastHotTimes||[];
   if(!r){
@@ -2002,46 +2047,53 @@ function downloadImage(){
     if(el){el.style.display='block';setTimeout(function(){el.style.display='none';},3000);}
     return;
   }
+  var DPR=2, HEADER_H=44;
+  var W=1080, H=320+r.luckyTimes.length*210+(hotTimes.length>0?180+hotTimes.length*110:0)+HEADER_H;
   var cv=document.createElement('canvas');
-  cv.width=1080;
-  cv.height=320+r.luckyTimes.length*210+(hotTimes.length>0?180+hotTimes.length*110:0);
+  cv.width=W*DPR; cv.height=H*DPR;
   var ctx=cv.getContext('2d');
-  var bg=ctx.createLinearGradient(0,0,0,cv.height);
+  ctx.scale(DPR,DPR);
+  var bg=ctx.createLinearGradient(0,0,0,H);
   bg.addColorStop(0,'#07040E');bg.addColorStop(1,'#160C2E');
-  ctx.fillStyle=bg;ctx.fillRect(0,0,cv.width,cv.height);
-  var gb=ctx.createLinearGradient(0,0,cv.width,0);
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  var gb=ctx.createLinearGradient(0,0,W,0);
   gb.addColorStop(0,'transparent');gb.addColorStop(0.5,'rgba(201,168,76,0.6)');gb.addColorStop(1,'transparent');
-  ctx.fillStyle=gb;ctx.fillRect(0,0,cv.width,3);
+  ctx.fillStyle=gb;ctx.fillRect(0,0,W,3);
+  // 機能C: 画像冒頭の暦ヘッダー（六曜・月齢・九星・日柱／画面ヘッダーと同値）
+  var _nine='';try{_nine=getDayKyusei(r._calDate||new Date()).name;}catch(e){}
+  ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='19px serif';
+  ctx.fillText((r.rokuyoIcon||'')+(r.rokuyo||'')+'　｜　'+(r.moonPhaseIcon||'')+(r.moonPhaseName||'')+'　｜　'+_nine+'　｜　日柱 '+(r.dayPillar||''),W/2,30);
+  ctx.translate(0,HEADER_H);
   ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='bold 36px serif';
-  ctx.fillText('GACHA ORACLE 霊眼統合占術システム',cv.width/2,60);
+  ctx.fillText('GACHA ORACLE 霊眼統合占術システム',W/2,60);
   ctx.fillStyle='#EDE6F5';ctx.font='bold 28px serif';
-  ctx.fillText(r.gameTitle+(r.gachaTitle?' - '+r.gachaTitle:''),cv.width/2,105);
-  if(r.targetName){ctx.fillStyle='#C9A84C';ctx.font='22px serif';ctx.fillText('狙い: '+r.targetName,cv.width/2,140);}
+  ctx.fillText(r.gameTitle+(r.gachaTitle?' - '+r.gachaTitle:''),W/2,105);
+  if(r.targetName){ctx.fillStyle='#C9A84C';ctx.font='22px serif';ctx.fillText('狙い: '+r.targetName,W/2,140);}
   ctx.fillStyle='#A78BFA';ctx.font='bold 26px serif';
-  ctx.fillText('総合運気スコア: '+r.score+'pt',cv.width/2,175);
-  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(60,200,cv.width-120,2);
+  ctx.fillText('総合運気スコア: '+r.score+'pt',W/2,175);
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(60,200,W-120,2);
   var y=240;
   r.luckyTimes.forEach(function(t,i){
     ctx.fillStyle=i===0?'rgba(201,168,76,0.25)':i===1?'rgba(139,92,246,0.15)':'rgba(255,255,255,0.06)';
-    ctx.fillRect(60,y-28,cv.width-120,180);
+    ctx.fillRect(60,y-28,W-120,180);
     ctx.textAlign='left';ctx.fillStyle='#C9A84C';ctx.font='bold 22px serif';
     ctx.fillText('第'+t.rank+'候補  '+t.date,90,y+10);
     ctx.fillStyle='#EDE6F5';ctx.font='bold 28px serif';ctx.fillText(t.time,90,y+50);
     var pp=t.pinpoint&&typeof t.pinpoint==='object'?t.pinpoint.range:String(t.pinpoint||'');
     ctx.fillStyle='#F87171';ctx.font='bold 20px serif';ctx.fillText('激アツ: '+pp,90,y+85);
     ctx.textAlign='right';ctx.fillStyle='#EDD070';ctx.font='bold 26px serif';
-    ctx.fillText('10連 x '+t.tenPulls+'回',cv.width-90,y+50);
-    ctx.fillStyle='#6E5F88';ctx.font='18px serif';ctx.fillText('運気 '+t.score+'pt',cv.width-90,y+90);
+    ctx.fillText('10連 x '+t.tenPulls+'回',W-90,y+50);
+    ctx.fillStyle='#6E5F88';ctx.font='18px serif';ctx.fillText('運気 '+t.score+'pt',W-90,y+90);
     ctx.textAlign='left';y+=210;
   });
   if(hotTimes.length>0){
     y+=20;
-    ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(60,y,cv.width-120,2);y+=24;
+    ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(60,y,W-120,2);y+=24;
     ctx.textAlign='center';ctx.fillStyle='#F87171';ctx.font='bold 26px serif';
-    ctx.fillText('本日の激アツ時刻',cv.width/2,y+20);y+=50;
+    ctx.fillText('本日の激アツ時刻',W/2,y+20);y+=50;
     hotTimes.forEach(function(t,i){
       ctx.fillStyle=i===0?'rgba(201,168,76,0.3)':i===1?'rgba(139,92,246,0.2)':'rgba(255,255,255,0.07)';
-      ctx.fillRect(60,y-10,cv.width-120,90);
+      ctx.fillRect(60,y-10,W-120,90);
       ctx.textAlign='left';
       var lbl=['1位','2位','3位'][i];
       ctx.fillStyle='#C9A84C';ctx.font='bold 18px serif';ctx.fillText(lbl,90,y+18);
@@ -2049,17 +2101,14 @@ function downloadImage(){
       y+=110;
     });
   }
-  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(60,y,cv.width-120,2);
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(60,y,W-120,2);
   ctx.fillStyle='#6E5F88';ctx.font='16px serif';ctx.textAlign='center';
-  ctx.fillText('Powered by GACHA ORACLE',cv.width/2,y+30);
+  ctx.fillText('Powered by GACHA ORACLE',W/2,y+30);
   var dataUrl=cv.toDataURL('image/png');
-  var a=document.createElement('a');
-  a.href=dataUrl;
-  a.download='gacha-oracle-result.png';
-  a.style.display='none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(function(){ document.body.removeChild(a); }, 100);
+  var filename='gacha-oracle-result.png';
+  var blob=_dataUrlToBlob(dataUrl);
+  if(blob.size>3500000){try{blob=_dataUrlToBlob(cv.toDataURL('image/jpeg',0.92));filename='gacha-oracle-result.jpg';}catch(e){}}
+  _shareOrSave(blob,filename,'GACHA ORACLE 結果');
 }
 
 // ═══════════════════════════════════════════════════
@@ -2134,11 +2183,7 @@ function downloadICS(){
   var ics=L.map(fold).join('\r\n')+'\r\n';
   try{
     var blob=new Blob([ics],{type:'text/calendar;charset=utf-8'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url;a.download='gacha-oracle.ics';a.style.display='none';
-    document.body.appendChild(a);a.click();
-    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(url);},120);
+    _shareOrSave(blob,'gacha-oracle.ics','GACHA ORACLE 激アツ時刻');
   }catch(e){
     console.warn('[GACHA ORACLE] .ics 生成エラー:',(e&&e.stack)||e);
     var el2=document.getElementById('dl-err');
@@ -2522,7 +2567,8 @@ function renderMonthlyRanking(){
   if(!body)return;
   try{
     var now=new Date();
-    var y=now.getFullYear(), m=now.getMonth();
+    if(_calViewY==null){_calViewY=now.getFullYear();_calViewM=now.getMonth();}
+    var y=_calViewY, m=_calViewM;
     var daysInMonth=new Date(y,m+1,0).getDate();
     var prof=null; try{prof=JSON.parse(SS.get('gachaOracle_profile')||'null');}catch(e){}
     var bdVal=((document.getElementById('birthdate')||{value:''}).value)||(prof&&prof.birthdate)||'';
@@ -2549,8 +2595,17 @@ function renderMonthlyRanking(){
     var top=rows.slice(0,5);
     function grade(s){return s>=14?'S':s>=9?'A':'B';}
     var gColor={S:'#EDD070',A:'#A78BFA',B:'#38BDF8'};
-    var todayD=now.getDate();
-    var html='<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">'+y+'年'+(m+1)+'月の運気上位日（六曜・月齢'+(honmeiElem?'・日盤九星×本命星':'')+'を統合）'
+    var todayD=(y===now.getFullYear()&&m===now.getMonth())?now.getDate():-1;
+    var _rng=_calRange();
+    var _pm=(m-1<0)?_ym(y-1,11):_ym(y,m-1), _nm=(m+1>11)?_ym(y+1,0):_ym(y,m+1);
+    var _pOK=!!(_rng&&_pm>=_rng.min&&_pm<=_rng.max), _nOK=!!(_rng&&_nm>=_rng.min&&_nm<=_rng.max);
+    var _bs='font-family:\'Cinzel\',serif;font-size:.72rem;letter-spacing:.08em;padding:6px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.08);color:var(--gold);cursor:pointer';
+    var _bd='opacity:.3;cursor:not-allowed;border-color:rgba(255,255,255,.1);background:transparent;color:var(--muted)';
+    var nav='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
+      +'<button onclick="_calNav(-1)" '+(_pOK?'':'disabled')+' style="'+(_pOK?_bs:_bs+';'+_bd)+'">◀ 前月</button>'
+      +'<span style="font-family:\'Cinzel\',serif;font-size:.8rem;color:var(--gold)">'+y+'年'+(m+1)+'月</span>'
+      +'<button onclick="_calNav(1)" '+(_nOK?'':'disabled')+' style="'+(_nOK?_bs:_bs+';'+_bd)+'">翌月 ▶</button></div>';
+    var html=nav+'<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">'+y+'年'+(m+1)+'月の運気上位日（六曜・月齢'+(honmeiElem?'・日盤九星×本命星':'')+'を統合）'
       +(anyEstimate?'　<span style="color:#94A3B8">※概算暦（実測データ範囲外を含む）</span>':'')+'</div>';
     html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.8rem">';
     html+='<tr style="color:var(--muted);font-size:.66rem;text-align:left"><th style="padding:6px 8px">順位</th><th style="padding:6px 8px">日付</th><th style="padding:6px 8px">六曜</th><th style="padding:6px 8px">月相</th><th style="padding:6px 8px;text-align:right">スコア</th><th style="padding:6px 8px;text-align:center">おすすめ</th></tr>';
