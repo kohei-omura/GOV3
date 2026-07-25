@@ -171,6 +171,36 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .hist-sub{display:none;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,.35);border-radius:8px;font-size:.68rem}
 .hist-sub-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.55)}
 .hist-sub-row span:last-child{font-weight:bold}
+
+/* ⑤ カプセルオープン演出（画像なし・CSSのみ） */
+#capsule-ov{position:fixed;inset:0;z-index:99998;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;background:rgba(8,5,18,.82);
+  backdrop-filter:blur(3px);transition:opacity .2s;cursor:pointer}
+#capsule-ov .cap-wrap{position:relative;width:150px;height:150px;display:flex;
+  align-items:center;justify-content:center}
+#capsule-ov .cap-body{position:absolute;width:96px;height:96px;animation:capDrop .55s cubic-bezier(.3,1.5,.5,1)}
+#capsule-ov .cap-half{position:absolute;left:0;width:96px;height:48px;
+  box-shadow:inset 0 -6px 12px rgba(0,0,0,.25),0 4px 14px rgba(0,0,0,.4)}
+#capsule-ov .cap-half.top{top:0;border-radius:48px 48px 6px 6px;
+  background:linear-gradient(180deg,#F3E9FF,#C9A8FF);animation:capTop .5s .55s cubic-bezier(.3,1.2,.4,1) forwards}
+#capsule-ov .cap-half.bot{top:48px;border-radius:6px 6px 48px 48px;
+  background:linear-gradient(180deg,#EDD070,#C9A84C);animation:capBot .5s .55s cubic-bezier(.3,1.2,.4,1) forwards}
+@keyframes capDrop{0%{transform:translateY(-190px) scale(.85)}60%{transform:translateY(10px) scale(1.04)}
+  80%{transform:translateY(-6px) scale(.99)}100%{transform:translateY(0) scale(1)}}
+@keyframes capTop{to{transform:translateY(-78px) rotate(-26deg);opacity:0}}
+@keyframes capBot{to{transform:translateY(78px) rotate(22deg);opacity:0}}
+#capsule-ov .cap-burst{position:absolute;width:200px;height:200px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle,rgba(255,248,214,.95),rgba(201,168,76,.4) 45%,transparent 70%);
+  animation:capBurst .8s .6s ease-out forwards}
+@keyframes capBurst{0%{opacity:0;transform:scale(.2)}35%{opacity:1;transform:scale(1.1)}
+  100%{opacity:0;transform:scale(1.5)}}
+#capsule-ov .cap-rank{position:relative;font-size:3.4rem;font-weight:900;letter-spacing:.06em;
+  color:#FFF8D6;text-shadow:0 0 20px rgba(237,208,112,.9),0 0 46px rgba(201,168,76,.6);
+  opacity:0;transform:scale(.3);animation:capRank .7s .68s cubic-bezier(.2,1.7,.4,1) forwards}
+@keyframes capRank{0%{opacity:0;transform:scale(.3) rotate(-12deg)}
+  55%{opacity:1;transform:scale(1.25) rotate(4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+#capsule-ov .cap-skip{margin-top:26px;font-size:.68rem;color:rgba(237,230,245,.5);letter-spacing:.08em}
+@media (prefers-reduced-motion:reduce){#capsule-ov *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -305,6 +335,59 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   </div>
 </div>
 <div class="result-wrap" id="result"></div>
+
+<details class="glass" style="margin-top:14px">
+  <summary style="cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem">
+    ⚙ 設定
+    <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
+    <span style="font-size:.58rem;color:var(--muted)">▼ タップで展開</span>
+  </summary>
+
+  <div style="margin-top:14px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+      <span style="font-weight:700;font-size:.84rem">🎮 マイゲーム帳</span>
+      <span id="mygames-count" style="margin-left:auto;font-size:.64rem;color:var(--muted)"></span>
+    </div>
+    <div id="mygames-list"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
+      <label style="font-size:.7rem;color:var(--muted);grid-column:span 2">ゲーム名 <span style="color:#f87171">※必須</span>
+        <input id="mg-name" placeholder="例）新作RPG" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>
+      <label style="font-size:.7rem;color:var(--muted)">天井連数（既定300）
+        <input id="mg-pity" type="number" inputmode="numeric" placeholder="300" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>
+      <label style="font-size:.7rem;color:var(--muted)">1連の石数
+        <input id="mg-stone" type="number" inputmode="numeric" placeholder="150" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>
+      <label style="font-size:.7rem;color:var(--muted)">ピックアップ率%（既定0.7）
+        <input id="mg-rate" type="number" step="0.1" inputmode="decimal" placeholder="0.7" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>
+      <label style="font-size:.7rem;color:var(--muted)">メモ
+        <input id="mg-memo" placeholder="任意" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>
+    </div>
+    <input type="hidden" id="mg-idx" value="-1">
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button type="button" id="mg-submit" class="rst-btn" style="flex:1" onclick="addMyGame()">追加する</button>
+      <button type="button" class="rst-btn" style="flex:1;background:rgba(255,255,255,.04)" onclick="clearMyGameForm()">入力を消す</button>
+    </div>
+  </div>
+
+  <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+    <div style="font-weight:700;font-size:.84rem;margin-bottom:6px">💰 今月の課金予算（円・任意）</div>
+    <div style="display:flex;gap:8px">
+      <input id="budget-input" type="number" inputmode="numeric" placeholder="未設定" style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">
+      <button type="button" class="rst-btn" style="flex:none;padding:8px 16px" onclick="saveBudget()">保存</button>
+    </div>
+    <div style="font-size:.62rem;color:var(--muted);margin-top:5px">設定すると実績タブに進捗バーが出ます（未設定なら表示されません）</div>
+  </div>
+</details>
+
+<div class="glass" id="stats-panel" style="display:none;margin-top:14px">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+    <span style="font-weight:700;font-size:.9rem">📊 実績</span>
+    <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
+    <button type="button" onclick="hideStats()" style="background:none;border:1px solid rgba(255,255,255,.16);border-radius:7px;color:var(--muted);font-size:.66rem;padding:4px 10px;cursor:pointer">閉じる</button>
+  </div>
+  <div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">オラクルの精度をあなた自身のデータで検証できます</div>
+  <div id="stats-body"></div>
+</div>
+
 <footer class="site-footer">Powered by <span>クトちゃん</span> 💫 霊眼統合占術システム<br>
   <span style="font-size:.78rem;opacity:.6">西洋占星術 · 九星気学（年/月/日盤）· 四柱推命 · 月齢 · タロット · 数秘術 · 血液型 · 干支 · 紫微斗数 統合</span>
 </footer>
@@ -1717,6 +1800,7 @@ function clearBreakdownCache(){
   const b=document.getElementById('bd-cache-banner');if(b)b.remove();
 }
 function displayResult(result){
+  // ① 鑑定結果の上に「今日引くべきゲーム TOP5」を出す（既存の描画は不変）
   const{score,gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,pulls,ziwei,pickupCalc,scoreBreakdown}=result;
   // 激アツ時刻は現在時刻基準で毎回再計算（キャッシュ非依存）
   const _inp=result.inputs||{};
@@ -2021,10 +2105,23 @@ function displayResult(result){
   html+=`<div id="dl-err" style="display:none;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:8px;padding:10px;text-align:center;font-size:.8rem;color:#F87171;margin-top:8px">⚠ 先に占ってください</div>
   <button class="dl-btn" onclick="downloadImage()">📸 結果を画像でダウンロード</button>
   <button class="dl-btn" style="background:linear-gradient(135deg,#1E3A8A,#2563EB,#38BDF8);color:#F0F9FF;box-shadow:0 4px 24px rgba(56,189,248,.28)" onclick="downloadICS()">📅 カレンダーに登録(.ics)</button>
+  <button class="rst-btn" style="background:rgba(237,208,112,.07);border-color:rgba(237,208,112,.25);color:#EDD070" onclick="openPullForm()">🎰 引いた結果を記録</button>
+  <button class="rst-btn" style="background:rgba(74,222,128,.06);border-color:rgba(74,222,128,.2);color:#4ADE80" onclick="showStats()">📊 実績を見る</button>
   <button class="rst-btn" style="background:rgba(56,189,248,.06);border-color:rgba(56,189,248,.2);color:#38BDF8" onclick="showHistory()">📜 過去の占い履歴を見る</button>
   <button class="rst-btn" onclick="resetFortune()">🔄 リセット — 新しく占い直す</button>`;
 
-  document.getElementById('result').innerHTML=html;
+  // ① ランキングを鑑定結果の上に差し込む（既存htmlはそのまま）
+  var _rankHTML='';
+  try{ _rankHTML=renderGameRankingHTML(); }catch(e){ _rankHTML=''; }
+  var _pityHTML='';
+  try{ _pityHTML=renderPityNaviHTML(gameTitle); }catch(e){ _pityHTML=''; }
+  document.getElementById('result').innerHTML=_rankHTML+html+_pityHTML;
+  try{ updatePityNavi(); }catch(e){}
+  // ⑤ 結果は既に描画済み。演出はオーバーレイのみで、処理は遅延させない
+  try{
+    var _vg=(score>=85)?'S':(score>=70)?'A':(score>=55)?'B':'C';
+    playCapsule(_vg);
+  }catch(e){}
   (function(){var rc=document.getElementById('result');if(rc){var cd=document.getElementById('hot-countdown');if(!cd){cd=document.createElement('div');cd.id='hot-countdown';cd.className='glass';cd.style.cssText='margin:0 0 14px;padding:12px 16px;text-align:center;font-size:.95rem;font-weight:700;color:var(--gold)';}else if(cd.parentNode){cd.parentNode.removeChild(cd);}rc.insertBefore(cd,rc.firstChild);}startHotCountdown();})();
 }
 
@@ -2240,6 +2337,573 @@ function showFortuneError(err,phase){
   resultEl.classList.add('show');
   resultEl.scrollIntoView({behavior:'smooth',block:'start'});
 }
+
+
+/* ════════════════════════════════════════════════════════════
+   GOV3 v3 追加機能：マイゲーム帳・実績記録・天井ナビ・予算
+   占術の計算式・シード設計には一切手を触れていません。
+   ここは「保存」と「表示」だけを担当します。
+   ════════════════════════════════════════════════════════════ */
+var MYGAMES_KEY = 'gov_mygames';   // 追加ゲーム（上限100件）
+var PULLS_KEY   = 'gov_pulls';     // ガチャ実績（上限300件）
+var BUDGET_KEY  = 'gov_budget';    // 今月の課金予算（円）
+var STONE_KEY   = 'gov_stones_';   // 所持石（ゲームごと）
+var MYGAMES_MAX = 100, PULLS_MAX = 300;
+var RANK_LIMIT  = 50;              // 一括計算の上限（②の負荷対策）
+
+function _lsGet(k, def) {
+  try { var v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); }
+  catch (e) { return def; }
+}
+function _lsSet(k, v) {
+  try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; }
+}
+
+function myGames()      { var a = _lsGet(MYGAMES_KEY, []); return Array.isArray(a) ? a : []; }
+function saveMyGames(a) { return _lsSet(MYGAMES_KEY, (a || []).slice(0, MYGAMES_MAX)); }
+function pulls()        { var a = _lsGet(PULLS_KEY, []); return Array.isArray(a) ? a : []; }
+function savePulls(a)   { return _lsSet(PULLS_KEY, (a || []).slice(0, PULLS_MAX)); }
+function budget()       { var v = _lsGet(BUDGET_KEY, null); return (v && +v > 0) ? +v : null; }
+
+/* マイゲームの設定を取り出す（無ければ既定値） */
+function gameConf(name) {
+  var m = myGames().filter(function (g) { return g.name === name; })[0];
+  return {
+    name: name,
+    pity:  (m && +m.pity  > 0) ? +m.pity  : 300,   // 天井連数（既定300）
+    stone: (m && +m.stone > 0) ? +m.stone : null,  // 1連の石数
+    rate:  (m && +m.rate  > 0) ? +m.rate  : 0.7,   // ピックアップ率%（既定0.7）
+    memo:  (m && m.memo) ? m.memo : '',
+    isMine: !!m
+  };
+}
+
+/* 登録済みの全ゲーム名（マイゲーム → games.json → 内蔵DB。名前で重複除去） */
+function allGameNames() {
+  var out = [], seen = {};
+  var push = function (n) {
+    n = String(n || '').trim();
+    if (!n || seen[n]) return;
+    seen[n] = 1; out.push(n);
+  };
+  myGames().forEach(function (g) { push(g.name); });
+  try {
+    if (typeof GAMES_DATA !== 'undefined' && GAMES_DATA) {
+      var gd = GAMES_DATA.games || GAMES_DATA;
+      if (Array.isArray(gd)) gd.forEach(function (g) { push(g && (g.name || g.title) || g); });
+      else Object.keys(gd).forEach(push);
+    }
+  } catch (e) {}
+  try { Object.keys(GAME_DB).forEach(push); } catch (e) {}
+  // プルダウンにあるものも拾う
+  try {
+    var sel = document.getElementById('gameTitle');
+    if (sel) Array.prototype.forEach.call(sel.options, function (o) {
+      if (o.value && o.value !== 'その他') push(o.value);
+    });
+  } catch (e) {}
+  return out;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   ① 今日引くべきゲーム TOP5
+   既存の calculateFortune をゲーム名だけ差し替えて呼ぶ。
+   新しい計算式は作らず、シード設計（ゲーム名＋プロフィール＋日付）も既存のまま。
+   calculateFortune は結果を SS に載せるため、前後で退避・復元して
+   現在の鑑定キャッシュを壊さないようにする。
+   ════════════════════════════════════════════════════════════ */
+var _rankCache = { key: '', rows: null };
+
+function _profileParams() {
+  var g = function (id) { var e = document.getElementById(id); return e ? (e.value || '') : ''; };
+  return {
+    targetName: g('targetName'), gachaTitle: g('gachaTitle'),
+    gachaDeadline: g('gachaDeadline'), gachaDeadlineTime: g('gachaDeadlineTime'),
+    birthdate: g('birthdate'), zodiac: g('zodiac'),
+    bloodType: g('bloodType'), eto: g('eto'),
+    pickupRate: parseFloat(g('pickupRate')) || null,
+    pityCount: parseInt(g('pityCount')) || 0,
+    currentPulls: parseInt(g('currentPulls')) || 0
+  };
+}
+
+function rankGrade(sc) {
+  if (sc >= 85) return { g: 'S', c: '#EDD070' };
+  if (sc >= 70) return { g: 'A', c: '#A78BFA' };
+  if (sc >= 55) return { g: 'B', c: '#38BDF8' };
+  return { g: 'C', c: '#8B93A7' };
+}
+
+function computeGameRanking() {
+  var now = new Date();
+  var dayKey = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
+  var base = _profileParams();
+  var names = allGameNames();
+  var limited = names.length > RANK_LIMIT;
+  if (limited) names = names.slice(0, RANK_LIMIT);
+  var key = dayKey + '|' + names.length + '|' + base.birthdate + '|' + base.zodiac +
+            '|' + base.bloodType + '|' + base.eto + '|' + base.targetName;
+  if (_rankCache.key === key && _rankCache.rows) return { rows: _rankCache.rows, limited: limited };
+
+  // 現在の鑑定キャッシュを退避
+  var keepR = null, keepK = null;
+  try { keepR = SS.get('gachaOracle_result'); keepK = SS.get('gachaOracle_key'); } catch (e) {}
+
+  var rows = [];
+  names.forEach(function (n) {
+    try {
+      var p = {};
+      for (var k in base) p[k] = base[k];
+      p.gameTitle = n;
+      var r = calculateFortune(p);
+      if (!r || typeof r.score !== 'number') return;
+      var hot = '';
+      try {
+        var ht = calcTodayHotTimes(r.score, n, now, {
+          kyusei: r.kyusei, dayKyusei: r.dayKyusei,
+          eto: base.eto || null, bloodType: base.bloodType || null
+        });
+        if (ht && ht.length) {
+          var h0 = ht[0];
+          hot = h0.time || h0.label || h0.hhmm || (h0.hour != null ? (h0.hour + ':00') : '');
+          if (!hot && typeof h0 === 'string') hot = h0;
+        }
+      } catch (e) {}
+      rows.push({ name: n, score: r.score, hot: hot });
+    } catch (e) {}
+  });
+
+  // 退避したキャッシュを戻す（現在の鑑定結果を壊さない）
+  try {
+    if (keepR != null) SS.set('gachaOracle_result', keepR); else SS.remove('gachaOracle_result');
+    if (keepK != null) SS.set('gachaOracle_key', keepK);    else SS.remove('gachaOracle_key');
+  } catch (e) {}
+
+  rows.sort(function (a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    return a.name.localeCompare(b.name);      // 同点は名前順＝決定論
+  });
+  _rankCache = { key: key, rows: rows };
+  return { rows: rows, limited: limited };
+}
+
+function renderGameRankingHTML() {
+  var res;
+  try { res = computeGameRanking(); } catch (e) { return ''; }
+  var rows = (res.rows || []).slice(0, 5);
+  if (!rows.length) return '';
+  var body = rows.map(function (r, i) {
+    var gr = rankGrade(r.score);
+    var medal = ['①', '②', '③', '④', '⑤'][i] || (i + 1);
+    return '<button type="button" onclick="pickRankedGame(' + JSON.stringify(r.name).replace(/"/g, '&quot;') + ')" ' +
+      'style="width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:6px;' +
+      'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;' +
+      'color:var(--ink,#EDE6F5);cursor:pointer;text-align:left;font-family:inherit">' +
+      '<span style="font-size:1rem;color:' + gr.c + ';flex:none">' + medal + '</span>' +
+      '<span style="flex:1;min-width:0;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r.name) + '</span>' +
+      (r.hot ? '<span style="flex:none;font-size:.66rem;color:var(--muted)">🔥' + esc(r.hot) + '</span>' : '') +
+      '<span style="flex:none;font-size:.78rem;color:' + gr.c + ';font-weight:700">' + r.score + '</span>' +
+      '<span style="flex:none;width:1.5em;text-align:center;font-size:.74rem;color:' + gr.c + ';' +
+      'border:1px solid ' + gr.c + ';border-radius:5px;padding:1px 0">' + gr.g + '</span>' +
+      '</button>';
+  }).join('');
+  return '<div class="glass" style="margin-bottom:14px">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+    '<span style="font-size:.92rem;font-weight:700">🏆 今日引くべきゲーム TOP5</span>' +
+    '<span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span></div>' +
+    body +
+    '<div style="font-size:.64rem;color:var(--muted);margin-top:6px">タップでそのゲームの詳細鑑定へ' +
+    (res.limited ? ' ／ 登録が多いため先頭' + RANK_LIMIT + '件で集計しています' : '') + '</div>' +
+    '</div>';
+}
+
+/* ランキング行タップ → そのゲームで既存の鑑定フローを起動 */
+function pickRankedGame(name) {
+  var sel = document.getElementById('gameTitle');
+  if (!sel) return;
+  var found = false;
+  Array.prototype.forEach.call(sel.options, function (o) { if (o.value === name) found = true; });
+  if (found) {
+    sel.value = name;
+    var cg = document.getElementById('customGame');
+    if (cg) cg.value = '';
+  } else {
+    sel.value = 'その他';
+    var cg2 = document.getElementById('customGame');
+    if (cg2) cg2.value = name;
+  }
+  try { sel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+  try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (e) {}
+  var btn = document.getElementById('fortune-btn');
+  if (btn && btn.disabled) { btn.disabled = false; btn.style.opacity = ''; }
+  runFortune();
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   ② マイゲーム帳（追加・編集・削除）
+   ════════════════════════════════════════════════════════════ */
+function renderMyGames() {
+  var box = document.getElementById('mygames-list');
+  if (!box) return;
+  var list = myGames();
+  if (!list.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-size:.76rem;padding:8px 0">まだ登録がありません。下の欄から追加してください。</div>';
+  } else {
+    box.innerHTML = list.map(function (g, i) {
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;' +
+        'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px">' +
+        '<span style="flex:1;min-width:0;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(g.name) + '</span>' +
+        '<span style="flex:none;font-size:.64rem;color:var(--muted)">天井' + (g.pity || 300) + '連' +
+        (g.stone ? ' ／ 1連' + g.stone + '石' : '') + ' ／ ' + (g.rate || 0.7) + '%</span>' +
+        '<button type="button" onclick="editMyGame(' + i + ')" style="flex:none;background:none;border:1px solid rgba(255,255,255,.16);' +
+        'border-radius:7px;color:var(--muted);font-size:.66rem;padding:4px 8px;cursor:pointer">編集</button>' +
+        '<button type="button" onclick="delMyGame(' + i + ')" style="flex:none;background:none;border:1px solid rgba(248,113,113,.3);' +
+        'border-radius:7px;color:#f87171;font-size:.66rem;padding:4px 8px;cursor:pointer">削除</button>' +
+        '</div>';
+    }).join('');
+  }
+  var c = document.getElementById('mygames-count');
+  if (c) c.textContent = list.length + ' / ' + MYGAMES_MAX + '件';
+}
+
+function addMyGame() {
+  var g = function (id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; };
+  var name = g('mg-name');
+  if (!name) { _toast('ゲーム名を入れてください'); return; }
+  var list = myGames();
+  var idxEl = document.getElementById('mg-idx');
+  var idx = idxEl ? parseInt(idxEl.value, 10) : -1;
+  var rec = {
+    name: name,
+    pity: parseInt(g('mg-pity'), 10) || 300,
+    stone: parseInt(g('mg-stone'), 10) || null,
+    rate: parseFloat(g('mg-rate')) || 0.7,
+    memo: g('mg-memo')
+  };
+  if (idx >= 0 && list[idx]) list[idx] = rec;
+  else {
+    if (list.length >= MYGAMES_MAX) { _toast('登録は' + MYGAMES_MAX + '件までです'); return; }
+    if (list.some(function (x) { return x.name === name; })) { _toast('同じ名前が既にあります'); return; }
+    list.push(rec);
+  }
+  saveMyGames(list);
+  clearMyGameForm();
+  renderMyGames();
+  syncGameSelect();
+  _rankCache = { key: '', rows: null };
+  _toast(idx >= 0 ? '更新しました' : '追加しました');
+}
+
+function editMyGame(i) {
+  var g = myGames()[i]; if (!g) return;
+  var set = function (id, v) { var e = document.getElementById(id); if (e) e.value = (v == null ? '' : v); };
+  set('mg-idx', i); set('mg-name', g.name); set('mg-pity', g.pity);
+  set('mg-stone', g.stone); set('mg-rate', g.rate); set('mg-memo', g.memo);
+  var b = document.getElementById('mg-submit'); if (b) b.textContent = '更新する';
+  try { document.getElementById('mg-name').focus(); } catch (e) {}
+}
+
+function delMyGame(i) {
+  var list = myGames();
+  if (!list[i]) return;
+  if (!confirm('「' + list[i].name + '」を削除します。よろしいですか？')) return;
+  list.splice(i, 1);
+  saveMyGames(list);
+  renderMyGames(); syncGameSelect();
+  _rankCache = { key: '', rows: null };
+  _toast('削除しました');
+}
+
+function clearMyGameForm() {
+  ['mg-name', 'mg-pity', 'mg-stone', 'mg-rate', 'mg-memo'].forEach(function (id) {
+    var e = document.getElementById(id); if (e) e.value = '';
+  });
+  var i = document.getElementById('mg-idx'); if (i) i.value = '-1';
+  var b = document.getElementById('mg-submit'); if (b) b.textContent = '追加する';
+}
+
+/* マイゲームをプルダウン先頭に「マイゲーム」グループとして反映 */
+function syncGameSelect() {
+  var sel = document.getElementById('gameTitle');
+  if (!sel) return;
+  var keep = sel.value;
+  var old = sel.querySelector('optgroup[data-mygames]');
+  if (old) old.remove();
+  var list = myGames();
+  if (list.length) {
+    var og = document.createElement('optgroup');
+    og.label = '🎮 マイゲーム';
+    og.setAttribute('data-mygames', '1');
+    list.forEach(function (g) {
+      var o = document.createElement('option');
+      o.value = g.name; o.textContent = g.name;
+      og.appendChild(o);
+    });
+    sel.insertBefore(og, sel.firstChild.nextSibling || null);
+  }
+  if (keep) sel.value = keep;
+}
+
+/* ════════════════════════════════════════════════════════════
+   ③ ガチャ実績記録＆オラクル的中率（前向き検証）
+   ════════════════════════════════════════════════════════════ */
+function _hotListNow() {
+  try {
+    if (_lastHotTimes && _lastHotTimes.length) return _lastHotTimes;
+  } catch (e) {}
+  return [];
+}
+/* 今が激アツ帯かを、その時点の激アツ時刻リストから自動判定 */
+function inHotWindow(d) {
+  d = d || new Date();
+  var list = _hotListNow();
+  if (!list || !list.length) return false;
+  var mm = d.getHours() * 60 + d.getMinutes();
+  for (var i = 0; i < list.length; i++) {
+    var h = list[i];
+    var t = h.time || h.hhmm || h.label || (typeof h === 'string' ? h : '');
+    var m = String(t).match(/(\d{1,2}):(\d{2})/);
+    if (!m) continue;
+    var c = (+m[1]) * 60 + (+m[2]);
+    if (Math.abs(mm - c) <= 30) return true;    // 前後30分を帯とみなす
+  }
+  return false;
+}
+
+function openPullForm() {
+  var g = (_lastResult && _lastResult.gameTitle) || '';
+  var w = inHotWindow(new Date());
+  var html =
+    '<div id="pull-form" class="glass" style="margin-top:12px">' +
+    '<div style="font-weight:700;font-size:.88rem;margin-bottom:4px">🎰 引いた結果を記録</div>' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">オラクルの精度をあなた自身のデータで検証できます</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<label style="font-size:.7rem;color:var(--muted)">ゲーム<input id="pf-game" value="' + esc(g) + '" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">引いた連数<input id="pf-pulls" type="number" inputmode="numeric" placeholder="10" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">結果<select id="pf-res" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
+    '<option value="target">🌈 目玉GET</option><option value="ssr">✨ SSRのみ</option><option value="lose">😇 爆死</option></select></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '</div>' +
+    '<div style="font-size:.68rem;color:' + (w ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
+    (w ? '🔥 いまは激アツ帯の中です（自動で記録されます）' : '⏱ いまは激アツ帯の外です（自動で記録されます）') + '</div>' +
+    '<div style="display:flex;gap:8px;margin-top:10px">' +
+    '<button type="button" class="rst-btn" style="flex:1" onclick="savePull()">記録する</button>' +
+    '<button type="button" class="rst-btn" style="flex:1;background:rgba(255,255,255,.04)" onclick="closePullForm()">閉じる</button>' +
+    '</div></div>';
+  var host = document.getElementById('result');
+  if (!host) return;
+  closePullForm();
+  host.insertAdjacentHTML('beforeend', html);
+  try { document.getElementById('pull-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+}
+function closePullForm() { var e = document.getElementById('pull-form'); if (e) e.remove(); }
+
+function savePull() {
+  var g = function (id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; };
+  var name = g('pf-game');
+  if (!name) { _toast('ゲーム名を入れてください'); return; }
+  var n = parseInt(g('pf-pulls'), 10) || 0;
+  if (n <= 0) { _toast('引いた連数を入れてください'); return; }
+  var now = new Date();
+  var rec = {
+    t: now.getTime(),
+    game: name,
+    pulls: n,
+    res: g('pf-res') || 'lose',
+    yen: parseInt(g('pf-yen'), 10) || 0,
+    hot: inHotWindow(now)          // 激アツ帯内かは自動判定
+  };
+  var list = pulls();
+  list.unshift(rec);
+  savePulls(list);
+  closePullForm();
+  _toast('記録しました（' + (rec.hot ? '激アツ帯内' : '帯外') + '）');
+  try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
+}
+
+/* 実績タブ */
+function showStats() {
+  var el = document.getElementById('stats-panel');
+  if (el) { el.style.display = 'block'; renderStats(); try { el.scrollIntoView({ behavior: 'smooth' }); } catch (e) {} }
+}
+function hideStats() { var el = document.getElementById('stats-panel'); if (el) el.style.display = 'none'; }
+
+function renderStats() {
+  var box = document.getElementById('stats-body');
+  if (!box) return;
+  var list = pulls();
+  if (!list.length) {
+    box.innerHTML = '<div style="color:var(--muted);font-size:.8rem;padding:10px 0">まだ記録がありません。鑑定結果画面の「🎰 引いた結果を記録」から残せます。</div>';
+    return;
+  }
+  var hit = function (r) { return r.res === 'target' || r.res === 'ssr'; };
+  var inH = list.filter(function (r) { return r.hot; });
+  var outH = list.filter(function (r) { return !r.hot; });
+  var pct = function (a) { return a.length ? Math.round(a.filter(hit).length / a.length * 100) : 0; };
+
+  var accuracy;
+  if (inH.length < 5 || outH.length < 5) {
+    var short = (inH.length < 5) ? inH.length : outH.length;
+    accuracy = '<div style="font-size:.8rem;color:var(--muted)">記録蓄積中（n=' + short + '/5）<br>' +
+      '<span style="font-size:.68rem">激アツ帯内 ' + inH.length + '件 ／ 帯外 ' + outH.length + '件。どちらも5件たまると的中率を出します。</span></div>';
+  } else {
+    var a = pct(inH), b = pct(outH);
+    var good = a >= b;
+    accuracy = '<div style="display:flex;gap:10px">' +
+      '<div style="flex:1;padding:10px;border-radius:10px;background:rgba(237,208,112,.08);border:1px solid rgba(237,208,112,.25)">' +
+      '<div style="font-size:.64rem;color:var(--muted)">🔥 激アツ帯内</div>' +
+      '<div style="font-size:1.2rem;font-weight:700;color:#EDD070">' + a + '%</div>' +
+      '<div style="font-size:.62rem;color:var(--muted)">n=' + inH.length + '件</div></div>' +
+      '<div style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1)">' +
+      '<div style="font-size:.64rem;color:var(--muted)">⏱ 帯外</div>' +
+      '<div style="font-size:1.2rem;font-weight:700;color:var(--muted)">' + b + '%</div>' +
+      '<div style="font-size:.62rem;color:var(--muted)">n=' + outH.length + '件</div></div></div>' +
+      '<div style="font-size:.7rem;color:' + (good ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
+      (good ? 'オラクルの激アツ帯は、いまのところ有利に働いています（差 +' + (a - b) + 'pt）'
+            : 'いまのところ帯外のほうが良い結果です（差 ' + (a - b) + 'pt）。記録が増えると精度が上がります') + '</div>';
+  }
+
+  // ゲーム別
+  var byG = {};
+  list.forEach(function (r) {
+    var o = byG[r.game] = byG[r.game] || { pulls: 0, get: 0, yen: 0 };
+    o.pulls += (+r.pulls || 0);
+    if (hit(r)) o.get++;
+    o.yen += (+r.yen || 0);
+  });
+  var gRows = Object.keys(byG).sort(function (x, y) { return byG[y].pulls - byG[x].pulls; })
+    .map(function (k) {
+      var o = byG[k];
+      return '<tr><td style="text-align:left;padding:5px 4px">' + esc(k) + '</td>' +
+        '<td style="text-align:right;padding:5px 4px">' + o.pulls + '連</td>' +
+        '<td style="text-align:right;padding:5px 4px">' + o.get + '回</td>' +
+        '<td style="text-align:right;padding:5px 4px">' + o.yen.toLocaleString() + '円</td></tr>';
+    }).join('');
+
+  // 今月
+  var now = new Date(), ym = now.getFullYear() + '-' + now.getMonth();
+  var mList = list.filter(function (r) {
+    var d = new Date(r.t); return (d.getFullYear() + '-' + d.getMonth()) === ym;
+  });
+  var mYen = mList.reduce(function (a, r) { return a + (+r.yen || 0); }, 0);
+
+  // ⑥ 予算メーター（未設定なら出さない）
+  var bud = budget(), meter = '';
+  if (bud) {
+    var ratio = Math.min(200, Math.round(mYen / bud * 100));
+    var col = ratio >= 100 ? '#f87171' : (ratio >= 80 ? '#EDD070' : '#38BDF8');
+    var msg = ratio >= 100 ? '今月は休むのも勝ち。来月の激アツ日に備えましょう'
+            : (ratio >= 80 ? 'そろそろ計画的に' : '');
+    meter = '<div style="margin-bottom:12px">' +
+      '<div style="display:flex;justify-content:space-between;font-size:.68rem;color:var(--muted);margin-bottom:4px">' +
+      '<span>今月の課金</span><span>' + mYen.toLocaleString() + ' / ' + bud.toLocaleString() + '円（' + ratio + '%）</span></div>' +
+      '<div style="height:8px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden">' +
+      '<span style="display:block;height:100%;width:' + Math.min(100, ratio) + '%;background:' + col + '"></span></div>' +
+      (msg ? '<div style="font-size:.7rem;color:' + col + ';margin-top:5px">' + msg + '</div>' : '') +
+      '</div>';
+  }
+
+  box.innerHTML = meter +
+    '<div style="font-size:.8rem;font-weight:700;margin-bottom:6px">🎯 オラクル的中率</div>' + accuracy +
+    '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">🎮 ゲーム別</div>' +
+    '<table style="width:100%;font-size:.74rem;border-collapse:collapse">' +
+    '<thead><tr style="color:var(--muted);font-size:.64rem">' +
+    '<th style="text-align:left;padding:4px">ゲーム</th><th style="text-align:right;padding:4px">連数</th>' +
+    '<th style="text-align:right;padding:4px">GET</th><th style="text-align:right;padding:4px">課金</th></tr></thead>' +
+    '<tbody>' + gRows + '</tbody></table>' +
+    '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">📅 今月</div>' +
+    '<div style="font-size:.78rem">課金合計 <b>' + mYen.toLocaleString() + '円</b> ／ 引いた回数 <b>' + mList.length + '回</b></div>' +
+    '<div style="font-size:.62rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）</div>';
+}
+
+/* ════════════════════════════════════════════════════════════
+   ④ 天井ナビ
+     回せる連数 = 所持石 ÷ 1連の石数（切り捨て）
+     天井まで   = 天井連数 − 現在の連数 − 回せる連数
+     不足石     = 不足連数 × 1連の石数
+     必要課金   = 不足石 ÷ 1円あたりの石（= 石数/連 を単純換算）
+   ════════════════════════════════════════════════════════════ */
+function renderPityNaviHTML(gameTitle) {
+  var c = gameConf(gameTitle);
+  var stones = _lsGet(STONE_KEY + gameTitle, '');
+  return '<div class="glass" style="margin-top:12px">' +
+    '<div style="font-weight:700;font-size:.88rem;margin-bottom:8px">🗼 天井ナビ</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<label style="font-size:.7rem;color:var(--muted)">所持石<input id="pn-stone" type="number" inputmode="numeric" value="' + (stones === '' ? '' : esc(stones)) + '" placeholder="3000" oninput="updatePityNavi()" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">1連の石数<input id="pn-per" type="number" inputmode="numeric" value="' + (c.stone || '') + '" placeholder="150" oninput="updatePityNavi()" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '</div>' +
+    '<div id="pn-out" style="margin-top:10px;font-size:.82rem;line-height:1.9"></div>' +
+    '<div style="font-size:.62rem;color:var(--muted);margin-top:6px">天井' + c.pity + '連' + (c.isMine ? '（マイゲーム帳の設定）' : '（既定値）') + '</div>' +
+    '</div>';
+}
+
+function updatePityNavi() {
+  var out = document.getElementById('pn-out');
+  if (!out) return;
+  var game = (_lastResult && _lastResult.gameTitle) || '';
+  var c = gameConf(game);
+  var stone = parseInt((document.getElementById('pn-stone') || {}).value, 10) || 0;
+  var per = parseInt((document.getElementById('pn-per') || {}).value, 10) || 0;
+  try { _lsSet(STONE_KEY + game, stone || ''); } catch (e) {}
+  if (!per) { out.innerHTML = '<span style="color:var(--muted)">1連の石数を入れると計算します</span>'; return; }
+  var can = Math.floor(stone / per);                       // 回せる連数
+  var cur = parseInt((document.getElementById('currentPulls') || {}).value, 10) || 0;
+  var need = Math.max(0, c.pity - cur - can);              // 天井まで残り
+  var lack = need * per;                                   // 不足石
+  out.innerHTML =
+    '回せる連数 <b style="color:#38BDF8">' + can + '連</b><br>' +
+    (need > 0
+      ? '天井まで <b style="color:#EDD070">あと' + need + '連</b>（石' + lack.toLocaleString() + '個不足）<br>' +
+        '天井到達に必要な課金目安 <b>' + lack.toLocaleString() + '円</b><span style="font-size:.66rem;color:var(--muted)">（石1個=1円換算）</span>'
+      : '<b style="color:#4ADE80">所持石で天井に到達できます</b>');
+}
+
+/* ════════════════════════════════════════════════════════════
+   ⑤ カプセルオープン演出（オーバーレイのみ・結果描画は遅延させない）
+   ════════════════════════════════════════════════════════════ */
+function playCapsule(rank) {
+  try {
+    var old = document.getElementById('capsule-ov');
+    if (old) old.remove();
+    var ov = document.createElement('div');
+    ov.id = 'capsule-ov';
+    ov.setAttribute('onclick', 'skipCapsule()');
+    ov.innerHTML =
+      '<div class="cap-wrap"><div class="cap-body"><span class="cap-half top"></span><span class="cap-half bot"></span></div>' +
+      '<div class="cap-burst"></div><div class="cap-rank">' + rank + '</div></div>' +
+      '<div class="cap-skip">タップでスキップ</div>';
+    document.body.appendChild(ov);
+    if (window._capTimer) clearTimeout(window._capTimer);
+    window._capTimer = setTimeout(skipCapsule, 1500);
+  } catch (e) {}
+}
+function skipCapsule() {
+  if (window._capTimer) { clearTimeout(window._capTimer); window._capTimer = null; }
+  var ov = document.getElementById('capsule-ov');
+  if (ov) { ov.style.opacity = '0'; setTimeout(function () { if (ov.parentNode) ov.remove(); }, 200); }
+}
+
+
+/* v3 追加機能の起動処理 */
+function _gov3Init(){
+  try{ renderMyGames(); }catch(e){}
+  try{ syncGameSelect(); }catch(e){}
+  try{
+    var b=budget(), el=document.getElementById('budget-input');
+    if(el&&b) el.value=b;
+  }catch(e){}
+}
+function saveBudget(){
+  var el=document.getElementById('budget-input');
+  var v=el?parseInt(el.value,10):0;
+  if(!v||v<=0){ try{localStorage.removeItem(BUDGET_KEY);}catch(e){} _toast('予算を未設定にしました'); }
+  else{ _lsSet(BUDGET_KEY,v); _toast('予算を保存しました'); }
+  try{ if(document.getElementById('stats-body')) renderStats(); }catch(e){}
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',_gov3Init);
+else _gov3Init();
 
 function runFortune(){
   // ボタン無効化で2重実行防止（フラグ方式より確実）
