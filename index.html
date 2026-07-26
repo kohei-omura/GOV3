@@ -201,6 +201,26 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   55%{opacity:1;transform:scale(1.25) rotate(4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
 #capsule-ov .cap-skip{margin-top:26px;font-size:.68rem;color:rgba(237,230,245,.5);letter-spacing:.08em}
 @media (prefers-reduced-motion:reduce){#capsule-ov *{animation:none!important}}
+
+/* カプセルの案内役 */
+#capsule-ov .og-wrap{position:absolute;left:50%;top:50%;width:172px;height:250px;
+  transform:translate(-50%,-42%) scale(.2);opacity:0;
+  animation:ogPop .78s .62s cubic-bezier(.2,1.6,.35,1) forwards}
+@keyframes ogPop{0%{opacity:0;transform:translate(-50%,-30%) scale(.2) rotate(-10deg)}
+  55%{opacity:1;transform:translate(-50%,-46%) scale(1.08) rotate(3deg)}
+  100%{opacity:1;transform:translate(-50%,-44%) scale(1) rotate(0)}}
+#capsule-ov .og-svg{width:100%;height:100%;display:block;
+  filter:drop-shadow(0 6px 18px rgba(0,0,0,.5));
+  animation:ogFloat 2.6s 1.4s ease-in-out infinite}
+@keyframes ogFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+#capsule-ov .og-hand{transform-origin:132px 182px;
+  animation:ogHand .7s 1.25s cubic-bezier(.2,1.7,.4,1) both}
+@keyframes ogHand{0%{transform:scale(.5) translateY(10px);opacity:0}
+  60%{transform:scale(1.14) translateY(-2px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
+#capsule-ov .og-rank{font:900 27px/1 'Zen Maru Gothic',system-ui,sans-serif;fill:#FFF8D6;
+  paint-order:stroke;stroke:#8A6E24;stroke-width:4px;stroke-linejoin:round;
+  filter:drop-shadow(0 0 8px rgba(237,208,112,.9))}
+@media (max-width:360px){#capsule-ov .og-wrap{width:146px;height:212px}}
 </style>
 </head>
 <body>
@@ -218,6 +238,17 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
     <span class="hdr-tag">血液型</span><span class="hdr-tag">紫微斗数</span>
   </div>
 </header>
+<div id="launch-rank" style="margin-bottom:14px"></div>
+<div id="quick-actions" style="display:flex;gap:8px;margin-bottom:14px">
+  <button type="button" onclick="openPullFormTop()" style="flex:1;padding:11px 8px;border-radius:12px;
+    background:rgba(237,208,112,.07);border:1px solid rgba(237,208,112,.25);color:#EDD070;
+    font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">🎰 引いた結果を記録</button>
+  <button type="button" onclick="showStats()" style="flex:1;padding:11px 8px;border-radius:12px;
+    background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);color:#4ADE80;
+    font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">📊 実績を見る</button>
+</div>
+<div id="quick-form"></div>
+
 
 <div class="glass">
   <p class="sec-title">占術情報を入力</p>
@@ -1074,8 +1105,8 @@ function calculateFortune(params){
   const CACHE_VER='v4';
   const cacheKey=`${CACHE_VER}|${todayStr}|${gameTitle}|${targetName}|${gachaTitle}|${gachaDeadline}`;
   try{
-    const cachedRaw=SS.get('gachaOracle_result');
-    const cachedKey=SS.get('gachaOracle_key');
+    const cachedRaw=window.__govRankingRun?null:SS.get('gachaOracle_result');
+    const cachedKey=window.__govRankingRun?null:SS.get('gachaOracle_key');
     // バージョン一致 + キー一致のみ使用
     if(cachedRaw&&cachedKey===cacheKey){
       const parsed=JSON.parse(cachedRaw);
@@ -1184,9 +1215,14 @@ function calculateFortune(params){
 
   const result={gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,score,pulls,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,lifePath,shichu,ziwei,pickupCalc,todayHotTimes,scoreBreakdown,inputs:{zodiac,bloodType,eto}};
   try{
-    SS.set('gachaOracle_result',JSON.stringify(result));
-    SS.set('gachaOracle_key',cacheKey);
+    if(!window.__govRankingRun){
+      SS.set('gachaOracle_result',JSON.stringify(result));
+      SS.set('gachaOracle_key',cacheKey);
+    }
     // scoreBreakdown は別キーで永続保存（リセット後も内訳を保持）
+    // v3.1: ランキングの一括計算中は履歴・内訳を書かない
+    //   （占っていないタイトルが履歴に並んでしまう不具合の修正）
+    if(window.__govRankingRun) throw '__skip_save__';
     const _bkEntry={breakdown:scoreBreakdown,savedAt:new Date().toISOString(),score:score};
     SS.set('gachaOracle_breakdown',JSON.stringify(_bkEntry));
     // 履歴に追加（直近5件を保持）
@@ -1806,6 +1842,8 @@ function displayResult(result){
   const _inp=result.inputs||{};
   const todayHotTimes=calcTodayHotTimes(score,gameTitle,new Date(),{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu});
   _lastResult=result;_lastHotTimes=todayHotTimes;
+  // v3.1 占った時点の激アツ帯を保存（記録時の照合に使う）
+  try{ saveHotWindows(gameTitle, todayHotTimes, new Date()); }catch(e){}
   _lastHotCtx={score:score,gameTitle:gameTitle,params:{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu}};
   const verdicts=[{min:90,label:'大吉 ✦ 最強開運',color:'#EDD070',borderColor:'rgba(237,208,112,.45)'},{min:80,label:'中吉 ✦ 好運気',color:'#A78BFA',borderColor:'rgba(167,139,250,.4)'},{min:70,label:'吉 ✦ 良き流れ',color:'#34D399',borderColor:'rgba(52,211,153,.35)'},{min:60,label:'小吉 ✦ 安定',color:'#38BDF8',borderColor:'rgba(56,189,248,.3)'},{min:0,label:'末吉 ✦ 慎重に',color:'#94A3B8',borderColor:'rgba(148,163,184,.25)'}];
   const verd=verdicts.find(v=>score>=v.min)||verdicts[verdicts.length-1];
@@ -2111,8 +2149,7 @@ function displayResult(result){
   <button class="rst-btn" onclick="resetFortune()">🔄 リセット — 新しく占い直す</button>`;
 
   // ① ランキングを鑑定結果の上に差し込む（既存htmlはそのまま）
-  var _rankHTML='';
-  try{ _rankHTML=renderGameRankingHTML(); }catch(e){ _rankHTML=''; }
+  var _rankHTML='';   // v3.1 ランキングは起動時に上部へ出すため、結果側では出さない
   var _pityHTML='';
   try{ _pityHTML=renderPityNaviHTML(gameTitle); }catch(e){ _pityHTML=''; }
   document.getElementById('result').innerHTML=_rankHTML+html+_pityHTML;
@@ -2159,7 +2196,23 @@ function downloadImage(){
   // 機能C: 画像冒頭の暦ヘッダー（六曜・月齢・九星・日柱／画面ヘッダーと同値）
   var _nine='';try{_nine=getDayKyusei(r._calDate||new Date()).name;}catch(e){}
   ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='19px serif';
-  ctx.fillText((r.rokuyoIcon||'')+(r.rokuyo||'')+'　｜　'+(r.moonPhaseIcon||'')+(r.moonPhaseName||'')+'　｜　'+_nine+'　｜　日柱 '+(r.dayPillar||''),W/2,30);
+  // v3.1 修正：result の実データに合わせて値を取り出す
+  //   rokuyo は {name,icon,...} のオブジェクト、月齢は moonPhase.name、
+  //   日柱は shichu.dayPillar に入っているため、以前の参照名では
+  //   [object Object] や空欄になっていた。
+  var _rk = (r.rokuyo && typeof r.rokuyo === 'object') ? r.rokuyo : null;
+  var _rkName = _rk ? (_rk.name || '') : (typeof r.rokuyo === 'string' ? r.rokuyo : '');
+  var _rkIcon = r.rokuyoIcon || (_rk ? (_rk.icon || '') : '');
+  var _mp = (r.moonPhase && typeof r.moonPhase === 'object') ? r.moonPhase : null;
+  var _mpName = r.moonPhaseName || (_mp ? (_mp.name || _mp.phase || '') : '');
+  var _mpIcon = r.moonPhaseIcon || (_mp ? (_mp.icon || '') : '');
+  var _dp = r.dayPillar || (r.shichu && (r.shichu.dayPillar || r.shichu.day)) || '';
+  var _hdr = [];
+  if (_rkName) _hdr.push(_rkIcon + _rkName);
+  if (_mpName) _hdr.push(_mpIcon + _mpName);
+  if (_nine)   _hdr.push(_nine);
+  if (_dp)     _hdr.push('日柱 ' + _dp);
+  ctx.fillText(_hdr.join('　｜　'),W/2,30);
   ctx.translate(0,HEADER_H);
   ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='bold 36px serif';
   ctx.fillText('GACHA ORACLE 霊眼統合占術システム',W/2,60);
@@ -2451,6 +2504,7 @@ function computeGameRanking() {
   try { keepR = SS.get('gachaOracle_result'); keepK = SS.get('gachaOracle_key'); } catch (e) {}
 
   var rows = [];
+  window.__govRankingRun = true;      // v3.1 履歴・キャッシュを汚さない
   names.forEach(function (n) {
     try {
       var p = {};
@@ -2458,22 +2512,44 @@ function computeGameRanking() {
       p.gameTitle = n;
       var r = calculateFortune(p);
       if (!r || typeof r.score !== 'number') return;
-      var hot = '';
+      var hots = [];
       try {
         var ht = calcTodayHotTimes(r.score, n, now, {
           kyusei: r.kyusei, dayKyusei: r.dayKyusei,
           eto: base.eto || null, bloodType: base.bloodType || null
         });
-        if (ht && ht.length) {
-          var h0 = ht[0];
-          hot = h0.time || h0.label || h0.hhmm || (h0.hour != null ? (h0.hour + ':00') : '');
-          if (!hot && typeof h0 === 'string') hot = h0;
+        (ht || []).slice(0, 3).forEach(function (h0) {
+          var t = h0.time || h0.label || h0.hhmm || (h0.hour != null ? (h0.hour + ':00') : '');
+          if (!t && typeof h0 === 'string') t = h0;
+          if (t) hots.push({ t: t, why: (h0.reason || h0.note || h0.why || '') });
+        });
+      } catch (e) {}
+      // なぜこの順位か（既存の内訳をそのまま読む。新しい計算はしない）
+      var why = [];
+      try {
+        var bd = r.scoreBreakdown || r.breakdown || null;
+        if (bd) {
+          Object.keys(bd).forEach(function (k) {
+            var v = bd[k];
+            if (k === 'fixed' || k === 'cap') return;      // 固定値・上限は理由から除く
+            if (typeof v === 'number' && Math.abs(v) >= 0.5) why.push({ k: k, v: v });
+          });
+          why.sort(function (a, b) { return Math.abs(b.v) - Math.abs(a.v); });
+          why = why.slice(0, 4);
         }
       } catch (e) {}
-      rows.push({ name: n, score: r.score, hot: hot });
+      rows.push({
+        name: n, score: r.score,
+        hot: hots.length ? hots[0].t : '',
+        hots: hots, why: why,
+        rokuyo: (r.rokuyo && (r.rokuyo.name || r.rokuyo.label || r.rokuyo.rokuyo)) || (typeof r.rokuyo==='string'?r.rokuyo:''), moon: (r.moonPhase && (r.moonPhase.name || r.moonPhase.phase)) || '',
+        dayK: (r.dayKyusei && (r.dayKyusei.name || r.dayKyusei)) || '',
+        tarot: (r.tarot && (r.tarot.name || r.tarot.card || r.tarot.jp)) || ''
+      });
     } catch (e) {}
   });
 
+  window.__govRankingRun = false;
   // 退避したキャッシュを戻す（現在の鑑定結果を壊さない）
   try {
     if (keepR != null) SS.set('gachaOracle_result', keepR); else SS.remove('gachaOracle_result');
@@ -2488,16 +2564,42 @@ function computeGameRanking() {
   return { rows: rows, limited: limited };
 }
 
-function renderGameRankingHTML() {
+function renderGameRankingHTML(opts) {
+  opts = opts || {};
   var res;
   try { res = computeGameRanking(); } catch (e) { return ''; }
   var rows = (res.rows || []).slice(0, 5);
   if (!rows.length) return '';
+  // 内訳キー → 表示名（fixed/cap など内部項目は出さない）
+  var KEYNAME = {
+    moon:'月齢', rokuyo_base:'六曜', kyusei:'九星', dayKyusei:'日盤', tarot:'タロット',
+    zodiac:'星座', blood:'血液型', lp:'数秘', bdResonance:'誕生日共鳴', eto:'干支',
+    game:'ゲーム相性', shichu:'四柱推命', ziwei:'紫微斗数', target:'狙い', gacha:'ガチャ',
+    dayKyuseiBonus:'日盤相性', numerology:'数秘関係', ryu:'龍日', sihua:'四化'
+  };
+  var KEYSKIP = { fixed:1, cap:1 };   // 全ゲーム共通の固定値は理由にならないので除く
   var body = rows.map(function (r, i) {
     var gr = rankGrade(r.score);
     var medal = ['①', '②', '③', '④', '⑤'][i] || (i + 1);
-    return '<button type="button" onclick="pickRankedGame(' + JSON.stringify(r.name).replace(/"/g, '&quot;') + ')" ' +
-      'style="width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;margin-bottom:6px;' +
+    var id = 'gr-d-' + i;
+    var whyHTML = r.why && r.why.length
+      ? r.why.map(function (w) {
+          var nm = KEYNAME[w.k];
+          if (!nm || KEYSKIP[w.k]) return '';
+          return '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;margin:0 4px 4px 0;display:inline-block;' +
+            'background:' + (w.v >= 0 ? 'rgba(237,208,112,.1)' : 'rgba(255,255,255,.04)') + ';' +
+            'color:' + (w.v >= 0 ? '#EDD070' : 'var(--muted)') + '">' + esc(nm) + ' ' + (w.v >= 0 ? '+' : '') + (Math.round(w.v * 10) / 10) + '</span>';
+        }).join('')
+      : '<span style="font-size:.64rem;color:var(--muted)">内訳は鑑定で詳しく出ます</span>';
+    var hotHTML = (r.hots && r.hots.length)
+      ? r.hots.map(function (h) {
+          return '<div style="font-size:.72rem;margin-top:3px">🔥 <b style="color:#EDD070">' + esc(h.t) + '</b>' +
+            (h.why ? '<span style="color:var(--muted);font-size:.66rem"> — ' + esc(h.why) + '</span>' : '') + '</div>';
+        }).join('')
+      : '<div style="font-size:.7rem;color:var(--muted)">本日の激アツ帯は算出できませんでした</div>';
+    return '<div style="margin-bottom:6px">' +
+      '<button type="button" onclick="toggleRankDetail(' + i + ')" ' +
+      'style="width:100%;display:flex;align-items:center;gap:10px;padding:11px 12px;' +
       'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;' +
       'color:var(--ink,#EDE6F5);cursor:pointer;text-align:left;font-family:inherit">' +
       '<span style="font-size:1rem;color:' + gr.c + ';flex:none">' + medal + '</span>' +
@@ -2506,16 +2608,37 @@ function renderGameRankingHTML() {
       '<span style="flex:none;font-size:.78rem;color:' + gr.c + ';font-weight:700">' + r.score + '</span>' +
       '<span style="flex:none;width:1.5em;text-align:center;font-size:.74rem;color:' + gr.c + ';' +
       'border:1px solid ' + gr.c + ';border-radius:5px;padding:1px 0">' + gr.g + '</span>' +
-      '</button>';
+      '<span style="flex:none;font-size:.6rem;color:var(--muted)">▼</span>' +
+      '</button>' +
+      '<div id="' + id + '" style="display:none;padding:10px 12px;margin-top:-2px;' +
+      'background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-top:none;border-radius:0 0 12px 12px">' +
+      '<div style="font-size:.68rem;color:var(--muted);margin-bottom:5px">なぜこの順位か</div>' +
+      '<div style="margin-bottom:8px">' + whyHTML + '</div>' +
+      '<div style="font-size:.68rem;color:var(--muted);margin-bottom:2px">本日ガチャを推奨する時間</div>' +
+      hotHTML +
+      '<div style="font-size:.64rem;color:var(--muted);margin-top:7px">' +
+      (r.rokuyo ? '六曜:' + esc(r.rokuyo) + '　' : '') +
+      (r.dayK ? '日盤:' + esc(r.dayK) + '　' : '') +
+      (r.tarot ? 'タロット:' + esc(r.tarot) : '') + '</div>' +
+      '<button type="button" onclick="pickRankedGame(' + JSON.stringify(r.name).replace(/"/g, '&quot;') + ')" ' +
+      'style="width:100%;margin-top:9px;padding:8px;border-radius:9px;background:rgba(167,139,250,.1);' +
+      'border:1px solid rgba(167,139,250,.3);color:#A78BFA;font-size:.74rem;cursor:pointer;font-family:inherit">' +
+      'このゲームで詳しく鑑定する →</button>' +
+      '</div></div>';
   }).join('');
-  return '<div class="glass" style="margin-bottom:14px">' +
-    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">' +
+  return '<div class="glass" style="' + (opts.top ? 'margin-bottom:14px' : 'margin-bottom:14px') + '">' +
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
     '<span style="font-size:.92rem;font-weight:700">🏆 今日引くべきゲーム TOP5</span>' +
     '<span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span></div>' +
-    body +
-    '<div style="font-size:.64rem;color:var(--muted);margin-top:6px">タップでそのゲームの詳細鑑定へ' +
-    (res.limited ? ' ／ 登録が多いため先頭' + RANK_LIMIT + '件で集計しています' : '') + '</div>' +
-    '</div>';
+    '<div style="font-size:.64rem;color:var(--muted);margin-bottom:9px">タップで理由と推奨時間が開きます' +
+    (res.limited ? '（登録が多いため先頭' + RANK_LIMIT + '件で集計）' : '') + '</div>' +
+    body + '</div>';
+}
+
+function toggleRankDetail(i) {
+  var el = document.getElementById('gr-d-' + i);
+  if (!el) return;
+  el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
 }
 
 /* ランキング行タップ → そのゲームで既存の鑑定フローを起動 */
@@ -2672,6 +2795,127 @@ function inHotWindow(d) {
   return false;
 }
 
+
+/* v3.1 いつでも記録できるように（鑑定を開いていなくても使える） */
+
+/* ════════════════════════════════════════════════════════════
+   激アツ帯の保存と照合（v3.1修正）
+   占った時点で「そのゲーム・その日の激アツ帯」を保存しておき、
+   記録時は保存済みの予測と引いた時刻を突き合わせる。
+   予測が無い（占っていない）場合は「判定不能」とし、的中率の母数から外す。
+   ════════════════════════════════════════════════════════════ */
+var HOT_KEY = 'gov_hotwin';   // { "ゲーム名|YYYY-MM-DD": [{start:'HH:MM', width:分}] }
+var HOT_MAX_DAYS = 14;
+
+function _dkey(d) {
+  d = d || new Date();
+  return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+}
+function hotStore() { var o = _lsGet(HOT_KEY, {}); return (o && typeof o === 'object') ? o : {}; }
+
+/* 占った時点の激アツ帯を保存（そのゲーム・その日付で） */
+function saveHotWindows(game, list, when) {
+  if (!game || !list || !list.length) return;
+  var st = hotStore();
+  st[game + '|' + _dkey(when)] = list.map(function (t) {
+    return { start: t.start || '', width: (+t.width > 0 ? +t.width : 60), range: t.range || '' };
+  });
+  // 古い日付を掃除（14日より前）
+  try {
+    var lim = _dkey(new Date(Date.now() - HOT_MAX_DAYS * 86400000));
+    Object.keys(st).forEach(function (k) {
+      var d = k.split('|')[1] || '';
+      if (d && d < lim) delete st[k];
+    });
+  } catch (e) {}
+  _lsSet(HOT_KEY, st);
+}
+
+/* 指定ゲーム・指定時刻が「占った時の激アツ帯」に入るか
+   戻り値: true=帯内 / false=帯外 / null=予測なし（判定不能） */
+function hotWindowJudge(game, when) {
+  when = when || new Date();
+  if (!game) return null;
+  var st = hotStore();
+  var list = st[game + '|' + _dkey(when)];
+  if (!list || !list.length) return null;          // その日そのゲームを占っていない
+  var mm = when.getHours() * 60 + when.getMinutes();
+  for (var i = 0; i < list.length; i++) {
+    var m = String(list[i].start || '').match(/(\d{1,2}):(\d{2})/);
+    if (!m) continue;
+    var st0 = (+m[1]) * 60 + (+m[2]);
+    var w = (+list[i].width > 0) ? +list[i].width : 60;
+    if (mm >= st0 && mm < st0 + w) return true;    // 予測された帯の中
+  }
+  return false;
+}
+
+/* 記録フォーム用：選んだゲームの当日予測の有無と判定を返す */
+function hotJudgeLabel(game, when) {
+  var j = hotWindowJudge(game, when);
+  if (j === null) return { j: null, txt: 'この日はまだ占っていないため判定できません（的中率の集計から除外されます）', col: 'var(--muted)' };
+  if (j) return { j: true, txt: '🔥 占ったときの激アツ帯の中です', col: '#EDD070' };
+  return { j: false, txt: '⏱ 占ったときの激アツ帯の外です', col: 'var(--muted)' };
+}
+
+function openPullFormTop() {
+  var host = document.getElementById('quick-form');
+  if (!host) { openPullForm(); return; }
+  if (document.getElementById('pull-form')) { closePullForm(); return; }
+  var names = [];
+  try { names = allGameNames(); } catch (e) {}
+  var last = '';
+  try { last = (_lastResult && _lastResult.gameTitle) || (pulls()[0] && pulls()[0].game) || ''; } catch (e) {}
+  var opts = names.map(function (n) {
+    return '<option value="' + esc(n) + '"' + (n === last ? ' selected' : '') + '>' + esc(n) + '</option>';
+  }).join('');
+  host.innerHTML =
+    '<div id="pull-form" class="glass" style="margin-bottom:14px">' +
+    '<div style="font-weight:700;font-size:.88rem;margin-bottom:4px">🎰 引いた結果を記録</div>' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">オラクルの精度をあなた自身のデータで検証できます</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+    '<label style="font-size:.7rem;color:var(--muted);grid-column:span 2">ゲーム' +
+    '<select id="pf-game" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
+    '<option value="">選択してください</option>' + opts + '</select></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">引いた連数<input id="pf-pulls" type="number" inputmode="numeric" placeholder="10" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">結果<select id="pf-res" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
+    '<option value="target">🌈 目玉GET</option><option value="ssr">✨ SSRのみ</option><option value="lose">😇 爆死</option></select></label>' +
+    '<label style="font-size:.7rem;color:var(--muted);grid-column:span 2">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '</div>' +
+    '<label style="font-size:.7rem;color:var(--muted);display:block;margin-top:8px">引いた日時' +
+    '<input id="pf-when" type="datetime-local" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<div id="pf-judge" style="font-size:.72rem;margin-top:8px"></div>' +
+    '<div style="display:flex;gap:8px;margin-top:10px">' +
+    '<button type="button" class="rst-btn" style="flex:1" onclick="savePull()">記録する</button>' +
+    '<button type="button" class="rst-btn" style="flex:1;background:rgba(255,255,255,.04)" onclick="closePullForm()">閉じる</button>' +
+    '</div></div>';
+  // 引いた日時の既定＝いま
+  try {
+    var n0 = new Date();
+    var pad = function (x) { return ('0' + x).slice(-2); };
+    document.getElementById('pf-when').value =
+      n0.getFullYear() + '-' + pad(n0.getMonth() + 1) + '-' + pad(n0.getDate()) +
+      'T' + pad(n0.getHours()) + ':' + pad(n0.getMinutes());
+    document.getElementById('pf-game').addEventListener('change', refreshPullJudge);
+    document.getElementById('pf-when').addEventListener('change', refreshPullJudge);
+    refreshPullJudge();
+  } catch (e) {}
+  try { document.getElementById('pull-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+}
+
+/* 選んだゲーム・日時で「占ったときの帯」を照合して表示 */
+function refreshPullJudge() {
+  var el = document.getElementById('pf-judge');
+  if (!el) return;
+  var g = (document.getElementById('pf-game') || {}).value || '';
+  var wv = (document.getElementById('pf-when') || {}).value || '';
+  var d = wv ? new Date(wv) : new Date();
+  if (isNaN(d.getTime())) d = new Date();
+  var r = hotJudgeLabel(g, d);
+  el.style.color = r.col;
+  el.textContent = r.txt;
+}
+
 function openPullForm() {
   var g = (_lastResult && _lastResult.gameTitle) || '';
   var w = inHotWindow(new Date());
@@ -2706,20 +2950,24 @@ function savePull() {
   if (!name) { _toast('ゲーム名を入れてください'); return; }
   var n = parseInt(g('pf-pulls'), 10) || 0;
   if (n <= 0) { _toast('引いた連数を入れてください'); return; }
-  var now = new Date();
+  var wv = g('pf-when');
+  var now = wv ? new Date(wv) : new Date();
+  if (isNaN(now.getTime())) now = new Date();
   var rec = {
     t: now.getTime(),
     game: name,
     pulls: n,
     res: g('pf-res') || 'lose',
     yen: parseInt(g('pf-yen'), 10) || 0,
-    hot: inHotWindow(now)          // 激アツ帯内かは自動判定
+    // 占った時点で保存した激アツ帯と突き合わせる。
+    // その日そのゲームを占っていなければ null（判定不能）＝的中率の母数から外す
+    hot: hotWindowJudge(name, now)
   };
   var list = pulls();
   list.unshift(rec);
   savePulls(list);
   closePullForm();
-  _toast('記録しました（' + (rec.hot ? '激アツ帯内' : '帯外') + '）');
+  _toast('記録しました（' + (rec.hot === null ? '判定不能：この日は未鑑定' : (rec.hot ? '激アツ帯内' : '帯外')) + '）');
   try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
 }
 
@@ -2739,8 +2987,9 @@ function renderStats() {
     return;
   }
   var hit = function (r) { return r.res === 'target' || r.res === 'ssr'; };
-  var inH = list.filter(function (r) { return r.hot; });
-  var outH = list.filter(function (r) { return !r.hot; });
+  var inH = list.filter(function (r) { return r.hot === true; });
+  var outH = list.filter(function (r) { return r.hot === false; });
+  var unk = list.filter(function (r) { return r.hot == null; });
   var pct = function (a) { return a.length ? Math.round(a.filter(hit).length / a.length * 100) : 0; };
 
   var accuracy;
@@ -2815,7 +3064,8 @@ function renderStats() {
     '<tbody>' + gRows + '</tbody></table>' +
     '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">📅 今月</div>' +
     '<div style="font-size:.78rem">課金合計 <b>' + mYen.toLocaleString() + '円</b> ／ 引いた回数 <b>' + mList.length + '回</b></div>' +
-    '<div style="font-size:.62rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）</div>';
+    '<div style="font-size:.62rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）' +
+    (unk.length ? '<br>※ 判定不能 ' + unk.length + '件（その日にそのゲームを占っていないため、的中率の集計から除いています）' : '') + '</div>';
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -2863,6 +3113,104 @@ function updatePityNavi() {
 /* ════════════════════════════════════════════════════════════
    ⑤ カプセルオープン演出（オーバーレイのみ・結果描画は遅延させない）
    ════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════
+   カプセルの案内役（このアプリのためのオリジナルキャラクター）
+   黒髪ロング・凛とした佇まい。表情/髪飾り/衣装の色が引くたびに変わる。
+   ════════════════════════════════════════════════════════════ */
+var GIRL_THEMES = [
+  { hair:'#241E2E', hair2:'#463A57', dress:'#C9A84C', dress2:'#8A6E24', acc:'#F5E6B8' },
+  { hair:'#1F1B29', hair2:'#3E3450', dress:'#A78BFA', dress2:'#6D51C4', acc:'#E4D9FF' },
+  { hair:'#2A2130', hair2:'#4B3A50', dress:'#F49AC1', dress2:'#C46E92', acc:'#FFE0EE' },
+  { hair:'#1C2230', hair2:'#36435C', dress:'#38BDF8', dress2:'#1E7FA8', acc:'#D6F1FF' }
+];
+
+function oracleGirlSVG(rank, seed){
+  var t = GIRL_THEMES[Math.abs(seed) % GIRL_THEMES.length];
+  var face = Math.abs(Math.floor(seed/7)) % 4;
+  var acc  = Math.abs(Math.floor(seed/13)) % 3;
+
+  var eyes, mouth;
+  if(face===1){
+    eyes = '<path d="M62 90 q7 -6 14 0" stroke="#241E2E" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+           '<ellipse cx="102" cy="90" rx="7.6" ry="9.8" fill="#2A2233"/>'+
+           '<circle cx="104.6" cy="86.4" r="3.2" fill="#fff"/>'+
+           '<circle cx="100.2" cy="93.4" r="1.5" fill="#fff" opacity=".7"/>';
+    mouth = '<path d="M76 108 q8 7 16 0" stroke="#B5566E" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  } else if(face===2){
+    eyes = '<path d="M60 91 q8 -7 16 0" stroke="#241E2E" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
+           '<path d="M96 91 q8 -7 16 0" stroke="#241E2E" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
+    mouth = '<path d="M75 106 q9 9 18 0" stroke="#B5566E" stroke-width="2.8" fill="none" stroke-linecap="round"/>';
+  } else if(face===3){
+    eyes = '<ellipse cx="68" cy="89" rx="7.4" ry="10.2" fill="#2A2233"/>'+
+           '<ellipse cx="104" cy="89" rx="7.4" ry="10.2" fill="#2A2233"/>'+
+           '<circle cx="70.6" cy="85.2" r="3.1" fill="#fff"/><circle cx="106.6" cy="85.2" r="3.1" fill="#fff"/>'+
+           '<circle cx="66.2" cy="92.6" r="1.6" fill="#fff" opacity=".75"/><circle cx="102.2" cy="92.6" r="1.6" fill="#fff" opacity=".75"/>'+
+           '<path d="M58 78 q10 -5 20 -1" stroke="#3A3145" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
+           '<path d="M94 77 q10 -4 20 1" stroke="#3A3145" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
+    mouth = '<ellipse cx="86" cy="107" rx="4.6" ry="5.4" fill="#B5566E"/>';
+  } else {
+    eyes = '<ellipse cx="68" cy="89" rx="7.2" ry="9.6" fill="#2A2233"/>'+
+           '<ellipse cx="104" cy="89" rx="7.2" ry="9.6" fill="#2A2233"/>'+
+           '<circle cx="70.4" cy="85.4" r="3" fill="#fff"/><circle cx="106.4" cy="85.4" r="3" fill="#fff"/>'+
+           '<circle cx="66" cy="92.4" r="1.5" fill="#fff" opacity=".7"/><circle cx="102" cy="92.4" r="1.5" fill="#fff" opacity=".7"/>';
+    mouth = '<path d="M77 107 q9 6 18 0" stroke="#B5566E" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  }
+
+  var accSVG='';
+  if(acc===0){
+    accSVG = '<g transform="translate(112,52) rotate(14)">'+
+      '<path d="M0 0 q-13 -9 -18 3 q-4 10 8 11 q-9 6 -2 14 q8 8 14 -4 q6 12 14 4 q7 -8 -2 -14 q12 -1 8 -11 q-6 -12 -18 -3z" fill="'+t.dress+'"/>'+
+      '<circle cx="0" cy="7" r="4.4" fill="'+t.acc+'"/></g>';
+  } else if(acc===1){
+    accSVG = '<g transform="translate(58,50)">'+
+      '<path d="M0 0 q-14 -4 -16 8 q-1 9 10 8 l6 -3z" fill="'+t.dress+'"/>'+
+      '<path d="M2 2 q14 -4 16 8 q1 9 -10 8 l-6 -3z" fill="'+t.dress2+'"/>'+
+      '<circle cx="1" cy="10" r="4" fill="'+t.acc+'"/></g>';
+  } else {
+    accSVG = '<g transform="translate(86,40)">'+
+      '<path d="M-24 6 q24 -16 48 0 q-24 -6 -48 0z" fill="'+t.dress+'" opacity=".95"/>'+
+      '<circle cx="-14" cy="3" r="3.4" fill="'+t.acc+'"/><circle cx="0" cy="0" r="4" fill="'+t.acc+'"/>'+
+      '<circle cx="14" cy="3" r="3.4" fill="'+t.acc+'"/></g>';
+  }
+
+  return '<svg class="og-svg" viewBox="0 0 172 250" xmlns="http://www.w3.org/2000/svg">'+
+    '<defs>'+
+      '<linearGradient id="ogHair" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0" stop-color="'+t.hair2+'"/><stop offset="1" stop-color="'+t.hair+'"/></linearGradient>'+
+      '<linearGradient id="ogDress" x1="0" y1="0" x2="0" y2="1">'+
+        '<stop offset="0" stop-color="'+t.dress+'"/><stop offset="1" stop-color="'+t.dress2+'"/></linearGradient>'+
+      '<radialGradient id="ogGlow" cx="50%" cy="50%" r="50%">'+
+        '<stop offset="0" stop-color="#FFF8D6" stop-opacity=".95"/>'+
+        '<stop offset="60%" stop-color="'+t.dress+'" stop-opacity=".35"/>'+
+        '<stop offset="100%" stop-color="'+t.dress+'" stop-opacity="0"/></radialGradient>'+
+    '</defs>'+
+    /* 後ろ髪（ロング） */
+    '<path d="M86 34 q-42 4 -46 56 q-4 60 6 108 q10 -16 22 -18 q-10 -52 -4 -92 q22 -14 22 -14 q0 0 22 14 q6 40 -4 92 q12 2 22 18 q10 -48 6 -108 q-4 -52 -46 -56z" fill="url(#ogHair)"/>'+
+    /* 首・肩 */
+    '<path d="M74 120 h24 v20 h-24z" fill="#F6DFD0"/>'+
+    '<path d="M86 136 q-34 6 -40 44 q-2 22 2 44 h76 q4 -22 2 -44 q-6 -38 -40 -44z" fill="url(#ogDress)"/>'+
+    '<path d="M86 136 q-10 16 0 30 q10 -14 0 -30z" fill="#fff" opacity=".28"/>'+
+    /* 顔 */
+    '<ellipse cx="86" cy="88" rx="34" ry="38" fill="#FBEADF"/>'+
+    '<ellipse cx="62" cy="100" rx="7" ry="4.6" fill="#F7B7C4" opacity=".55"/>'+
+    '<ellipse cx="110" cy="100" rx="7" ry="4.6" fill="#F7B7C4" opacity=".55"/>'+
+    eyes + mouth +
+    /* 前髪 */
+    '<path d="M86 46 q-36 2 -38 40 q10 -22 22 -24 q10 12 16 12 q6 0 16 -12 q12 2 22 24 q-2 -38 -38 -40z" fill="url(#ogHair)"/>'+
+    '<path d="M50 60 q-8 30 -4 56 q-8 -26 4 -56z" fill="url(#ogHair)"/>'+
+    '<path d="M122 60 q8 30 4 56 q8 -26 -4 -56z" fill="url(#ogHair)"/>'+
+    accSVG +
+    /* 差し出した手のひら＋ランク */
+    '<g class="og-hand">'+
+      '<ellipse cx="132" cy="176" rx="26" ry="26" fill="url(#ogGlow)"/>'+
+      '<path d="M118 190 q-6 -14 4 -20 q10 -6 20 -2 q10 4 10 12 q0 10 -12 14 q-14 4 -22 -4z" fill="#FBEADF"/>'+
+      '<path d="M120 188 q10 6 22 2" stroke="#E9C7B6" stroke-width="1.6" fill="none"/>'+
+      '<text class="og-rank" x="132" y="172" text-anchor="middle">'+rank+'</text>'+
+    '</g>'+
+    '</svg>';
+}
+
 function playCapsule(rank) {
   try {
     var old = document.getElementById('capsule-ov');
@@ -2870,13 +3218,19 @@ function playCapsule(rank) {
     var ov = document.createElement('div');
     ov.id = 'capsule-ov';
     ov.setAttribute('onclick', 'skipCapsule()');
+    var seed = (function(){
+      var d=new Date();
+      return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()+
+             String(rank).charCodeAt(0)+Math.floor(d.getHours()/6)*37;
+    })();
     ov.innerHTML =
       '<div class="cap-wrap"><div class="cap-body"><span class="cap-half top"></span><span class="cap-half bot"></span></div>' +
-      '<div class="cap-burst"></div><div class="cap-rank">' + rank + '</div></div>' +
+      '<div class="cap-burst"></div>' +
+      '<div class="og-wrap">' + oracleGirlSVG(rank, seed) + '</div></div>' +
       '<div class="cap-skip">タップでスキップ</div>';
     document.body.appendChild(ov);
     if (window._capTimer) clearTimeout(window._capTimer);
-    window._capTimer = setTimeout(skipCapsule, 1500);
+    window._capTimer = setTimeout(skipCapsule, 2600);
   } catch (e) {}
 }
 function skipCapsule() {
@@ -2887,9 +3241,29 @@ function skipCapsule() {
 
 
 /* v3 追加機能の起動処理 */
+
+/* v3.1 起動時：カプセル演出 → 今日引くべきゲーム TOP5 */
+function showLaunchRanking() {
+  var host = document.getElementById('launch-rank');
+  if (!host) return;
+  host.innerHTML = '<div class="glass" style="text-align:center;color:var(--muted);font-size:.78rem;padding:18px">🔮 今日の運気を集計しています…</div>';
+  setTimeout(function () {
+    var html = '';
+    try { html = renderGameRankingHTML({ top: true }); } catch (e) { html = ''; }
+    host.innerHTML = html || '';
+    try {
+      var res = computeGameRanking();
+      var top = res.rows && res.rows[0];
+      if (top) playCapsule(rankGrade(top.score).g);
+    } catch (e) {}
+  }, 30);
+}
+
 function _gov3Init(){
   try{ renderMyGames(); }catch(e){}
   try{ syncGameSelect(); }catch(e){}
+  // v3.1 起動時にカプセルを割ってランキングを出す（鑑定は不要）
+  try{ setTimeout(showLaunchRanking, 260); }catch(e){}
   try{
     var b=budget(), el=document.getElementById('budget-input');
     if(el&&b) el.value=b;
