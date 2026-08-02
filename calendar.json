@@ -1,9 +1,9 @@
 {
- "updated": "2026-07-27 05:47 JST",
+ "updated": "2026-08-03 05:43 JST",
  "source": "ajnet.ne.jp",
  "coverage": {
   "from": "2026-07-01",
-  "to": "2027-08-31",
+  "to": "2027-09-07",
   "daysAhead": 400,
   "required": 365
  },
@@ -2142,6 +2142,41 @@
    "rokuyo": "赤口",
    "moonAge": 28.7,
    "lunar": "7/30"
+  },
+  "2027-09-01": {
+   "rokuyo": "友引",
+   "moonAge": 0.4,
+   "lunar": "8/1"
+  },
+  "2027-09-02": {
+   "rokuyo": "先負",
+   "moonAge": 1.4,
+   "lunar": "8/2"
+  },
+  "2027-09-03": {
+   "rokuyo": "仏滅",
+   "moonAge": 2.4,
+   "lunar": "8/3"
+  },
+  "2027-09-04": {
+   "rokuyo": "大安",
+   "moonAge": 3.4,
+   "lunar": "8/4"
+  },
+  "2027-09-05": {
+   "rokuyo": "赤口",
+   "moonAge": 4.4,
+   "lunar": "8/5"
+  },
+  "2027-09-06": {
+   "rokuyo": "先勝",
+   "moonAge": 5.4,
+   "lunar": "8/6"
+  },
+  "2027-09-07": {
+   "rokuyo": "友引",
+   "moonAge": 6.4,
+   "lunar": "8/7"
   }
  }
 }
