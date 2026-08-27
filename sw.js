@@ -3,7 +3,7 @@
    - アプリシェルをキャッシュしてオフライン動作
    - 更新時は CACHE_VERSION を上げると自動入れ替え
    ═══════════════════════════════════════════════ */
-const CACHE_VERSION = 'gacha-oracle-v3';
+const CACHE_VERSION = 'gacha-oracle-v4';
 const APP_SHELL = [
   './',
   './index.html',

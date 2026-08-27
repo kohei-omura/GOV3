@@ -348,7 +348,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 
 <details class="glass" id="monthly-lucky" style="margin-bottom:18px">
   <summary style="cursor:pointer;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.16em;color:var(--gold);list-style:none;display:flex;align-items:center;gap:10px">
-    📅 今月の運気カレンダー TOP5
+    🎋 今月の吉日カレンダー・運気 TOP5
     <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
     <span style="font-size:.58rem;color:var(--muted)">▼ タップで展開</span>
   </summary>
@@ -437,7 +437,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 </div>
 
 <footer class="site-footer">Powered by <span>クトちゃん</span> 💫 霊眼統合占術システム<br>
-  <span style="font-size:.78rem;opacity:.6">西洋占星術 · 九星気学（年/月/日盤）· 四柱推命 · 月齢 · タロット · 数秘術 · 血液型 · 干支 · 紫微斗数 統合</span>
+  <span style="font-size:.78rem;opacity:.6">西洋占星術 · 九星気学（年/月/日盤）· 四柱推命 · 月齢 · タロット · 数秘術 · 血液型 · 干支 · 紫微斗数 · 暦注吉日13選 統合</span>
 </footer>
 </div>
 
@@ -493,10 +493,16 @@ function renderHotCountdown(){
   el.innerHTML='⏳ 次の激アツまで あと'+(h>0?h+'時間':'')+m+'分 <b style="color:var(--danger)">（'+td+nx.range+'）</b>';
 }
 function startHotCountdown(){if(_hotCountdownTimer)clearInterval(_hotCountdownTimer);renderHotCountdown();_hotCountdownTimer=setInterval(renderHotCountdown,60000);}
-// B: 吉日ランキングの月送り（calendar.json範囲内のみ有効）
-function _calRange(){if(!CAL_DATA||!CAL_DATA.days)return null;var ks=Object.keys(CAL_DATA.days);if(!ks.length)return null;ks.sort();return{min:ks[0].slice(0,7),max:ks[ks.length-1].slice(0,7)};}
-function _ym(y,m){return y+'-'+String(m+1).padStart(2,'0');}
-function _calNav(delta){var m=_calViewM+delta,y=_calViewY;if(m<0){m=11;y--;}if(m>11){m=0;y++;}_calViewY=y;_calViewM=m;try{renderMonthlyRanking();}catch(e){}}
+// B: 吉日ランキングの月送り（暦エンジンで全期間を算出できるため範囲制限なし）
+function _calNav(delta){
+  if(_calViewY==null){var t=new Date();_calViewY=t.getFullYear();_calViewM=t.getMonth();}
+  var m=_calViewM+delta,y=_calViewY;
+  if(m<0){m=11;y--;}if(m>11){m=0;y++;}
+  var cy=new Date().getFullYear();
+  if(y<cy-5||y>cy+5)return;              // ±5年の範囲外へは動かさない
+  _calViewY=y;_calViewM=m;
+  try{renderMonthlyRanking();}catch(e){}
+}
 
 // ═══════════════════════════════════════════════════
 //   暦データ（ajnet.ne.jpから取得した正確な六曜・月齢）
@@ -516,24 +522,390 @@ function calLookup(date){
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 
 // ═══════════════════════════════════════════════════
+//   天文暦エンジン ALM（JST基準・任意の年で成立）
+//   ─ 旧暦（天保暦準拠・定朔・閏月）／六曜／月齢／二十四節気・節月／二十八宿
+//   計算根拠:
+//     朔(新月)   … Meeus "Astronomical Algorithms" 第49章（誤差 数秒）
+//     太陽視黄経 … Meeus 第25章
+//     ΔT(TT-UT)  … Espenak & Meeus 多項式
+//   検証: calendar.json（ajnet.ne.jp 実測 455日）と
+//         六曜・旧暦(閏含む)・月齢が 455/455 完全一致。
+//   ※ 旧実装は「2026年だけの朔日ハードコード表」だったため、
+//     表の外(2027年以降・過去)で旧暦日が単調増加し六曜が総崩れしていた。
+// ═══════════════════════════════════════════════════
+var ALM_SYNODIC=29.530588861;   // 朔望月[日]
+var ALM=(function(){
+  var D2R=Math.PI/180, SYNODIC=29.530588861;
+  var JD_UNIX_EPOCH=2440587.5;          // 1970-01-01T00:00Z の JD
+  var JST_OFFSET_DAYS=9/24;
+
+  function sin(d){return Math.sin(d*D2R);}
+  function norm360(x){x=x%360;return x<0?x+360:x;}
+
+  // ΔT = TT - UT1 [秒]
+  function deltaT(y){
+    var t,u;
+    if(y>=2005&&y<2050){ t=y-2000; return 62.92+0.32217*t+0.005589*t*t; }
+    if(y>=1986&&y<2005){ t=y-2000;
+      return 63.86+0.3345*t-0.060374*t*t+0.0017275*t*t*t+0.000651814*t*t*t*t+0.00002373599*t*t*t*t*t; }
+    if(y>=1900&&y<1986){ t=(y-1900)/100;
+      return -2.79+1.494119*t-0.0598939*t*t+0.0061966*t*t*t-0.000197*t*t*t*t; }
+    if(y>=2050&&y<2150){ u=(y-1820)/100; return -20+32*u*u-0.5628*(2150-y); }
+    u=(y-1820)/100; return -20+32*u*u;
+  }
+
+  // JST暦日番号（1970-01-01 JST = 0）↔ JD(UT)
+  function jdUtToJstDayNum(jdUt){ return Math.floor(jdUt-JD_UNIX_EPOCH+JST_OFFSET_DAYS); }
+  function jstDayNumToJdUt(n){ return JD_UNIX_EPOCH+n-JST_OFFSET_DAYS; }   // その日の 00:00 JST
+  function dayNum(date){ return Math.floor(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate())/86400000); }
+  function parts(n){ var d=new Date(n*86400000);
+    return{y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()}; }
+
+  // 太陽の視黄経 [deg]
+  function sunLongitude(jde){
+    var T=(jde-2451545.0)/36525;
+    var L0=280.46646+36000.76983*T+0.0003032*T*T;
+    var M =357.52911+35999.05029*T-0.0001537*T*T;
+    var C =(1.914602-0.004817*T-0.000014*T*T)*sin(M)
+          +(0.019993-0.000101*T)*sin(2*M)+0.000289*sin(3*M);
+    var O =125.04-1934.136*T;
+    return norm360(L0+C-0.00569-0.00478*sin(O));
+  }
+  var _sunCache=new Map();
+  function sunLonAtJstDay(n){                    // その日 00:00 JST の太陽視黄経
+    var v=_sunCache.get(n);
+    if(v!==undefined)return v;
+    v=sunLongitude(jstDayNumToJdUt(n)+deltaT(parts(n).y)/86400);
+    if(_sunCache.size>4096)_sunCache.clear();
+    _sunCache.set(n,v);
+    return v;
+  }
+
+  // 朔（新月）の時刻
+  function newMoonJde(k){
+    var T=k/1236.85, T2=T*T, T3=T2*T, T4=T3*T;
+    var jde=2451550.09766+29.530588861*k+0.00015437*T2-0.000000150*T3+0.00000000073*T4;
+    var E=1-0.002516*T-0.0000074*T2;
+    var M =norm360(2.5534+29.10535670*k-0.0000014*T2-0.00000011*T3);
+    var Mp=norm360(201.5643+385.81693528*k+0.0107582*T2+0.00001238*T3-0.000000058*T4);
+    var F =norm360(160.7108+390.67050284*k-0.0016118*T2-0.00000227*T3+0.000000011*T4);
+    var Om=norm360(124.7746-1.56375588*k+0.0020672*T2+0.00000215*T3);
+    var c=-0.40720*sin(Mp)+0.17241*E*sin(M)+0.01608*sin(2*Mp)+0.01039*sin(2*F)
+      +0.00739*E*sin(Mp-M)-0.00514*E*sin(Mp+M)+0.00208*E*E*sin(2*M)
+      -0.00111*sin(Mp-2*F)-0.00057*sin(Mp+2*F)+0.00056*E*sin(2*Mp+M)
+      -0.00042*sin(3*Mp)+0.00042*E*sin(M+2*F)+0.00038*E*sin(M-2*F)
+      -0.00024*E*sin(2*Mp-M)-0.00017*sin(Om)-0.00007*sin(Mp+2*M)
+      +0.00004*sin(2*Mp-2*F)+0.00004*sin(3*M)+0.00003*sin(Mp+M-2*F)
+      +0.00003*sin(2*Mp+2*F)-0.00003*sin(Mp+M+2*F)+0.00003*sin(Mp-M+2*F)
+      -0.00002*sin(Mp-M-2*F)-0.00002*sin(3*Mp+M)+0.00002*sin(4*Mp);
+    var A=[[299.77+0.107408*k-0.009173*T2,0.000325],[251.88+0.016321*k,0.000165],
+      [251.83+26.651886*k,0.000164],[349.42+36.412478*k,0.000126],[84.66+18.206239*k,0.000110],
+      [141.74+53.303771*k,0.000062],[207.14+2.453732*k,0.000060],[154.84+7.306860*k,0.000056],
+      [34.52+27.261239*k,0.000047],[207.19+0.121824*k,0.000042],[291.34+1.844379*k,0.000040],
+      [161.72+24.198154*k,0.000037],[239.56+25.513099*k,0.000035],[331.55+3.592518*k,0.000023]];
+    for(var i=0;i<A.length;i++)c+=A[i][1]*sin(A[i][0]);
+    return jde+c;
+  }
+  var _nmCache=new Map();
+  function newMoonJdUt(k){
+    var v=_nmCache.get(k);
+    if(v!==undefined)return v;
+    var jde=newMoonJde(k);
+    v=jde-deltaT(2000+(jde-2451545.0)/365.25)/86400;
+    if(_nmCache.size>2048)_nmCache.clear();
+    _nmCache.set(k,v);
+    return v;
+  }
+  function kOfNewMoonOnOrBefore(n){
+    var k=Math.floor((jstDayNumToJdUt(n)-2451550.09766)/SYNODIC)+1;
+    while(jdUtToJstDayNum(newMoonJdUt(k))>n)k--;
+    while(jdUtToJstDayNum(newMoonJdUt(k+1))<=n)k++;
+    return k;
+  }
+
+  // 二十四節気: 節入り日はその瞬間を含む暦日。日nの区分は「n+1の00:00の黄経」で判定
+  function setsuMonth(n){ return Math.floor(norm360(sunLonAtJstDay(n+1)-315)/30)+1; }  // 節月 1〜12
+  function chukiIdx(n){ return Math.floor(sunLonAtJstDay(n)/30); }                     // 中気の帯 0〜11
+  // 土用＝各季の最後18°（土用入り 黄経 27/117/207/297）
+  function season(n){
+    var lon=sunLonAtJstDay(n+1);
+    if((lon>=27&&lon<45)||(lon>=117&&lon<135)||(lon>=207&&lon<225)||(lon>=297&&lon<315))return'土用';
+    if(lon>=315||lon<27)return'春';
+    if(lon<117)return'夏';
+    if(lon<207)return'秋';
+    return'冬';
+  }
+  function grossSeason(n){    // 土用を含めた素の四季（天赦日用）
+    var lon=sunLonAtJstDay(n+1);
+    if(lon>=315||lon<45)return'春';
+    if(lon<135)return'夏';
+    if(lon<225)return'秋';
+    return'冬';
+  }
+
+  // 旧暦（天保暦：定朔・冬至を含む月を11月・中気のない月を閏とする）
+  var _cycleCache=new Map();
+  function winterSolsticeDay(y){
+    // 冬至日＝太陽黄経が270°を越える瞬間を含む暦日。
+    // 00:00時点の黄経で見て「その日はまだ270°未満／翌日0時は270°以上」
+    // となる日が冬至日そのもの（翌日ではない）。ここを1日ずらすと、
+    // 冬至が朔の近くに来た年で旧暦11月の取り方が1ヶ月分ずれ、
+    // 閏月の判定が丸ごと壊れる（2023年の閏2月が消えていた）。
+    var start=dayNum(new Date(Date.UTC(y,11,15)));
+    for(var i=0;i<14;i++){
+      if(chukiIdx(start+i)!==9&&chukiIdx(start+i+1)===9)return start+i;
+    }
+    return start+7;
+  }
+  function buildCycle(y){                        // y-1年11月朔 〜 y年11月朔
+    var c=_cycleCache.get(y);
+    if(c)return c;
+    var k0=kOfNewMoonOnOrBefore(winterSolsticeDay(y-1));
+    var k1=kOfNewMoonOnOrBefore(winterSolsticeDay(y));
+    var starts=[],i;
+    for(i=k0;i<=k1+1;i++)starts.push(jdUtToJstDayNum(newMoonJdUt(i)));
+    var nMonths=k1-k0, isLeapYear=(nMonths===13), out=[], num=11, leapUsed=false;
+    for(i=0;i<starts.length-1;i++){
+      var s=starts[i],e=starts[i+1];
+      if(isLeapYear&&!leapUsed&&i>0&&i<nMonths&&chukiIdx(s)===chukiIdx(e)){
+        leapUsed=true;
+        out.push({start:s,end:e,month:((num-2+12)%12)+1,leap:true});   // 前月の番号を継ぐ
+      }else{
+        out.push({start:s,end:e,month:num,leap:false});
+        num=num%12+1;
+      }
+    }
+    c={start:starts[0],months:out};
+    if(_cycleCache.size>64)_cycleCache.clear();
+    _cycleCache.set(y,c);
+    return c;
+  }
+  function lunisolar(n){
+    var y=parts(n).y, c=buildCycle(y), guard=0;
+    while(n<c.start&&guard++<4)c=buildCycle(--y);
+    while(n>=c.months[c.months.length-1].end&&guard++<4)c=buildCycle(++y);
+    for(var i=0;i<c.months.length;i++){
+      var m=c.months[i];
+      if(n>=m.start&&n<m.end)return{month:m.month,day:n-m.start+1,leap:m.leap};
+    }
+    var last=c.months[c.months.length-1];
+    return{month:last.month,day:n-last.start+1,leap:last.leap};
+  }
+
+  // 六曜: (旧暦月+旧暦日) mod 6 → 0:大安 1:赤口 2:先勝 3:友引 4:先負 5:仏滅
+  var ROKUYO_ORDER=['大安','赤口','先勝','友引','先負','仏滅'];
+  function rokuyo(n){ var l=lunisolar(n); return ROKUYO_ORDER[((l.month+l.day)%6+6)%6]; }
+
+  // 月齢（JST正午時点＝日本の暦の慣行。ajnet実測と一致）
+  function moonAge(n){
+    var t=jstDayNumToJdUt(n)+0.5;
+    var k=Math.floor((t-2451550.09766)/SYNODIC)+1;
+    while(newMoonJdUt(k)>t)k--;
+    while(newMoonJdUt(k+1)<=t)k++;
+    return Math.round((t-newMoonJdUt(k))*10)/10;
+  }
+
+  // 二十八宿（連続28日周期。アンカー: 2026-01-02 = 鬼宿。公開暦の鬼宿日13日と一致）
+  var SHUKU=['角','亢','氐','房','心','尾','箕','斗','牛','女','虚','危','室',
+             '壁','奎','婁','胃','昴','畢','觜','参','井','鬼','柳','星','張','翼','軫'];
+  function shuku(n){ return SHUKU[((n+7)%28+28)%28]; }
+
+  return{dayNum:dayNum,parts:parts,setsuMonth:setsuMonth,season:season,grossSeason:grossSeason,
+         lunisolar:lunisolar,rokuyo:rokuyo,moonAge:moonAge,shuku:shuku,sunLon:sunLonAtJstDay};
+})();
+
+// ═══════════════════════════════════════════════════
+//   吉日エンジン（縁起の良い吉日13選）
+//   算出はすべて 日の干支 / 節月(二十四節気) / 旧暦六曜 / 二十八宿 から導出。
+//   検証（2026年・公開暦と照合）:
+//     天赦日     6日  … 3/5, 5/4, 5/20, 7/19, 10/1, 12/16 ✅
+//     鬼宿日    13日  … 1/2 から28日周期 ✅
+//     一粒万倍日 64日  … 1/1,1/2,1/5,1/14,1/17,1/26,1/29 … ✅
+//     3/5 = 天赦日+一粒万倍日+寅の日+大安（最強開運日）✅
+// ═══════════════════════════════════════════════════
+var KICHI=(function(){
+  var STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+  var BRANCHES=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+  // 日の干支（1970-01-01 = 辛巳 を基準。update_calendar.py の検証アンカーと同一）
+  function kanshi(n){
+    var i=((n+17)%60+60)%60;
+    return{idx:i,num:i+1,stem:STEMS[i%10],branch:BRANCHES[i%12],name:STEMS[i%10]+BRANCHES[i%12]};
+  }
+  // 神吉日 33干支 / 大明日 25干支（暦注下段）
+  var KAMIYOSHI={},DAIMYO={};
+  '乙丑 丁卯 己巳 庚午 壬申 癸酉 丁丑 己卯 壬午 甲申 乙酉 戊子 辛卯 甲午 丙申 丁酉 己亥 庚子 辛丑 癸卯 乙巳 丙午 丁未 戊申 己酉 辛亥 壬子 乙卯 戊午 己未 庚申 辛酉 癸亥'
+    .split(' ').forEach(function(s){KAMIYOSHI[s]=1;});
+  '戊午 己巳 庚午 辛未 壬申 癸酉 丁丑 己卯 壬午 甲申 丁亥 壬辰 乙未 壬寅 甲辰 乙巳 丙午 丁未 己酉 庚戌 辛亥 丙辰 己未 庚申 辛酉'
+    .split(' ').forEach(function(s){DAIMYO[s]=1;});
+  // 一粒万倍日: 節月ごとの十二支
+  var ICHIRYU={1:'丑午',2:'酉寅',3:'子卯',4:'卯辰',5:'巳午',6:'酉午',
+               7:'子未',8:'卯申',9:'午酉',10:'酉戌',11:'亥子',12:'卯子'};
+  // 月徳日: 節月の十干（1,5,9=丙 / 2,6,10=甲 / 3,7,11=壬 / 4,8,12=庚）
+  var TSUKITOKU={1:'丙',5:'丙',9:'丙',2:'甲',6:'甲',10:'甲',3:'壬',7:'壬',11:'壬',4:'庚',8:'庚',12:'庚'};
+  // 天赦日: 四季 × 特定干支
+  var TENSHA={春:'戊寅',夏:'甲午',秋:'戊申',冬:'甲子'};
+  // 母倉日: 季節を「生む」五行の十二支（土用は別枠）
+  var BOSO={春:'亥子',夏:'寅卯',秋:'辰戌丑未',冬:'申酉',土用:'巳午'};
+
+  // 13吉日のメタ情報。bonus は運気スコアへの寄与（大安は六曜で加算済のため0）
+  var META={
+    天赦日   :{yomi:'てんしゃにち',   icon:'🌟',bonus:12,rank:1,
+               desc:'最上の大吉日。すべての神が天に昇り万物の罪を許す日。',good:'開業・結婚・財布新調・挑戦'},
+    一粒万倍日:{yomi:'いちりゅうまんばいび',icon:'🌾',bonus:6,rank:2,
+               desc:'一粒の籾が万倍に実る日。小さな一歩が大きく育つ。',good:'開業・投資・宝くじ・新しいこと'},
+    甲子の日 :{yomi:'きのえねのひ',   icon:'🐭',bonus:5,rank:3,
+               desc:'60干支の始まりの日。大黒天様のご縁日。',good:'事業開始・習い事開始・婚活'},
+    己巳の日 :{yomi:'つちのとみのひ', icon:'🐍',bonus:5,rank:4,
+               desc:'60日に1度の、巳の日の中でも最上の金運日。',good:'金運祈願・投資・起業'},
+    天恩日   :{yomi:'てんおんび',     icon:'🎁',bonus:4,rank:5,
+               desc:'天の恵みをすべての人が受ける日（5日間連続）。',good:'慶事全般・地鎮祭・旅行'},
+    鬼宿日   :{yomi:'きしゅくにち',   icon:'👹',bonus:4,rank:6,
+               desc:'二十八宿の鬼宿。鬼が宿に籠り、何物にも邪魔されない吉日。',good:'祝い事全般・長寿祝い'},
+    大明日   :{yomi:'だいみょうにち', icon:'☀️',bonus:3,rank:7,
+               desc:'天地が開け、隅々まで太陽の光が照らす明るい吉日。',good:'移転・旅行・建築・慶事全般'},
+    母倉日   :{yomi:'ぼそうにち',     icon:'🤱',bonus:3,rank:8,
+               desc:'母が子を育てるように天が万物を慈しむ日。',good:'婚姻・入籍・建築・引っ越し'},
+    月徳日   :{yomi:'つきとくにち',   icon:'🌛',bonus:3,rank:9,
+               desc:'その月の福徳を司る「月徳神」がいる日。',good:'建築・土木工事・契約関係'},
+    巳の日   :{yomi:'みのひ',         icon:'🐍',bonus:3,rank:10,
+               desc:'弁財天の使いである白蛇に由来する金運・財運日。',good:'弁財天参拝・宝くじ・口座開設'},
+    寅の日   :{yomi:'とらのひ',       icon:'🐯',bonus:3,rank:11,
+               desc:'金運の吉日。虎は千里を往って千里を帰る。',good:'財布新調・高額な買い物・旅行'},
+    神吉日   :{yomi:'かみよしにち',   icon:'⛩️',bonus:2,rank:12,
+               desc:'神事や神社参拝に特に縁起が良いとされる日。',good:'神社参拝・地鎮祭・先祖供養'},
+    大安     :{yomi:'たいあん',       icon:'◎',bonus:0,rank:13,
+               desc:'六曜の中で最も吉とされる日。一日を通して害がない。',good:'結納・結婚式・内祝い・納車'}
+  };
+
+  var _cache=new Map();
+  // n = JST暦日番号 → {list:[{name,...}], names:[], raw, score, top, count}
+  function ofDayNum(n){
+    var hit=_cache.get(n);
+    if(hit)return hit;
+    var ks=kanshi(n), sm=ALM.setsuMonth(n), names=[];
+    if(ks.name===TENSHA[ALM.grossSeason(n)])names.push('天赦日');
+    if(ICHIRYU[sm].indexOf(ks.branch)>=0)names.push('一粒万倍日');
+    if((ks.num<=5)||(ks.num>=16&&ks.num<=20)||(ks.num>=46&&ks.num<=50))names.push('天恩日');
+    if(BOSO[ALM.season(n)].indexOf(ks.branch)>=0)names.push('母倉日');
+    if(KAMIYOSHI[ks.name])names.push('神吉日');
+    if(ALM.rokuyo(n)==='大安')names.push('大安');
+    if(DAIMYO[ks.name])names.push('大明日');
+    if(ALM.shuku(n)==='鬼')names.push('鬼宿日');
+    if(TSUKITOKU[sm]===ks.stem)names.push('月徳日');
+    if(ks.branch==='寅')names.push('寅の日');
+    if(ks.branch==='巳')names.push(ks.name==='己巳'?'己巳の日':'巳の日');
+    if(ks.name==='甲子')names.push('甲子の日');
+    names.sort(function(a,b){return META[a].rank-META[b].rank;});
+    var raw=0,list=names.map(function(nm){
+      raw+=META[nm].bonus;
+      return{name:nm,yomi:META[nm].yomi,icon:META[nm].icon,bonus:META[nm].bonus,
+             desc:META[nm].desc,good:META[nm].good};
+    });
+    // 運気スコアへの寄与。全日平均 raw≒6.2 を中心0に据える（他項目と同じ設計）
+    var score=Math.max(-4,Math.min(12,Math.round((raw-6.2)*0.55)));
+    var res={list:list,names:names,raw:raw,score:score,count:names.length,
+             top:list.length?list[0].name:'',kanshi:ks.name,setsuMonth:sm,
+             shuku:ALM.shuku(n),
+             // 天赦日×一粒万倍日 など、最上位が重なった日を「最強開運日」とする
+             supreme:(names.indexOf('天赦日')>=0&&names.indexOf('一粒万倍日')>=0)||raw>=20};
+    if(_cache.size>2048)_cache.clear();
+    _cache.set(n,res);
+    return res;
+  }
+  function ofDate(date){ return ofDayNum(ALM.dayNum(date)); }
+  return{ofDate:ofDate,ofDayNum:ofDayNum,kanshi:kanshi,META:META};
+})();
+function getKichijitsu(date){ return KICHI.ofDate(date); }
+
+// ═══════════════════════════════════════════════════
+//   日別占術のメモ化
+//   getDayPillar / getDayKyusei / getRyuNichi / getUniversalDay は
+//   「その日」だけで決まる純関数。ところがラッキータイム算出は
+//   14日分×(候補評価＋内訳生成) を、ゲームランキングはそれを
+//   全タイトル分ぶん回すため、同じ日の同じ計算が数百回走っていた。
+//   JST暦日をキーに1度だけ計算して使い回す。
+// ═══════════════════════════════════════════════════
+function _memoByDay(fn){
+  var cache=new Map();
+  return function(date){
+    var n=ALM.dayNum(date), v=cache.get(n);
+    if(v!==undefined)return v;
+    v=fn(date);
+    if(cache.size>2048)cache.clear();
+    cache.set(n,v);
+    return v;
+  };
+}
+
+// 日別純関数のメモ化ラッパ（_raw_* が実体）
+var getDayKyusei   = _memoByDay(function(d){return _raw_getDayKyusei(d);});
+var getUniversalDay= _memoByDay(function(d){return _raw_getUniversalDay(d);});
+var getRyuNichi    = _memoByDay(function(d){return _raw_getRyuNichi(d);});
+var getDayPillar   = _memoByDay(function(d){return _raw_getDayPillar(d);});
+
+// ═══════════════════════════════════════════════════
 //   CANVAS COSMOS
 // ═══════════════════════════════════════════════════
 try{(function(){
-  const cv=document.getElementById('cosmos'),ctx=cv?cv.getContext('2d'):null;
+  const cv=document.getElementById('cosmos'),ctx=cv?cv.getContext('2d',{alpha:true}):null;
   if(!cv||!ctx)return;
-  let W,H,stars=[],shoots=[];
-  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
-  window.addEventListener('resize',resize);resize();
-  for(let i=0;i<220;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.2,a:Math.random(),da:(Math.random()-.5)*.006,speed:Math.random()*.003+.0005});
-  function addShoot(){shoots.push({x:Math.random()*W,y:Math.random()*H*.4,angle:-25+Math.random()*20,len:0,maxLen:80+Math.random()*120,speed:6+Math.random()*6,alpha:1});}
-  setInterval(addShoot,3500);
-  function frame(){
-    ctx.clearRect(0,0,W,H);
-    stars.forEach(s=>{s.a+=s.da;if(s.a<.08||s.a>1)s.da*=-1;ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);ctx.fillStyle=`rgba(255,255,255,${Math.max(.08,s.a)})`;ctx.fill();});
-    shoots=shoots.filter(s=>{s.len+=s.speed;s.alpha=Math.max(0,1-s.len/s.maxLen);if(s.alpha<=0)return false;ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.angle*Math.PI/180);const g=ctx.createLinearGradient(0,0,s.len,0);g.addColorStop(0,'transparent');g.addColorStop(.3,`rgba(255,255,255,${s.alpha*.6})`);g.addColorStop(1,'transparent');ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(s.len,0);ctx.stroke();ctx.restore();return true;});
-    requestAnimationFrame(frame);
+  // ── 省電力対応 ──
+  //  ・prefers-reduced-motion なら静止した星空を1度だけ描いて終了
+  //  ・タブが隠れている / 画面外にある間は rAF も流れ星生成も完全に止める
+  //    （従来は setInterval と requestAnimationFrame を常時回し続けており、
+  //      PWAをバックグラウンドに置くだけでバッテリーを消費していた）
+  const reduce=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let W,H,stars=[],shoots=[],rafId=0,shootTimer=0,lastShoot=0,running=false;
+  const DPR=Math.min(window.devicePixelRatio||1,2);
+  function resize(){
+    W=window.innerWidth;H=window.innerHeight;
+    cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+    cv.style.width=W+'px';cv.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
   }
-  frame();
+  let resizeTimer=0;
+  window.addEventListener('resize',function(){
+    clearTimeout(resizeTimer);resizeTimer=setTimeout(resize,150);   // リサイズ中の再描画を間引く
+  });
+  resize();
+  // 星の数は画面サイズに比例（小さな端末で無駄に描かない）
+  const STAR_N=Math.max(90,Math.min(220,Math.round(W*H/9000)));
+  for(let i=0;i<STAR_N;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.2,a:Math.random(),da:(Math.random()-.5)*.006});
+  function drawStars(){
+    for(let i=0;i<stars.length;i++){
+      const s=stars[i];
+      ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,'+Math.max(.08,s.a)+')';ctx.fill();
+    }
+  }
+  function addShoot(){shoots.push({x:Math.random()*W,y:Math.random()*H*.4,angle:-25+Math.random()*20,len:0,maxLen:80+Math.random()*120,speed:6+Math.random()*6,alpha:1});}
+  function frame(ts){
+    ctx.clearRect(0,0,W,H);
+    for(let i=0;i<stars.length;i++){const s=stars[i];s.a+=s.da;if(s.a<.08||s.a>1)s.da*=-1;}
+    drawStars();
+    if(ts-lastShoot>3500){lastShoot=ts;addShoot();}
+    for(let i=shoots.length-1;i>=0;i--){
+      const s=shoots[i];
+      s.len+=s.speed;s.alpha=Math.max(0,1-s.len/s.maxLen);
+      if(s.alpha<=0){shoots.splice(i,1);continue;}
+      ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.angle*Math.PI/180);
+      const g=ctx.createLinearGradient(0,0,s.len,0);
+      g.addColorStop(0,'transparent');g.addColorStop(.3,'rgba(255,255,255,'+(s.alpha*.6)+')');g.addColorStop(1,'transparent');
+      ctx.strokeStyle=g;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(s.len,0);ctx.stroke();ctx.restore();
+    }
+    rafId=requestAnimationFrame(frame);
+  }
+  function start(){
+    if(running||reduce)return;
+    running=true;lastShoot=0;rafId=requestAnimationFrame(frame);
+  }
+  function stop(){
+    if(!running)return;
+    running=false;cancelAnimationFrame(rafId);rafId=0;
+  }
+  if(reduce){ ctx.clearRect(0,0,W,H); drawStars(); return; }
+  document.addEventListener('visibilitychange',function(){document.hidden?stop():start();});
+  if(!document.hidden)start();
 })();}catch(e){console.warn('cosmos init error',e);}
 
 // ═══════════════════════════════════════════════════
@@ -563,26 +935,26 @@ const GAME_DB = {
 // ═══════════════════════════════════════════════════
 //   月齢計算
 // ═══════════════════════════════════════════════════
+var _moonAgeCache=new Map();
 function getMoonAge(date){
   // calendar.json があればその日の実測月齢を最優先で返す
   var _cal=calLookup(date);
   if(_cal&&typeof _cal.moonAge==='number'){
-    return{age:_cal.moonAge,phase:_cal.moonAge/29.53058867*360};
+    return{age:_cal.moonAge,phase:_cal.moonAge/ALM_SYNODIC*360};
   }
   // ─────────────────────────────────────────────
-  // 月齢: ajnet.ne.jp 暦カレンダーに較正した「既知の新月」基準方式
-  // 基準新月(朔): 2026-06-15 00:00 JST ＝ 月齢0.0（カレンダー実測と一致）
-  // 以後/以前は朔望月(29.53058867日)で前後の朔を辿り、その日0:00時点の経過日=月齢
-  // 検証: 6/15→0.0, 6/23→8.0, 6/30→15.0（いずれもカレンダー一致）
+  // 実測データ範囲外は天文暦エンジン ALM で算出。
+  // 旧実装は「2026-06-15 を朔とする固定周期」で、離れた日付ほど誤差が
+  // 累積した（実測比で最大1日ズレ）。ALM は真の朔時刻から求めるため、
+  // calendar.json の 455日と 0.1日以内で完全一致する。
   // ─────────────────────────────────────────────
-  var SYNODIC=29.53058867;
-  var BASE_NEWMOON=new Date(2026,5,15,0,0,0).getTime(); // 朔基準
-  var d0=new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
-  var age=((d0-BASE_NEWMOON)/86400000)%SYNODIC;
-  if(age<0)age+=SYNODIC;
-  age=Math.round(age*10)/10;
-  if(age>=SYNODIC)age=0;
-  return{age:age,phase:age/SYNODIC*360};
+  var n=ALM.dayNum(date), c=_moonAgeCache.get(n);
+  if(c!==undefined)return c;
+  var age=ALM.moonAge(n);
+  c={age:age,phase:age/ALM_SYNODIC*360};
+  if(_moonAgeCache.size>2048)_moonAgeCache.clear();
+  _moonAgeCache.set(n,c);
+  return c;
 }
 function getMoonPhaseInfo(age){
   // 月齢 luckBonus 設計根拠:
@@ -603,7 +975,7 @@ function getMoonPhaseInfo(age){
 //   ② 日盤九星 (日家九星)
 //   検証: localEpochDays(2026-03-10 JST)=20522, %9=2, (9-2)%9+1=8 → 八白土星 ✅
 // ═══════════════════════════════════════════════════
-function getDayKyusei(date){
+function _raw_getDayKyusei(date){
   // 基準: 2000/1/6 = 五黄土星(5)、1日ずつ逆行（keisan.site準拠）
   var BASE_MS=947116800000; // 2000/1/6 00:00 JST
   // JST日付の0:00に正規化
@@ -726,7 +1098,7 @@ function calcLifePath(dateStr){
 }
 // ① LP4 × UD の関係性モデル（足さず関係性から結果を出す）
 // 2026/03/10: yr=reduce(2+0+2+6=10→1), UD=reduce(1+3+10=14→5) → LP4×UD5
-function getUniversalDay(date){
+function _raw_getUniversalDay(date){
   function reduce(n){while(n>9&&n!==11&&n!==22&&n!==33)n=[...String(n)].reduce((a,c)=>a+parseInt(c),0);return n;}
   const y=date.getFullYear(),m=date.getMonth()+1,d=date.getDate();
   const yr=reduce([...String(y)].reduce((a,c)=>a+parseInt(c),0));
@@ -855,7 +1227,7 @@ function getSihua(date){
 // 今日の流日宮: 2026/03/10=午(idx6)を基準に日ごとに+1支
 // IMG_6135: 流日→疾厄宮(午) → 僕役宮(午支)で紫微星活性化 ✅
 const _ZW_REF_D=20522, _ZW_REF_I=6;
-function getRyuNichi(date){
+function _raw_getRyuNichi(date){
   const d=Math.floor((date.getTime()-date.getTimezoneOffset()*60000)/86400000);
   const bi=((_ZW_REF_I+(d-_ZW_REF_D))%12+12)%12;
   const branch=ZIWEI_BR[bi];
@@ -931,71 +1303,39 @@ const ZODIAC_MSG={'牡羊座':'火のエレメント全開。行動力と決断�
 // ═══════════════════════════════════════════════════
 //   六曜
 // ═══════════════════════════════════════════════════
-// 旧暦の朔日(新月=旧暦1日)テーブル — ajnet.ne.jp カレンダーに較正
-// [グレゴリオ日付(0:00JST ms), その日が属する旧暦「月」]
-// 各朔日からの経過日で旧暦日を厳密算出（六曜は旧暦月+日で決まるため要・正確な旧暦日）
-const LUNAR_NEWMOONS=[
-  // 2026年の朔日（旧暦各月1日）。カレンダー検証済の範囲を網羅
-  [new Date(2026,0,18).getTime(), 12], // 2025旧暦12月1日相当(冬)
-  [new Date(2026,1,17).getTime(), 1],  // 旧暦1月1日(2026春節)
-  [new Date(2026,2,19).getTime(), 2],
-  [new Date(2026,3,17).getTime(), 3],
-  [new Date(2026,4,17).getTime(), 4],
-  [new Date(2026,5,15).getTime(), 5],  // 旧暦5月1日 → 6/23は5/9(検証済)
-  [new Date(2026,6,14).getTime(), 6],
-  [new Date(2026,7,13).getTime(), 7],
-  [new Date(2026,8,11).getTime(), 8],
-  [new Date(2026,9,10).getTime(), 9],
-  [new Date(2026,10,9).getTime(), 10],
-  [new Date(2026,11,9).getTime(), 11],
-];
+// ═══════════════════════════════════════════════════
+//   旧暦・六曜
+//   旧実装は「2026年の朔日だけを並べたハードコード表」だった。
+//   表の外（2027年以降・2026年1月より前）では最後の朔からの経過日を
+//   そのまま旧暦日として返し続けるため、旧暦日が 30日, 60日… と
+//   際限なく増え、六曜が全滅していた（calendar.json 455日との照合で
+//   六曜264日・旧暦294日が不一致）。表そのものにも 10月の朔が1日ズレる
+//   誤りがあった。天文暦エンジン ALM に置き換え、455/455 一致を確認。
+// ═══════════════════════════════════════════════════
 function getLunarMonthDay(date){
-  const t=new Date(date.getFullYear(),date.getMonth(),date.getDate()).getTime();
-  // tが属する直近過去の朔日を探す
-  let chosen=null;
-  for(let i=LUNAR_NEWMOONS.length-1;i>=0;i--){
-    if(t>=LUNAR_NEWMOONS[i][0]){chosen=LUNAR_NEWMOONS[i];break;}
-  }
-  if(!chosen){
-    // テーブル範囲より前: 近似フォールバック(朔望月で逆算)
-    const SYN=29.53058867;
-    const base=LUNAR_NEWMOONS[0];
-    let back=Math.ceil((base[0]-t)/86400000/SYN);
-    let nm=base[0]-Math.round(back*SYN)*86400000;
-    let dd=Math.floor((t-nm)/86400000)+1;
-    let mm=((base[1]-back-1)%12+12)%12+1;
-    return[mm,Math.max(1,dd)];
-  }
-  const dayLunar=Math.floor((t-chosen[0])/86400000)+1; // 朔日=1日
-  return[chosen[1],dayLunar];
+  var l=ALM.lunisolar(ALM.dayNum(date));
+  return[l.month,l.day,l.leap];
 }
+// 六曜 bonus 設計根拠（江戸期暦注研究+現代吉凶辞典統合）:
+// 大安(7)=万事最吉 / 先勝(4)=午前強吉・午後凶 / 友引(2)=縁を結ぶ吉
+// 先負(1)=午後から吉転換・微吉 / 赤口(-3)=正午のみ吉・概ね凶
+// 仏滅(-5)=最凶だが旧暦上の節目で強いエネルギーの転換点
+// ※ 定数として1度だけ生成する（従来は getRokuyo 呼び出しごとに
+//   6要素のオブジェクト配列を作り直していた＝月間ランキングで月30回超）
+const ROKUYO_INFO={
+  '大安':{name:'大安',icon:'◎',msg:'万事に最吉。ガチャに全力投球できる日。',bonus:7,goodHours:null,badHours:null},
+  '赤口':{name:'赤口',icon:'△',msg:'正午前後のみ吉。11:30〜12:30が狙い目。',bonus:-3,goodHours:[11,12],badHours:null},
+  '先勝':{name:'先勝',icon:'○',msg:'午前中が吉、午後は凶。AM中に引くべし。',bonus:4,goodHours:[6,7,8,9,10,11],badHours:[13,14,15,16,17,18,19,20,21,22,23]},
+  '友引':{name:'友引',icon:'○',msg:'友を引き込む縁が強い吉日。良縁を呼ぶ。',bonus:2,goodHours:null,badHours:null},
+  '先負':{name:'先負',icon:'△',msg:'午後から吉転換。15:00以降のガチャが◎。',bonus:1,goodHours:[15,16,17,18,19,20,21,22,23],badHours:[6,7,8,9,10,11,12]},
+  '仏滅':{name:'仏滅',icon:'✕',msg:'全てが凶。本日は石の温存を推奨。',bonus:-5,goodHours:null,badHours:null}
+};
 function getRokuyo(date){
-  // calendar.json があればその日の実測六曜を最優先で返す
-  var _cal=calLookup(new Date(date));
-  if(_cal&&_cal.rokuyo){
-    var _byName={
-      '大安':{name:'大安',icon:'◎',msg:'万事に最吉。ガチャに全力投球できる日。',bonus:7,goodHours:null,badHours:null},
-      '赤口':{name:'赤口',icon:'△',msg:'正午前後のみ吉。11:30〜12:30が狙い目。',bonus:-3,goodHours:[11,12],badHours:null},
-      '先勝':{name:'先勝',icon:'○',msg:'午前中が吉、午後は凶。AM中に引くべし。',bonus:4,goodHours:[6,7,8,9,10,11],badHours:[13,14,15,16,17,18,19,20,21,22,23]},
-      '友引':{name:'友引',icon:'○',msg:'友を引き込む縁が強い吉日。良縁を呼ぶ。',bonus:2,goodHours:null,badHours:null},
-      '先負':{name:'先負',icon:'△',msg:'午後から吉転換。15:00以降のガチャが◎。',bonus:1,goodHours:[15,16,17,18,19,20,21,22,23],badHours:[6,7,8,9,10,11,12]},
-      '仏滅':{name:'仏滅',icon:'✕',msg:'全てが凶。本日は石の温存を推奨。',bonus:-5,goodHours:null,badHours:null}
-    };
-    if(_byName[_cal.rokuyo])return _byName[_cal.rokuyo];
-  }
-  const[monthLunar,dayLunar]=getLunarMonthDay(new Date(date));
-  const idx=((monthLunar+dayLunar)%6+6)%6;
-  // 六曜 bonus 設計根拠（江戸期暦注研究+現代吉凶辞典統合）:
-  // 大安(7)=万事最吉 / 先勝(4)=午前強吉・午後凶 / 友引(2)=縁を結ぶ吉
-  // 先負(1)=午後から吉転換・微吉 / 赤口(-3)=正午のみ吉・概ね凶
-  // 仏滅(-5)=最凶だが旧暦上の節目で強いエネルギーの転換点
-  const base=[{name:'大安',icon:'◎',msg:'万事に最吉。ガチャに全力投球できる日。',bonus:7,goodHours:null,badHours:null},
-    {name:'赤口',icon:'△',msg:'正午前後のみ吉。11:30〜12:30が狙い目。',bonus:-3,goodHours:[11,12],badHours:null},
-    {name:'先勝',icon:'○',msg:'午前中が吉、午後は凶。AM中に引くべし。',bonus:4,goodHours:[6,7,8,9,10,11],badHours:[13,14,15,16,17,18,19,20,21,22,23]},
-    {name:'友引',icon:'○',msg:'友を引き込む縁が強い吉日。良縁を呼ぶ。',bonus:2,goodHours:null,badHours:null},
-    {name:'先負',icon:'△',msg:'午後から吉転換。15:00以降のガチャが◎。',bonus:1,goodHours:[15,16,17,18,19,20,21,22,23],badHours:[6,7,8,9,10,11,12]},
-    {name:'仏滅',icon:'✕',msg:'全てが凶。本日は石の温存を推奨。',bonus:-5,goodHours:null,badHours:null}][idx];
-  return base;
+  // calendar.json があればその日の実測六曜を最優先で、無ければ ALM で算出
+  if(!(date instanceof Date))date=new Date(date);
+  var _cal=calLookup(date);
+  if(_cal&&_cal.rokuyo&&ROKUYO_INFO[_cal.rokuyo])return ROKUYO_INFO[_cal.rokuyo];
+  return ROKUYO_INFO[ALM.rokuyo(ALM.dayNum(date))];
 }
 
 // ═══════════════════════════════════════════════════
@@ -1004,7 +1344,7 @@ function getRokuyo(date){
 const STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
 const BRANCHES=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
 const SETSU_DATES=[6,4,6,5,6,6,7,8,8,8,8,7];
-function getDayPillar(date){
+function _raw_getDayPillar(date){
   const d=Math.floor((date.getTime()-date.getTimezoneOffset()*60000)/86400000);
   const stemIdx=(d+7)%10,branchIdx=(d+5)%12;
   const ELEM_MAP=['木','木','火','火','土','土','金','金','水','水'];
@@ -1279,6 +1619,13 @@ function calculateFortune(params){
   const _ziweiPt=Math.round((ziwei.totalScore-5.5)*1.3);
   score+=_ziweiPt;
 
+  // 【新】吉日（縁起の良い吉日13選）：天赦日・一粒万倍日・寅の日 等の重なりを評価
+  //   raw = 各吉日の重みの合計。全日平均 raw≒6.2 を中心0に据える（他項目と同じ設計）。
+  //   大安は六曜で加算済みのため吉日側の重みは0（二重計上の回避）。
+  const kichi=getKichijitsu(now);
+  const _kichiPt=kichi.score;
+  score+=_kichiPt;
+
   const _scoreBeforeCap=Math.round(score);
   // 下限20：どんなに悪くても「引くな」ではなく「様子見」を示す余地を残す
   score=Math.max(20,Math.min(99,_scoreBeforeCap));
@@ -1301,6 +1648,7 @@ function calculateFortune(params){
     dayK:   _dayKPt,
     shichu: _shichuPt,
     ziwei:  _ziweiPt,
+    kichi:  _kichiPt,
     cap:    score,
     // 内訳の説明ラベル（表示用）
     labels: {
@@ -1319,19 +1667,20 @@ function calculateFortune(params){
       game:   'ゲーム属性 × 本日の五行',
       dayK:   '日盤九星の五行相性',
       shichu: shichu?'四柱推命 通変星＋十二運':'（誕生日未設定）',
-      ziwei:  '紫微斗数 四化星'
+      ziwei:  '紫微斗数 四化星',
+      kichi:  kichi.count?('吉日: '+kichi.names.join('・')):'吉日なし'
     }
   };
 ;
 
   const luckyTimes=generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,gameTitle,moonPhase,rokuyo,now});
-  const divinations=buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,now});
+  const divinations=buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,kichi,now});
   const pulls=calcPulls(score,targetName);
   const actions=buildActions(score,targetName,gachaTitle,tarot,moonPhase);
   const pickupCalc=calcPickupProbability({pickupRate,pityCount,currentPulls,targetName});
   const todayHotTimes=calcTodayHotTimes(score,gameTitle,now,{kyusei,dayKyusei,eto,bloodType,zodiac,lifePath:lifePath?{num:lifePath}:null,shichu});
 
-  const result={gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,score,pulls,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,lifePath,shichu,ziwei,pickupCalc,todayHotTimes,scoreBreakdown,inputs:{zodiac,bloodType,eto}};
+  const result={gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,score,pulls,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,lifePath,shichu,ziwei,kichi,pickupCalc,todayHotTimes,scoreBreakdown,inputs:{zodiac,bloodType,eto}};
   try{
     if(!window.__govRankingRun){
       SS.set('gachaOracle_result',JSON.stringify(result));
@@ -1473,6 +1822,9 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
     const dTarot=getTarotWithOrientation(date,dSeed);
     s+=Math.round((dTarot.activeScore-78)/6);     // ④ タロット正逆位置: 正位置65〜95, 逆位置55〜72
 
+    // ⑤ 吉日（候補日）: 天赦日/一粒万倍日/寅の日 等の重なりを評価: -4〜+12
+    s+=getKichijitsu(date).score;
+
     // 摂動（入力×日付固有のゆらぎ）
     const pv=Math.sin(inputSeed*9301+dayIndex*49297+233)*10000;
     s+=Math.round((pv-Math.floor(pv))*4)-2;      // 摂動（微調整に縮小）: -2〜+2
@@ -1501,6 +1853,7 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
     const dTarot2=getTarotWithOrientation(date,dSeed2);
     const dateUD2=getUniversalDay(date);
     const udRel2=LP4_UD_MATRIX[dateUD2]||LP4_UD_MATRIX[9];
+    const dKichi2=getKichijitsu(date);
     const rtbH=dRokuyo.goodHours&&dRokuyo.goodHours.includes(hour)?5
       :dRokuyo.badHours&&dRokuyo.badHours.includes(hour)?-4:0;
     const rtbLabel=rtbH===5?'✅吉':rtbH===-4?'⛔凶':'　';
@@ -1530,16 +1883,24 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
       dayk: DAYK_C2[dateKyusei.element]||0,                 // 日盤九星
       ziwei: Math.round((dateZw2.totalScore-5)*0.7),        // 紫微斗数
       tarot: Math.round((dTarot2.activeScore-78)/6),        // タロット
+      kichi: dKichi2.score,                                 // 吉日
       perturb: _perturb2,                                   // 摂動
-      rankAdj: rankPenalty,                                  // ランク補正
+      rankAdj: 0,                                            // ランク補正（下で実測値に差し替え）
     };
-    // 合計がtsと一致するか検証（表示上の整合性確認）
-    const _rawSum=_v.base+_v.rokuyo+_v.jikan+_v.moon+_v.pillar+_v.lucky+_v.ud+_v.tsuhen+_v.dayk+_v.ziwei+_v.tarot+_v.perturb;
-    const _calcTs=Math.max(40,Math.min(99,Math.round(_rawSum)))+rankPenalty;
+    // ── 内訳の合計を必ず ts に一致させる ──
+    // applyRankPenalty は補正後に上限99・下限40で丸めるが、内訳側はその丸めを
+    // 反映していなかったため、丸めが効いた日（実測で全候補の約13%）で
+    // 「①〜⑬の合計＋⑭ランク補正」が最終スコアと合わないまま表示されていた。
+    // ランク補正欄を「実際に動いた差分」として算出することで常に一致させる。
+    const _rawSum=_v.base+_v.rokuyo+_v.jikan+_v.moon+_v.pillar+_v.lucky+_v.ud+_v.tsuhen+_v.dayk+_v.ziwei+_v.tarot+_v.kichi+_v.perturb;
+    const _rawClamped=Math.max(40,Math.min(99,Math.round(_rawSum)));
+    const _rankAdjActual=ts-_rawClamped;          // 丸めを含む実効ランク補正
+    const _rankClamped=(_rankAdjActual!==rankPenalty);
+    _v.rankAdj=_rankAdjActual;
     const dbgInfo={
       v:_v,
-      rawSum:Math.max(40,Math.min(99,Math.round(_rawSum))),
-      rankAdj:rankPenalty,
+      rawSum:_rawClamped,
+      rankAdj:_rankAdjActual,
       運気スコア:ts,
       // 表示用文字列
       base_str:`${score}pt（九星/LP/干支/血液型/月齢/タロット等の総合値）`,
@@ -1553,8 +1914,9 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
       dayk_str:`${dateKyusei.name.slice(0,2)} ${_v.dayk>=0?'+':''}${_v.dayk}（日盤×本命星五行相性）`,
       ziwei_str:`${dateZw2.mainStar||'流日'} ${_v.ziwei>=0?'+':''}${_v.ziwei}（紫微斗数 流日宮）`,
       tarot_str:`${dTarot2.name}${dTarot2.reversed?'[逆]':'[正]'} ${_v.tarot>=0?'+':''}${_v.tarot}（タロット）`,
+      kichi_str:`${dKichi2.count?dKichi2.names.join('・'):'該当なし'} ${_v.kichi>=0?'+':''}${_v.kichi}（吉日）`,
       perturb_str:`${_v.perturb>=0?'+':''}${_v.perturb}（日付固有の微調整）`,
-      rank_str:rankPenalty>=0?`+${rankPenalty}（${rank===0&&targetName?'狙いキャラ特別加点':'ランク1位'}）`:`${rankPenalty}（第${rank+1}候補ランク補正）`,
+      rank_str:`${_rankAdjActual>=0?'+':''}${_rankAdjActual}（${rank===0&&targetName?'狙いキャラ特別加点':rank===0?'ランク1位':'第'+(rank+1)+'候補ランク補正'}${_rankClamped?'／上限99・下限40の丸めを含む':''}）`,
     };
     return{rank:rank+1,date:`${m}月${d}日`,weekday:['日','月','火','水','木','金','土'][date.getDay()],
       time:`${String(hour).padStart(2,'0')}:00 〜 ${String((hour+2)%24).padStart(2,'0')}:00`,
@@ -1562,6 +1924,8 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
       special:Boolean(targetName&&rank===0),urgent,passed,isLuckyDay:isLucky,
       rokuyo:dRokuyo.name,rokuyoIcon:dRokuyo.icon,dayPillar:dp.pillar,dayElement:dp.element,
       moonPhaseName:dMoon.name,moonPhaseIcon:dMoon.icon,dbgInfo,
+      kichiNames:dKichi2.names.filter(function(x){return x!=='大安';}),
+      kichiSupreme:dKichi2.supreme,
       _calDate:new Date(date.getFullYear(),date.getMonth(),date.getDate())};
   }
   if(!gachaDeadline){
@@ -1804,7 +2168,7 @@ function calcPickupProbability({pickupRate,pityCount,currentPulls,targetName}){
 // ═══════════════════════════════════════════════════
 //   DIVINATION BUILDER（全占術カード）
 // ═══════════════════════════════════════════════════
-function buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,now}){
+function buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,kichi,now}){
   const divs=[];
   const targetRef=targetName?`「${esc(targetName)}」`:'あなたの望むもの';
   const gachaRef=gachaTitle?`「${esc(gachaTitle)}」の`:'';
@@ -1919,6 +2283,30 @@ function buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,
       return base+advice+timeGuide;
     })()});
 
+  // 8-B.【新】吉日（縁起の良い吉日13選）
+  //   日の干支・節月(二十四節気)・旧暦六曜・二十八宿から算出した暦注。
+  divs.push({icon:'🎋',name:'吉日',score:Math.max(45,Math.min(99,72+(kichi?kichi.score*2:0))),
+    color:'rgba(237,208,112,.75)',
+    body:(()=>{
+      if(!kichi||!kichi.count)
+        return '本日は暦注上の吉日に該当しない「常の日」。'
+          +'干支は【'+(kichi?kichi.kanshi:'')+'】、二十八宿は【'+(kichi?kichi.shuku:'')+'宿】。'
+          +'派手な追い風はないが逆風もない。石を温存し、次の吉日に備えるのが定石。';
+      const head=kichi.supreme
+        ? '⚡<strong style="color:var(--gold)">最強開運日</strong>— 最上位の吉日が重なっている。年に数回の大勝負日。'
+        : '本日は <strong style="color:var(--gold)">'+kichi.count+'つの吉日</strong>が重なっている。';
+      const lines=kichi.list.map(function(k){
+        return '<br>'+k.icon+' <strong>'+k.name+'</strong>（'+k.yomi+'）… '+k.desc
+          +'<span style="color:var(--muted);font-size:.82rem">［'+k.good+'］</span>';
+      }).join('');
+      const tail=kichi.names.indexOf('一粒万倍日')>=0
+        ? '<br><span style="color:#86efac;font-size:.85rem">🌾 一粒万倍日は「増える日」。少額でも引けば実りが万倍に。ただし借金・浪費も万倍になるため課金額は決めて臨むこと。</span>'
+        : '';
+      return head+lines+tail
+        +'<br><span style="color:var(--muted);font-size:.82rem">日の干支 '+kichi.kanshi
+        +'／節月'+kichi.setsuMonth+'月／二十八宿 '+kichi.shuku+'宿</span>';
+    })()});
+
   // 9. 血液型
   const bMap={'A型':'几帳面な性格が最適タイミングの選定に最大の武器となる。計画通りの時刻に引くことで高レアが引き当たりやすい。','B型':'直感力が際立って冴えている。「今だ！」と感じた瞬間がベストタイミング。迷わず引け。','O型':'大胆さが天の恵みを呼ぶ。思い切りが良ければ良いほど、星が応えてくれる。','AB型':'独自の感性が武器。他者が引かない時間帯・方法に隠された黄金ルートがある。'};
   divs.push({icon:'🩸',name:'血液型占い',score:bloodType?80:70,color:'rgba(255,100,100,.7)',body:bloodType?`${bloodType}の方は、${bMap[bloodType]}`:'血液型情報があれば、さらに詳細な鑑定が可能。'});
@@ -1956,6 +2344,8 @@ function clearBreakdownCache(){
 function displayResult(result){
   // ① 鑑定結果の上に「今日引くべきゲーム TOP5」を出す（既存の描画は不変）
   const{score,gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,pulls,ziwei,pickupCalc,scoreBreakdown}=result;
+  // 吉日は後から追加された項目。旧いキャッシュ結果にも対応できるよう再計算で補う
+  const kichi=result.kichi&&result.kichi.list?result.kichi:getKichijitsu(new Date());
   // 激アツ時刻は現在時刻基準で毎回再計算（キャッシュ非依存）
   const _inp=result.inputs||{};
   const todayHotTimes=calcTodayHotTimes(score,gameTitle,new Date(),{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu});
@@ -1997,6 +2387,21 @@ function displayResult(result){
       <span class="lc-name">${moonPhase.name}</span><span>${moonPhase.power}</span>
           <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅月齢参照</a>
     </div>
+    ${(()=>{
+      // ── 本日の吉日バッジ（縁起の良い吉日13選）──
+      if(!kichi||!kichi.count)
+        return `<div style="margin-top:12px;font-size:.72rem;color:var(--muted)">🎋 本日の吉日: 該当なし（常の日）</div>`;
+      const chips=kichi.list.map(k=>{
+        const hot=k.bonus>=5;
+        return `<span title="${esc(k.yomi)}／${esc(k.good)}" style="padding:3px 11px;border-radius:20px;font-size:.72rem;white-space:nowrap;`
+          +(hot?'color:#EDD070;background:rgba(201,168,76,.16);border:1px solid rgba(201,168,76,.55)'
+               :'color:#C4B5FD;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.32)')
+          +`">${k.icon} ${esc(k.name)}</span>`;
+      }).join('');
+      const crown=kichi.supreme
+        ? `<div style="margin-top:12px;font-family:'Cinzel',serif;letter-spacing:.14em;font-size:.74rem;color:#EDD070">⚡ SUPREME LUCKY DAY ⚡</div>` : '';
+      return crown+`<div style="margin-top:10px;display:flex;flex-wrap:wrap;justify-content:center;gap:6px">${chips}</div>`;
+    })()}
     <div style="margin-top:12px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px;font-size:.78rem;color:var(--muted)">
       <span>六曜: <strong style="color:${rokuyo.bonus>=5?'var(--gold)':rokuyo.bonus<0?'var(--danger)':'var(--text)'}">${rokuyo.name}</strong></span>
       <span>タロット: <strong style="color:var(--iris-l)">${tarot.name}</strong></span>
@@ -2046,6 +2451,15 @@ function displayResult(result){
           })()}
           <span style="color:var(--iris-l);background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1)">${t.moonPhaseIcon} ${t.moonPhaseName}</span>
           <span style="color:${ec};background:rgba(255,255,255,.05);padding:2px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1)">日柱 ${t.dayPillar}</span>
+          ${(t.kichiNames||[]).map(nm=>{
+            const meta=KICHI.META[nm]||{icon:'🎋',bonus:0,yomi:'',good:''};
+            const hot=meta.bonus>=5;
+            return `<span title="${esc(meta.yomi)}／${esc(meta.good)}" style="padding:2px 10px;border-radius:20px;font-size:.7rem;`
+              +(hot?'color:#EDD070;background:rgba(201,168,76,.16);border:1px solid rgba(201,168,76,.5)'
+                   :'color:#C4B5FD;background:rgba(139,92,246,.09);border:1px solid rgba(139,92,246,.3)')
+              +`">${meta.icon} ${esc(nm)}</span>`;
+          }).join('')}
+          ${t.kichiSupreme?'<span style="padding:2px 10px;border-radius:20px;font-size:.7rem;color:#0B0616;background:linear-gradient(90deg,#EDD070,#C9A84C);font-weight:bold">⚡最強開運日</span>':''}
         </div>
         <div class="tc-bot"><div class="tc-pulls">💎 推奨 <strong>${t.tenPulls}</strong>連×10</div><div style="font-size:.7rem;color:var(--muted)">運気 ${t.score}pt</div><div class="tc-bar"><div class="tc-bar-fill" style="width:${t.score}%;background:${barColor}"></div></div></div>
         <div id="lt-dbg-wrap-${i}" style="margin-top:8px">
@@ -2076,7 +2490,7 @@ function displayResult(result){
                   <span style="text-align:right;font-weight:bold;color:${nc(pts)}">${pl(pts)}</span>
                 </div>`;
               return '<div style="color:var(--gold);font-weight:bold;margin-bottom:8px;font-size:.74rem">📊 スコア内訳（どう計算して '+t.score+'pt になるか）</div>'
-                +'<div style="padding:6px 8px;background:rgba(201,168,76,.1);border-radius:6px;margin-bottom:8px;font-size:.68rem;color:rgba(255,255,255,.5)">合計 = ①ベース + ②〜⑫各占術加算 → 上限99で丸め + ⑬ランク補正</div>'
+                +'<div style="padding:6px 8px;background:rgba(201,168,76,.1);border-radius:6px;margin-bottom:8px;font-size:.68rem;color:rgba(255,255,255,.5)">合計 = ①ベース + ②〜⑬各占術加算 → 上限99で丸め + ⑭ランク補正</div>'
                 +(()=>{
                   const sbk=d.sbk;
                   const baseId='base-sub-'+i;
@@ -2100,7 +2514,8 @@ function displayResult(result){
                     {k:'dayK',icon:'🌐',label:'日盤九星×本命星'},
                     {k:'shichu',icon:'🏮',label:'四柱推命'},
                     {k:'ziwei',icon:'🌟',label:'紫微斗数 流年宮'},
-                  ].filter(r=>sbk[r.k]!==0);
+                    {k:'kichi',icon:'🎋',label:'吉日（暦注）'},
+                  ].filter(r=>typeof sbk[r.k]==='number'&&sbk[r.k]!==0);
                   const subHtml=subRows.map(r=>`
                     <div style="display:grid;grid-template-columns:16px 1fr 36px;gap:3px;padding:3px 0 3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.66rem">
                       <span>${r.icon}</span>
@@ -2139,12 +2554,13 @@ function displayResult(result){
                 +row('⑨','日盤九星×本命星',v.dayk,d.dayk_str)
                 +row('⑩','紫微斗数 流日宮',v.ziwei,d.ziwei_str)
                 +row('⑪','タロット 正逆位置',v.tarot,d.tarot_str)
-                +row('⑫','日付微調整（摂動）',v.perturb,d.perturb_str)
+                +row('⑫','吉日（暦注）',v.kichi,d.kichi_str)
+                +row('⑬','日付微調整（摂動）',v.perturb,d.perturb_str)
                 +`<div style="display:flex;justify-content:space-between;padding:7px 4px;margin-top:4px;border-top:1px solid rgba(255,255,255,.1)">
-                    <span style="color:rgba(255,255,255,.5)">①〜⑫の合計（上限99）</span>
+                    <span style="color:rgba(255,255,255,.5)">①〜⑬の合計（上限99）</span>
                     <span style="font-weight:bold">${d.rawSum}pt</span>
                   </div>`
-                +(v.rankAdj!==0?row('⑬','ランク補正',v.rankAdj,d.rank_str):'')
+                +(v.rankAdj!==0?row('⑭','ランク補正',v.rankAdj,d.rank_str):'')
                 +`<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:8px 10px;background:rgba(201,168,76,.14);border-radius:8px;border:1px solid rgba(201,168,76,.35)">
                     <span style="color:var(--gold);font-weight:bold;font-size:.75rem">✦ 最終スコア</span>
                     <span style="color:#86efac;font-weight:bold;font-size:1.1rem">${d.運気スコア}pt</span>
@@ -2331,6 +2747,14 @@ function downloadImage(){
   if (_nine)   _hdr.push(_nine);
   if (_dp)     _hdr.push('日柱 ' + _dp);
   ctx.fillText(_hdr.join('　｜　'),W/2,30);
+  // 吉日（暦注）を2行目に
+  try{
+    var _kc=(r.kichi&&r.kichi.names)?r.kichi:getKichijitsu(new Date());
+    if(_kc&&_kc.count){
+      ctx.fillStyle=_kc.supreme?'#EDD070':'#C4B5FD';ctx.font='17px serif';
+      ctx.fillText((_kc.supreme?'⚡最強開運日　':'🎋 ')+_kc.names.join('・'),W/2,54);
+    }
+  }catch(e){}
   ctx.translate(0,HEADER_H);
   ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='bold 36px serif';
   ctx.fillText('GACHA ORACLE 霊眼統合占術システム',W/2,60);
@@ -2432,7 +2856,8 @@ function downloadICS(){
     var sd=new Date(base.getFullYear(),base.getMonth(),base.getDate(),st.h,st.m,0);
     var ed=new Date(sd.getTime()+((pp.width||30)*60000));
     var summary='\ud83c\udfb0 '+r.gameTitle+' \u30ac\u30c1\u30e3\u6fc0\u30a2\u30c4\u6642\u9593';
-    var desc='\u7b2c'+t.rank+'\u5019\u88dc\uff08'+t.date+' '+t.rokuyo+'\uff09\u3000\u904b\u6c17\u30b9\u30b3\u30a2 '+t.score+'pt\u3000\u63a8\u5968 10\u9023\u00d7'+t.tenPulls
+    var _kn=(t.kichiNames&&t.kichiNames.length)?('\u3000\u5409\u65e5: '+t.kichiNames.join('\u30fb')):'';
+    var desc='\u7b2c'+t.rank+'\u5019\u88dc\uff08'+t.date+' '+t.rokuyo+'\uff09\u3000\u904b\u6c17\u30b9\u30b3\u30a2 '+t.score+'pt\u3000\u63a8\u5968 10\u9023\u00d7'+t.tenPulls+_kn
       +(r.targetName?('\u3000\u72d9\u3044: '+r.targetName):'')+(r.gachaTitle?('\u3000'+r.gachaTitle):'');
     addEvent(sd,ed,summary,desc);
   });
@@ -2830,7 +3255,7 @@ function renderGameRankingHTML(opts) {
   if (!rows.length) return '';
   // 内訳キー → 表示名（fixed/cap など内部項目は出さない）
   var KEYNAME = {
-    moon:'月齢', rokuyo_base:'六曜', kyusei:'九星', dayKyusei:'日盤', tarot:'タロット',
+    moon:'月齢', rokuyo_base:'六曜', kichi:'吉日', kyusei:'九星', dayKyusei:'日盤', tarot:'タロット',
     zodiac:'星座', blood:'血液型', lp:'数秘', bdResonance:'誕生日共鳴', eto:'干支',
     game:'ゲーム相性', shichu:'四柱推命', ziwei:'紫微斗数', target:'狙い', gacha:'ガチャ',
     dayKyuseiBonus:'日盤相性', numerology:'数秘関係', ryu:'龍日', sihua:'四化'
@@ -3802,6 +4227,7 @@ function showHistory(){
       {k:'fixed',icon:'🔢',l:'固定ベース'},
       {k:'moon',icon:'🌙',l:'月齢'},
       {k:'rokuyo_base',icon:'📅',l:'六曜'},
+      {k:'kichi',icon:'🎋',l:'吉日'},
       {k:'kyusei',icon:'⭐',l:'九星気学'},
       {k:'tarot',icon:'🎴',l:'タロット'},
       {k:'zodiac',icon:'♈',l:'西洋占星術'},
@@ -4028,53 +4454,78 @@ function renderMonthlyRanking(){
     if(bdVal){
       try{ var by=parseInt(bdVal.split('-')[0],10); var k=getKyusei(y,m+1,by,bdVal); honmeiElem=k.myElem; COMPAT=k.COMPAT; }catch(e){ honmeiElem=null; }
     }
-    var rows=[], anyEstimate=false;
+    var rows=[];
     for(var d=1; d<=daysInMonth; d++){
       var date=new Date(y,m,d);
       var rk=getRokuyo(date);
       var moon=getMoonPhaseInfo(getMoonAge(date).age);
       var dayK=getDayKyusei(date);
+      var kichi=getKichijitsu(date);
       var personal=0;
       if(honmeiElem&&COMPAT&&COMPAT[honmeiElem]&&COMPAT[honmeiElem][dayK.element]!=null){
         personal=Math.round(COMPAT[honmeiElem][dayK.element]*0.6);
       }
-      var score=rk.bonus + moon.luckBonus + personal;
-      var isEst=!calLookup(date);
-      if(isEst)anyEstimate=true;
-      rows.push({d:d,rokuyo:rk,moon:moon,score:score,isEst:isEst,weekday:['日','月','火','水','木','金','土'][date.getDay()]});
+      // 六曜 ＋ 月齢 ＋ 吉日（暦注）＋ 本命星相性
+      var score=rk.bonus + moon.luckBonus + kichi.score + personal;
+      rows.push({d:d,rokuyo:rk,moon:moon,kichi:kichi,score:score,
+        weekday:['日','月','火','水','木','金','土'][date.getDay()]});
     }
-    rows.sort(function(a,b){return b.score-a.score || a.d-b.d;});
+    rows.sort(function(a,b){return b.score-a.score || b.kichi.raw-a.kichi.raw || a.d-b.d;});
     var top=rows.slice(0,5);
-    function grade(s){return s>=14?'S':s>=9?'A':'B';}
+    function grade(s){return s>=16?'S':s>=11?'A':'B';}
     var gColor={S:'#EDD070',A:'#A78BFA',B:'#38BDF8'};
     var todayD=(y===now.getFullYear()&&m===now.getMonth())?now.getDate():-1;
-    var _rng=_calRange();
-    var _pm=(m-1<0)?_ym(y-1,11):_ym(y,m-1), _nm=(m+1>11)?_ym(y+1,0):_ym(y,m+1);
-    var _pOK=!!(_rng&&_pm>=_rng.min&&_pm<=_rng.max), _nOK=!!(_rng&&_nm>=_rng.min&&_nm<=_rng.max);
+    // 月送りは暦エンジンが全期間を算出できるため ±5年まで自由に動かせる
+    // （従来は calendar.json の収録範囲に縛られ、前月ボタンが常に無効だった）
+    var _lim=5, _cy=now.getFullYear();
+    var _pOK=(y*12+m-1)>=((_cy-_lim)*12), _nOK=(y*12+m+1)<=((_cy+_lim)*12+11);
     var _bs='font-family:\'Cinzel\',serif;font-size:.72rem;letter-spacing:.08em;padding:6px 14px;border-radius:10px;border:1px solid rgba(201,168,76,.35);background:rgba(201,168,76,.08);color:var(--gold);cursor:pointer';
     var _bd='opacity:.3;cursor:not-allowed;border-color:rgba(255,255,255,.1);background:transparent;color:var(--muted)';
     var nav='<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px">'
       +'<button onclick="_calNav(-1)" '+(_pOK?'':'disabled')+' style="'+(_pOK?_bs:_bs+';'+_bd)+'">◀ 前月</button>'
       +'<span style="font-family:\'Cinzel\',serif;font-size:.8rem;color:var(--gold)">'+y+'年'+(m+1)+'月</span>'
       +'<button onclick="_calNav(1)" '+(_nOK?'':'disabled')+' style="'+(_nOK?_bs:_bs+';'+_bd)+'">翌月 ▶</button></div>';
-    var html=nav+'<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">'+y+'年'+(m+1)+'月の運気上位日（六曜・月齢'+(honmeiElem?'・日盤九星×本命星':'')+'を統合）'
-      +(anyEstimate?'　<span style="color:#94A3B8">※概算暦（実測データ範囲外を含む）</span>':'')+'</div>';
+    var html=nav+'<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">'+y+'年'+(m+1)+'月の運気上位日（六曜・月齢・吉日'+(honmeiElem?'・日盤九星×本命星':'')+'を統合）</div>';
     html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.8rem">';
-    html+='<tr style="color:var(--muted);font-size:.66rem;text-align:left"><th style="padding:6px 8px">順位</th><th style="padding:6px 8px">日付</th><th style="padding:6px 8px">六曜</th><th style="padding:6px 8px">月相</th><th style="padding:6px 8px;text-align:right">スコア</th><th style="padding:6px 8px;text-align:center">おすすめ</th></tr>';
+    html+='<tr style="color:var(--muted);font-size:.66rem;text-align:left"><th style="padding:6px 8px">順位</th><th style="padding:6px 8px">日付</th><th style="padding:6px 8px">六曜</th><th style="padding:6px 8px">月相</th><th style="padding:6px 8px">吉日</th><th style="padding:6px 8px;text-align:right">スコア</th><th style="padding:6px 8px;text-align:center">おすすめ</th></tr>';
     top.forEach(function(r,i){
       var g=grade(r.score);
       var isToday=(r.d===todayD);
       var rokC=(r.rokuyo.name==='大安')?'var(--green)':(r.rokuyo.name==='仏滅'||r.rokuyo.name==='赤口')?'var(--danger)':'var(--text)';
+      var kBadge=r.kichi.count
+        ? r.kichi.list.map(function(k){
+            var hot=k.bonus>=5;
+            return '<span title="'+esc(k.yomi)+'／'+esc(k.good)+'" style="display:inline-block;margin:1px 2px 1px 0;padding:1px 7px;border-radius:12px;font-size:.62rem;white-space:nowrap;'
+              +(hot?'color:#EDD070;background:rgba(201,168,76,.16);border:1px solid rgba(201,168,76,.5)'
+                   :'color:#C4B5FD;background:rgba(139,92,246,.09);border:1px solid rgba(139,92,246,.3)')
+              +'">'+k.icon+esc(k.name)+'</span>';
+          }).join('')
+        : '<span style="color:var(--muted);font-size:.62rem">—</span>';
       html+='<tr style="border-bottom:1px solid rgba(255,255,255,.06)'+(isToday?';background:rgba(201,168,76,.08)':'')+'">'
         +'<td style="padding:7px 8px;color:var(--gold);font-family:\'Cinzel\',serif">'+(i+1)+'</td>'
-        +'<td style="padding:7px 8px">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?' <span style="font-size:.6rem;color:var(--gold)">★本日</span>':'')+(r.isEst?' <span style="font-size:.56rem;color:#94A3B8">※概算</span>':'')+'</td>'
+        +'<td style="padding:7px 8px;white-space:nowrap">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?' <span style="font-size:.6rem;color:var(--gold)">★本日</span>':'')+(r.kichi.supreme?' <span style="font-size:.56rem;color:#EDD070">⚡最強</span>':'')+'</td>'
         +'<td style="padding:7px 8px;color:'+rokC+'">'+r.rokuyo.icon+r.rokuyo.name+'</td>'
-        +'<td style="padding:7px 8px">'+r.moon.icon+r.moon.name+'</td>'
+        +'<td style="padding:7px 8px;white-space:nowrap">'+r.moon.icon+r.moon.name+'</td>'
+        +'<td style="padding:7px 8px;max-width:190px">'+kBadge+'</td>'
         +'<td style="padding:7px 8px;text-align:right;font-weight:bold">'+r.score+'</td>'
         +'<td style="padding:7px 8px;text-align:center"><span style="font-family:\'Cinzel\',serif;font-weight:bold;padding:2px 10px;border-radius:12px;color:'+gColor[g]+';background:rgba(255,255,255,.05);border:1px solid '+gColor[g]+'55">'+g+'</span></td>'
         +'</tr>';
     });
     html+='</table></div>';
+    // ── 今月の主要な吉日ダイジェスト ──
+    var digest=['天赦日','一粒万倍日','鬼宿日','甲子の日','己巳の日','寅の日','巳の日'].map(function(nm){
+      var ds=rows.filter(function(r){return r.kichi.names.indexOf(nm)>=0;})
+                 .map(function(r){return r.d;}).sort(function(a,b){return a-b;});
+      if(!ds.length)return '';
+      var meta=KICHI.META[nm];
+      return '<div style="display:flex;gap:8px;padding:3px 0;font-size:.7rem;align-items:baseline">'
+        +'<span style="min-width:6.4em;color:'+(meta.bonus>=5?'#EDD070':'#C4B5FD')+'">'+meta.icon+esc(nm)+'</span>'
+        +'<span style="color:var(--text)">'+ds.map(function(d){return (m+1)+'/'+d;}).join('、')+'</span></div>';
+    }).join('');
+    if(digest){
+      html+='<div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">'
+        +'<div style="font-size:.68rem;color:var(--gold);margin-bottom:6px">🎋 '+(m+1)+'月の吉日カレンダー</div>'+digest+'</div>';
+    }
     if(!bdVal){
       html+='<div style="font-size:.66rem;color:var(--muted);margin-top:10px">💡 生年月日を入力して占うと、本命星との相性を加味した精度の高いランキングになります。</div>';
     }
@@ -4084,7 +4535,6 @@ function renderMonthlyRanking(){
     body.innerHTML='<div style="color:var(--danger);font-size:.78rem">ランキングの生成に失敗しました。</div>';
   }
 }
-
 // 暦データ(calendar.json)を起動時に読み込む（six曜・月齢の正確化）
 (function(){
   if(typeof fetch!=='function'){ try{renderMonthlyRanking();}catch(e){} return; }

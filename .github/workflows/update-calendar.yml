@@ -50,6 +50,14 @@ jobs:
           done
           exit 1
 
+      # 実測暦と、index.html 内蔵の天文暦エンジンが食い違っていないか検証する。
+      # （取得元の構造変化でデータが壊れた場合も、エンジンを壊した場合もここで気付ける）
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Verify almanac engine against calendar.json
+        run: node test_almanac.mjs
+
       # データは必ずコミットしたうえで、カバレッジ不足なら「後から」失敗させて通知する。
       # （検証を生成ステップ内で失敗させると、取得できた分までコミットされず損になるため）
       - name: Verify coverage
