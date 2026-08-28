@@ -1,5 +1,5 @@
 {
- "updated": "2026-08-27 09:28 JST",
+ "updated": "2026-08-28 14:07 JST",
  "playing": [
   {
    "value": "コンパス",
@@ -228,24 +228,20 @@
    "label": "eFootball™"
   },
   {
+   "value": "Shadowverse: Worlds Beyond",
+   "label": "Shadowverse: Worlds Beyond"
+  },
+  {
    "value": "プロ野球スピリッツＡ",
    "label": "プロ野球スピリッツＡ"
   },
   {
-   "value": "学園アイドルマスター",
-   "label": "学園アイドルマスター"
+   "value": "ゴシップハーバー：マージ & ストーリー",
+   "label": "ゴシップハーバー：マージ & ストーリー"
   },
   {
    "value": "ホワイトアウト・サバイバル",
    "label": "ホワイトアウト・サバイバル"
-  },
-  {
-   "value": "幻想水滸伝 STAR LEAP",
-   "label": "幻想水滸伝 STAR LEAP"
-  },
-  {
-   "value": "ゴシップハーバー：マージ & ストーリー",
-   "label": "ゴシップハーバー：マージ & ストーリー"
   },
   {
    "value": "パズル＆ドラゴンズ",
@@ -260,6 +256,10 @@
    "label": "トゥーンブラスト"
   },
   {
+   "value": "学園アイドルマスター",
+   "label": "学園アイドルマスター"
+  },
+  {
    "value": "ラストウォー：サバイバル",
    "label": "ラストウォー：サバイバル"
   },
@@ -268,92 +268,136 @@
    "label": "ロイヤルマッチ（Royal Match)"
   },
   {
-   "value": "ONE PIECE トレジャークルーズ",
-   "label": "ONE PIECE トレジャークルーズ"
+   "value": "キングショット",
+   "label": "キングショット"
   },
   {
-   "value": "あんさんぶるスターズ！！Music",
-   "label": "あんさんぶるスターズ！！Music"
+   "value": "ONE PIECE トレジャークルーズ",
+   "label": "ONE PIECE トレジャークルーズ"
   },
   {
    "value": "パズル&サバイバル",
    "label": "パズル&サバイバル"
   },
   {
-   "value": "ドラゴンボール レジェンズ",
-   "label": "ドラゴンボール レジェンズ"
+   "value": "デュエル・マスターズ プレイス",
+   "label": "デュエル・マスターズ プレイス"
   },
   {
-   "value": "キングショット",
-   "label": "キングショット"
+   "value": "幻想水滸伝 STAR LEAP",
+   "label": "幻想水滸伝 STAR LEAP"
   },
   {
    "value": "モンスターストライク",
    "label": "モンスターストライク"
   },
   {
-   "value": "グルメ・ジャーニー",
-   "label": "グルメ・ジャーニー"
+   "value": "信長の野望 出陣",
+   "label": "信長の野望 出陣"
   },
   {
-   "value": "ホロライブドリームス",
-   "label": "ホロライブドリームス"
+   "value": "グルメ・ジャーニー",
+   "label": "グルメ・ジャーニー"
   },
   {
    "value": "モンスターサバイバル",
    "label": "モンスターサバイバル"
   },
   {
+   "value": "ドラゴンボール レジェンズ",
+   "label": "ドラゴンボール レジェンズ"
+  },
+  {
    "value": "ガーデンスケイプ (Gardenscapes)",
    "label": "ガーデンスケイプ (Gardenscapes)"
-  },
-  {
-   "value": "信長の野望 覇道",
-   "label": "信長の野望 覇道"
-  },
-  {
-   "value": "LINE ポコポコ：3マッチパズルゲーム",
-   "label": "LINE ポコポコ：3マッチパズルゲーム"
   },
   {
    "value": "ラストZ：サバイバルシューティング",
    "label": "ラストZ：サバイバルシューティング"
   },
   {
-   "value": "タウンシップ (Township)",
-   "label": "タウンシップ (Township)"
+   "value": "LINE ポコポコ：3マッチパズルゲーム",
+   "label": "LINE ポコポコ：3マッチパズルゲーム"
+  },
+  {
+   "value": "ホロライブドリームス",
+   "label": "ホロライブドリームス"
+  },
+  {
+   "value": "ドールズフロントライン2：エクシリウム",
+   "label": "ドールズフロントライン2：エクシリウム"
+  },
+  {
+   "value": "あんさんぶるスターズ！！Music",
+   "label": "あんさんぶるスターズ！！Music"
   },
   {
    "value": "ハリウッドマージ",
    "label": "ハリウッドマージ"
   },
   {
-   "value": "雀魂 -じゃんたま-",
-   "label": "雀魂 -じゃんたま-"
+   "value": "タウンシップ (Township)",
+   "label": "タウンシップ (Township)"
   },
   {
-   "value": "トリッカル・もちもちほっペ大作戦",
-   "label": "トリッカル・もちもちほっペ大作戦"
-  },
-  {
-   "value": "プロサッカークラブをつくろう！",
-   "label": "プロサッカークラブをつくろう！"
+   "value": "レーシングマスター",
+   "label": "レーシングマスター"
   },
   {
    "value": "ホームスケイプ (Homescapes)",
    "label": "ホームスケイプ (Homescapes)"
   },
   {
-   "value": "キングダム 覇道『キングダム』の戦略ゲームが登場",
-   "label": "キングダム 覇道『キングダム』の戦略ゲームが登場"
+   "value": "eFootball™ウイコレ CHAMPION SQUADS",
+   "label": "eFootball™ウイコレ CHAMPION SQUADS"
+  },
+  {
+   "value": "雀魂 -じゃんたま-",
+   "label": "雀魂 -じゃんたま-"
+  },
+  {
+   "value": "信長の野望 覇道",
+   "label": "信長の野望 覇道"
+  },
+  {
+   "value": "にゃんこ大戦争",
+   "label": "にゃんこ大戦争"
   },
   {
    "value": "セガNET麻雀 MJ",
    "label": "セガNET麻雀 MJ"
   },
   {
-   "value": "DDFF-ファイナルファンタジーのオールスター共闘アクション",
-   "label": "DDFF-ファイナルファンタジーのオールスター共闘アクション"
+   "value": "Pokémon Sleep",
+   "label": "Pokémon Sleep"
+  },
+  {
+   "value": "キングダム 覇道『キングダム』の戦略ゲームが登場",
+   "label": "キングダム 覇道『キングダム』の戦略ゲームが登場"
+  },
+  {
+   "value": "モンスターハンターNow",
+   "label": "モンスターハンターNow"
+  },
+  {
+   "value": "ロイヤルキングダム (Royal Kingdom)",
+   "label": "ロイヤルキングダム (Royal Kingdom)"
+  },
+  {
+   "value": "ブロスタ",
+   "label": "ブロスタ"
+  },
+  {
+   "value": "シーサイド エスケープ：マージ & ストーリー",
+   "label": "シーサイド エスケープ：マージ & ストーリー"
+  },
+  {
+   "value": "ペタペタペンギン団",
+   "label": "ペタペタペンギン団"
+  },
+  {
+   "value": "キングダム 頂天",
+   "label": "キングダム 頂天"
   },
   {
    "value": "妖怪ウォッチ ぷにぷに",
@@ -364,176 +408,148 @@
    "label": "NTE: Neverness to Everness"
   },
   {
-   "value": "モンスターハンターNow",
-   "label": "モンスターハンターNow"
+   "value": "トリッカル・もちもちほっペ大作戦",
+   "label": "トリッカル・もちもちほっペ大作戦"
   },
   {
-   "value": "Pokémon Sleep",
-   "label": "Pokémon Sleep"
-  },
-  {
-   "value": "キングダム 頂天",
-   "label": "キングダム 頂天"
-  },
-  {
-   "value": "ブロスタ",
-   "label": "ブロスタ"
-  },
-  {
-   "value": "ペタペタペンギン団",
-   "label": "ペタペタペンギン団"
-  },
-  {
-   "value": "シーサイド エスケープ：マージ & ストーリー",
-   "label": "シーサイド エスケープ：マージ & ストーリー"
-  },
-  {
-   "value": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG",
-   "label": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG"
-  },
-  {
-   "value": "eBaseball™: MLB PRO SPIRIT",
-   "label": "eBaseball™: MLB PRO SPIRIT"
-  },
-  {
-   "value": "ロイヤルキングダム (Royal Kingdom)",
-   "label": "ロイヤルキングダム (Royal Kingdom)"
-  },
-  {
-   "value": "ディズニー ツイステッドワンダーランド",
-   "label": "ディズニー ツイステッドワンダーランド"
-  },
-  {
-   "value": "セルサバイバー - シューティングゲーム",
-   "label": "セルサバイバー - シューティングゲーム"
-  },
-  {
-   "value": "フィッシュダム(Fishdom)",
-   "label": "フィッシュダム(Fishdom)"
-  },
-  {
-   "value": "パラノイズ",
-   "label": "パラノイズ"
-  },
-  {
-   "value": "イナズマイレブン クロス",
-   "label": "イナズマイレブン クロス"
-  },
-  {
-   "value": "ヴァンピール(VAMPIR)",
-   "label": "ヴァンピール(VAMPIR)"
-  },
-  {
-   "value": "マージクッキング テーマレストラン",
-   "label": "マージクッキング テーマレストラン"
-  },
-  {
-   "value": "Shadowverse: Worlds Beyond",
-   "label": "Shadowverse: Worlds Beyond"
-  },
-  {
-   "value": "ちいかわぽけっと",
-   "label": "ちいかわぽけっと"
-  },
-  {
-   "value": "キャンディークラッシュ",
-   "label": "キャンディークラッシュ"
-  },
-  {
-   "value": "メメントモリ",
-   "label": "メメントモリ"
-  },
-  {
-   "value": "キノコ伝説：勇者と魔法のランプ",
-   "label": "キノコ伝説：勇者と魔法のランプ"
-  },
-  {
-   "value": "Ash Tale-風の大陸-",
-   "label": "Ash Tale-風の大陸-"
-  },
-  {
-   "value": "キングダム 乱 -天下統一への道- 究極の戦略・戦争ゲーム",
-   "label": "キングダム 乱 -天下統一への道- 究極の戦略・戦争ゲーム"
-  },
-  {
-   "value": "にゃんこ大戦争",
-   "label": "にゃんこ大戦争"
+   "value": "P5X ペルソナ５: The Phantom X",
+   "label": "P5X ペルソナ５: The Phantom X"
   },
   {
    "value": "Identity V",
    "label": "Identity V"
   },
   {
+   "value": "ちいかわぽけっと",
+   "label": "ちいかわぽけっと"
+  },
+  {
+   "value": "フィッシュダム(Fishdom)",
+   "label": "フィッシュダム(Fishdom)"
+  },
+  {
+   "value": "キャンディークラッシュ",
+   "label": "キャンディークラッシュ"
+  },
+  {
    "value": "Age of Origins---ゾンビ・末日戦記",
    "label": "Age of Origins---ゾンビ・末日戦記"
   },
   {
-   "value": "七つの大罪 光と闇の交戦 : グラクロ",
-   "label": "七つの大罪 光と闇の交戦 : グラクロ"
+   "value": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG",
+   "label": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG"
   },
   {
-   "value": "刀剣乱舞ONLINE",
-   "label": "刀剣乱舞ONLINE"
+   "value": "イナズマイレブン クロス",
+   "label": "イナズマイレブン クロス"
   },
   {
-   "value": "実況パワフルプロ野球",
-   "label": "実況パワフルプロ野球"
+   "value": "プロサッカークラブをつくろう！",
+   "label": "プロサッカークラブをつくろう！"
   },
   {
-   "value": "僕のヒーローアカデミアUNITED SURVIVAL",
-   "label": "僕のヒーローアカデミアUNITED SURVIVAL"
+   "value": "パラノイズ",
+   "label": "パラノイズ"
   },
   {
-   "value": "ドラゴンエッグ　仲間との出会い",
-   "label": "ドラゴンエッグ　仲間との出会い"
+   "value": "マージクッキング テーマレストラン",
+   "label": "マージクッキング テーマレストラン"
   },
   {
-   "value": "レーシングマスター",
-   "label": "レーシングマスター"
+   "value": "777Real(777リアル) パチンコ･パチスロアプリ",
+   "label": "777Real(777リアル) パチンコ･パチスロアプリ"
   },
   {
-   "value": "聖霊伝説：最強への道",
-   "label": "聖霊伝説：最強への道"
+   "value": "ディズニー ツイステッドワンダーランド",
+   "label": "ディズニー ツイステッドワンダーランド"
   },
   {
-   "value": "信長の野望 真戦",
-   "label": "信長の野望 真戦"
+   "value": "ヴァンピール(VAMPIR)",
+   "label": "ヴァンピール(VAMPIR)"
   },
   {
-   "value": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム",
-   "label": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム"
+   "value": "メメントモリ",
+   "label": "メメントモリ"
   },
   {
-   "value": "転生したらスライムだった件 魔王と竜の建国譚【まおりゅう】",
-   "label": "転生したらスライムだった件 魔王と竜の建国譚【まおりゅう】"
-  },
-  {
-   "value": "放置少女 - 百花繚乱の萌姫たち",
-   "label": "放置少女 - 百花繚乱の萌姫たち"
-  },
-  {
-   "value": "東京ディバンカー",
-   "label": "東京ディバンカー"
-  },
-  {
-   "value": "ミステリータウン：マージゲーム (Mystery Town)",
-   "label": "ミステリータウン：マージゲーム (Mystery Town)"
-  },
-  {
-   "value": "城とドラゴン - 『3連続復刻コラボ祭』 開催中",
-   "label": "城とドラゴン - 『3連続復刻コラボ祭』 開催中"
+   "value": "メイプルストーリーＭ",
+   "label": "メイプルストーリーＭ"
   },
   {
    "value": "無職転生 〜異世界行ったら本気だす〜 【クロエコ】",
    "label": "無職転生 〜異世界行ったら本気だす〜 【クロエコ】"
   },
   {
-   "value": "恋と深空",
-   "label": "恋と深空"
+   "value": "ミステリータウン：マージゲーム (Mystery Town)",
+   "label": "ミステリータウン：マージゲーム (Mystery Town)"
   },
   {
-   "value": "デュエル・マスターズ プレイス",
-   "label": "デュエル・マスターズ プレイス"
+   "value": "ツリーオブセイヴァー：ネバーランド",
+   "label": "ツリーオブセイヴァー：ネバーランド"
+  },
+  {
+   "value": "刀剣乱舞ONLINE",
+   "label": "刀剣乱舞ONLINE"
+  },
+  {
+   "value": "セルサバイバー - シューティングゲーム",
+   "label": "セルサバイバー - シューティングゲーム"
+  },
+  {
+   "value": "転生したらスライムだった件 魔王と竜の建国譚【まおりゅう】",
+   "label": "転生したらスライムだった件 魔王と竜の建国譚【まおりゅう】"
+  },
+  {
+   "value": "eBaseball™: MLB PRO SPIRIT",
+   "label": "eBaseball™: MLB PRO SPIRIT"
+  },
+  {
+   "value": "信長の野望 真戦",
+   "label": "信長の野望 真戦"
+  },
+  {
+   "value": "DDFF-ファイナルファンタジーのオールスター共闘アクション",
+   "label": "DDFF-ファイナルファンタジーのオールスター共闘アクション"
+  },
+  {
+   "value": "東京ディバンカー",
+   "label": "東京ディバンカー"
+  },
+  {
+   "value": "Wizardry Variants Daphne",
+   "label": "Wizardry Variants Daphne"
+  },
+  {
+   "value": "キノコ伝説：勇者と魔法のランプ",
+   "label": "キノコ伝説：勇者と魔法のランプ"
+  },
+  {
+   "value": "BRAVE FRONTIER LEGION",
+   "label": "BRAVE FRONTIER LEGION"
+  },
+  {
+   "value": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム",
+   "label": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム"
+  },
+  {
+   "value": "七つの大罪 光と闇の交戦 : グラクロ",
+   "label": "七つの大罪 光と闇の交戦 : グラクロ"
+  },
+  {
+   "value": "暴走列伝 単車の虎",
+   "label": "暴走列伝 単車の虎"
+  },
+  {
+   "value": "実況パワフルプロ野球",
+   "label": "実況パワフルプロ野球"
+  },
+  {
+   "value": "キングダム 乱 -天下統一への道- 究極の戦略・戦争ゲーム",
+   "label": "キングダム 乱 -天下統一への道- 究極の戦略・戦争ゲーム"
+  },
+  {
+   "value": "[7R]スマスロ マギアレコード 魔法少女まどかマギカ外伝",
+   "label": "[7R]スマスロ マギアレコード 魔法少女まどかマギカ外伝"
   },
   {
    "value": "Meowdoku!",
@@ -556,12 +572,16 @@
    "label": "Block Out! - Color Sort Puzzle"
   },
   {
-   "value": "トップロード",
-   "label": "トップロード"
-  },
-  {
    "value": "Jewel Coloring",
    "label": "Jewel Coloring"
+  },
+  {
+   "value": "呼吸法修練",
+   "label": "呼吸法修練"
+  },
+  {
+   "value": "トップロード",
+   "label": "トップロード"
   },
   {
    "value": "Pokémon Champions",
@@ -572,12 +592,20 @@
    "label": "フォートナイト"
   },
   {
-   "value": "W三国志",
-   "label": "W三国志"
+   "value": "私有正史- 美少女×戦略SLG・神姫と駆ける乱世",
+   "label": "私有正史- 美少女×戦略SLG・神姫と駆ける乱世"
+  },
+  {
+   "value": "モンスターループ：獣神転生",
+   "label": "モンスターループ：獣神転生"
   },
   {
    "value": "どこでもパーティーゲーム「どこパ」：ワードウルフオンライン",
    "label": "どこでもパーティーゲーム「どこパ」：ワードウルフオンライン"
+  },
+  {
+   "value": "にゃんこ銃士：放置育成RPG",
+   "label": "にゃんこ銃士：放置育成RPG"
   },
   {
    "value": "意味怖ストーリー：バッドエンドを回避せよ！",
@@ -588,24 +616,32 @@
    "label": "マジックソート (Magic Sort!)"
   },
   {
-   "value": "にゃんこ銃士：放置育成RPG",
-   "label": "にゃんこ銃士：放置育成RPG"
-  },
-  {
    "value": "TopTop(トップトップ): サクッと遊んで、パッと友達",
    "label": "TopTop(トップトップ): サクッと遊んで、パッと友達"
   },
   {
-   "value": "価値ズレ！ - 価値観協力オンラインゲーム",
-   "label": "価値ズレ！ - 価値観協力オンラインゲーム"
+   "value": "Royal Smash! - Physics Puzzle",
+   "label": "Royal Smash! - Physics Puzzle"
+  },
+  {
+   "value": "フードスター（Foodstars）:マージ & クック",
+   "label": "フードスター（Foodstars）:マージ & クック"
   },
   {
    "value": "X-Clash: サバイバル",
    "label": "X-Clash: サバイバル"
   },
   {
-   "value": "モンスターループ：獣神転生",
-   "label": "モンスターループ：獣神転生"
+   "value": "Car Evolve",
+   "label": "Car Evolve"
+  },
+  {
+   "value": "ブロッククラッシュ (Block Crush)",
+   "label": "ブロッククラッシュ (Block Crush)"
+  },
+  {
+   "value": "LINE：ブロックジャム",
+   "label": "LINE：ブロックジャム"
   },
   {
    "value": "Sled Surfers - ファーズ - 坂冒険",
@@ -616,192 +652,176 @@
    "label": "魔法ピアノタイル9 : ピアノゲーム、おんがくげーむ、音ゲー"
   },
   {
-   "value": "Royal Smash! - Physics Puzzle",
-   "label": "Royal Smash! - Physics Puzzle"
-  },
-  {
-   "value": "2人で脱出ゲーム 金と銀の部屋　　【新作のふたり協力ゲーム】",
-   "label": "2人で脱出ゲーム 金と銀の部屋　　【新作のふたり協力ゲーム】"
-  },
-  {
-   "value": "Search It - Hidden Objects",
-   "label": "Search It - Hidden Objects"
-  },
-  {
-   "value": "チート勇者～インベントリ攻略ゲー～RPG",
-   "label": "チート勇者～インベントリ攻略ゲー～RPG"
-  },
-  {
-   "value": "ArrowCube - 3DPuzzle",
-   "label": "ArrowCube - 3DPuzzle"
-  },
-  {
-   "value": "LINE：ブロックジャム",
-   "label": "LINE：ブロックジャム"
-  },
-  {
-   "value": "マブラヴ ガールズガーデン",
-   "label": "マブラヴ ガールズガーデン"
-  },
-  {
-   "value": "フードスター（Foodstars）:マージ & クック",
-   "label": "フードスター（Foodstars）:マージ & クック"
-  },
-  {
-   "value": "Arrows – Puzzle Escape",
-   "label": "Arrows – Puzzle Escape"
-  },
-  {
-   "value": "3D Colorful Sort™ 魔法の水",
-   "label": "3D Colorful Sort™ 魔法の水"
-  },
-  {
-   "value": "リヴリヴ　終末スローライフ",
-   "label": "リヴリヴ　終末スローライフ"
-  },
-  {
-   "value": "ブロッククラッシュ (Block Crush)",
-   "label": "ブロッククラッシュ (Block Crush)"
-  },
-  {
-   "value": "三国志クロニクル",
-   "label": "三国志クロニクル"
-  },
-  {
-   "value": "ラストアサイラム：プレイグ",
-   "label": "ラストアサイラム：プレイグ"
+   "value": "価値ズレ！ - 価値観協力オンラインゲーム",
+   "label": "価値ズレ！ - 価値観協力オンラインゲーム"
   },
   {
    "value": "E.D.E.N：最終防衛線",
    "label": "E.D.E.N：最終防衛線"
   },
   {
-   "value": "2人でワード人狼",
-   "label": "2人でワード人狼"
+   "value": "Arrows – Puzzle Escape",
+   "label": "Arrows – Puzzle Escape"
   },
   {
    "value": "Sand Blocks: Drop Puzzle",
    "label": "Sand Blocks: Drop Puzzle"
   },
   {
-   "value": "Snake Puzzle: Slither to Eat!",
-   "label": "Snake Puzzle: Slither to Eat!"
+   "value": "Search It - Hidden Objects",
+   "label": "Search It - Hidden Objects"
   },
   {
-   "value": "終末のタイタン：ラストラッシュ",
-   "label": "終末のタイタン：ラストラッシュ"
+   "value": "ArrowCube - 3DPuzzle",
+   "label": "ArrowCube - 3DPuzzle"
   },
   {
-   "value": "Water Sort Puzzle - Order Up",
-   "label": "Water Sort Puzzle - Order Up"
+   "value": "チート勇者～インベントリ攻略ゲー～RPG",
+   "label": "チート勇者～インベントリ攻略ゲー～RPG"
   },
   {
-   "value": "Zoodoku！",
-   "label": "Zoodoku！"
+   "value": "W三国志",
+   "label": "W三国志"
   },
   {
-   "value": "カラーブロック コンボブラスト",
-   "label": "カラーブロック コンボブラスト"
-  },
-  {
-   "value": "オンクレならタイクレ！オンラインクレーンゲーム(オンクレ)",
-   "label": "オンクレならタイクレ！オンラインクレーンゲーム(オンクレ)"
-  },
-  {
-   "value": "Tetris® - テトリス (公式ゲーム)",
-   "label": "Tetris® - テトリス (公式ゲーム)"
-  },
-  {
-   "value": "Fluffy Drop",
-   "label": "Fluffy Drop"
-  },
-  {
-   "value": "Find The Cat 2 - Spot It!",
-   "label": "Find The Cat 2 - Spot It!"
-  },
-  {
-   "value": "NBAダンクシティ",
-   "label": "NBAダンクシティ"
+   "value": "ラストアサイラム：プレイグ",
+   "label": "ラストアサイラム：プレイグ"
   },
   {
    "value": "Car Jam - バスストップ ジャムゲーム",
    "label": "Car Jam - バスストップ ジャムゲーム"
   },
   {
-   "value": "Screwdom : ボルトパズルゲーム",
-   "label": "Screwdom : ボルトパズルゲーム"
+   "value": "3D Colorful Sort™ 魔法の水",
+   "label": "3D Colorful Sort™ 魔法の水"
   },
   {
-   "value": "トップウォー",
-   "label": "トップウォー"
+   "value": "ねこ旅",
+   "label": "ねこ旅"
+  },
+  {
+   "value": "Snake Puzzle: Slither to Eat!",
+   "label": "Snake Puzzle: Slither to Eat!"
   },
   {
    "value": "Arrow Pro 3D",
    "label": "Arrow Pro 3D"
   },
   {
-   "value": "魔法のタイルズ 3™: 音ゲー ピアノタイル",
-   "label": "魔法のタイルズ 3™: 音ゲー ピアノタイル"
+   "value": "2人で脱出ゲーム 金と銀の部屋　　【新作のふたり協力ゲーム】",
+   "label": "2人で脱出ゲーム 金と銀の部屋　　【新作のふたり協力ゲーム】"
   },
   {
-   "value": "みんなで早押しクイズ",
-   "label": "みんなで早押しクイズ"
+   "value": "Zoodoku！",
+   "label": "Zoodoku！"
   },
   {
-   "value": "Among Us!",
-   "label": "Among Us!"
+   "value": "Water Sort Puzzle - Order Up",
+   "label": "Water Sort Puzzle - Order Up"
   },
   {
-   "value": "オフラインゲーム - 暇つぶし ゲーム - パズルゲーム",
-   "label": "オフラインゲーム - 暇つぶし ゲーム - パズルゲーム"
+   "value": "Fluffy Drop",
+   "label": "Fluffy Drop"
   },
   {
-   "value": "Food Hunt: Pixel Puzzle",
-   "label": "Food Hunt: Pixel Puzzle"
+   "value": "Tetris® - テトリス (公式ゲーム)",
+   "label": "Tetris® - テトリス (公式ゲーム)"
   },
   {
-   "value": "巡回中！即タイホ！",
-   "label": "巡回中！即タイホ！"
+   "value": "Find The Cat 2 - Spot It!",
+   "label": "Find The Cat 2 - Spot It!"
+  },
+  {
+   "value": "オンクレならタイクレ！オンラインクレーンゲーム(オンクレ)",
+   "label": "オンクレならタイクレ！オンラインクレーンゲーム(オンクレ)"
   },
   {
    "value": "Loop Sort",
    "label": "Loop Sort"
   },
   {
-   "value": "バスゲーム：カーパーキング・バスゲーム",
-   "label": "バスゲーム：カーパーキング・バスゲーム"
+   "value": "Food Hunt: Pixel Puzzle",
+   "label": "Food Hunt: Pixel Puzzle"
   },
   {
-   "value": "麻雀ブラスト (Mahjong Blast)",
-   "label": "麻雀ブラスト (Mahjong Blast)"
+   "value": "マブラヴ ガールズガーデン",
+   "label": "マブラヴ ガールズガーデン"
   },
   {
-   "value": "プランツ・オン・ファイア",
-   "label": "プランツ・オン・ファイア"
+   "value": "巡回中！即タイホ！",
+   "label": "巡回中！即タイホ！"
   },
   {
-   "value": "Level Devil - NOT A Troll Game",
-   "label": "Level Devil - NOT A Troll Game"
+   "value": "カラーブロック コンボブラスト",
+   "label": "カラーブロック コンボブラスト"
   },
   {
-   "value": "ネジ3Dパズル：ピンを外すゲーム",
-   "label": "ネジ3Dパズル：ピンを外すゲーム"
+   "value": "Travel Town - マージアドベンチャー",
+   "label": "Travel Town - マージアドベンチャー"
+  },
+  {
+   "value": "NBAダンクシティ",
+   "label": "NBAダンクシティ"
+  },
+  {
+   "value": "STYLZ（スタイルズ）: 着せ替え・ファッションゲーム",
+   "label": "STYLZ（スタイルズ）: 着せ替え・ファッションゲーム"
+  },
+  {
+   "value": "終末のタイタン：ラストラッシュ",
+   "label": "終末のタイタン：ラストラッシュ"
+  },
+  {
+   "value": "Among Us!",
+   "label": "Among Us!"
   },
   {
    "value": "Color Block Jam",
    "label": "Color Block Jam"
   },
   {
-   "value": "耳だけ捜査線 - 暇つぶし論理パズルゲーム",
-   "label": "耳だけ捜査線 - 暇つぶし論理パズルゲーム"
+   "value": "トップウォー",
+   "label": "トップウォー"
+  },
+  {
+   "value": "魔法のタイルズ 3™: 音ゲー ピアノタイル",
+   "label": "魔法のタイルズ 3™: 音ゲー ピアノタイル"
+  },
+  {
+   "value": "麻雀ブラスト (Mahjong Blast)",
+   "label": "麻雀ブラスト (Mahjong Blast)"
+  },
+  {
+   "value": "みんなで早押しクイズ",
+   "label": "みんなで早押しクイズ"
+  },
+  {
+   "value": "バスゲーム：カーパーキング・バスゲーム",
+   "label": "バスゲーム：カーパーキング・バスゲーム"
+  },
+  {
+   "value": "オフラインゲーム - 暇つぶし ゲーム - パズルゲーム",
+   "label": "オフラインゲーム - 暇つぶし ゲーム - パズルゲーム"
+  },
+  {
+   "value": "Screwdom : ボルトパズルゲーム",
+   "label": "Screwdom : ボルトパズルゲーム"
+  },
+  {
+   "value": "ランダムダイス2",
+   "label": "ランダムダイス2"
+  },
+  {
+   "value": "脱出ゲーム 決闘を止めたい",
+   "label": "脱出ゲーム 決闘を止めたい"
+  },
+  {
+   "value": "2人でワード人狼",
+   "label": "2人でワード人狼"
   },
   {
    "value": "Marble Sort!",
    "label": "Marble Sort!"
-  },
-  {
-   "value": "EDGE POKER (エッジポーカー)",
-   "label": "EDGE POKER (エッジポーカー)"
   }
  ],
  "removed": [],
