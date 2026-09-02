@@ -289,6 +289,10 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
           <option value="その他">その他（自由入力）</option>
         </select>
         <span id="games-updated-cap" style="font-size:.6rem;color:var(--muted);letter-spacing:.04em"></span>
+        <button type="button" onclick="openPlayingManager()"
+          style="align-self:flex-start;margin-top:4px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.35);
+                 border-radius:8px;color:var(--gold);font-size:.66rem;padding:5px 12px;cursor:pointer">
+          ✏️ プレイ中のタイトルを追加・削除</button>
       </div>
       <div class="field span2" id="customGameGroup" style="display:none">
         <label for="customGame">ゲームタイトルを入力</label>
@@ -425,7 +429,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
     </div>
   </div>
 
-  <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+  <div id="play-manage" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);border-radius:12px;transition:box-shadow .5s,background .5s">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
       <span style="font-weight:700;font-size:.84rem">★ プレイ中のタイトル</span>
       <span id="play-count" style="margin-left:auto;font-size:.64rem;color:var(--muted)"></span>
@@ -439,9 +443,13 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
       <input id="play-add-name" list="play-add-cands" placeholder="追加するゲーム名（例：モンスターストライク）"
         style="flex:1;min-width:0;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">
       <datalist id="play-add-cands"></datalist>
-      <button type="button" class="rst-btn" style="flex:none;padding:8px 14px" onclick="addPlayingTitle()">追加</button>
+      <button type="button" style="flex:none;width:auto;padding:9px 18px;font-size:.78rem;font-weight:700;cursor:pointer;border-radius:8px;color:#0E0A18;background:linear-gradient(135deg,#EDD070,#C9A84C);border:none" onclick="addPlayingTitle()">追加</button>
     </div>
-    <div id="play-list"></div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+      <input id="play-filter" placeholder="🔍 一覧をしぼり込む" oninput="renderPlayingList()"
+        style="flex:1;min-width:0;padding:7px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);color:inherit;font-size:.74rem">
+    </div>
+    <div id="play-list" style="max-height:52vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button type="button" class="rst-btn" style="flex:1;background:rgba(255,255,255,.04);font-size:.72rem" onclick="resetPlayingOverrides()">自動更新の状態に戻す</button>
     </div>
@@ -547,12 +555,23 @@ function _calNav(delta){
 //   下の内蔵較正計算へフォールバックする。
 // ═══════════════════════════════════════════════════
 let CAL_DATA=null; // {days:{'YYYY-MM-DD':{rokuyo,moonAge,lunar}}, updated}
+// 日付を必ず Date にそろえる。
+//   sessionStorage に入れた鑑定結果を読み戻すと Date は文字列になっているため、
+//   そのまま .getFullYear() を呼ぶと落ちる（実際に「鑑定処理でエラー」の原因になった）。
+function toDate(v){
+  if(v instanceof Date)return isNaN(v.getTime())?null:v;
+  if(v==null||v==='')return null;
+  var d=new Date(v);
+  return isNaN(d.getTime())?null:d;
+}
 function _calKey(date){
-  return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+  var d=toDate(date); if(!d)return '';
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 function calLookup(date){
   if(!CAL_DATA||!CAL_DATA.days)return null;
-  return CAL_DATA.days[_calKey(date)]||null;
+  var k=_calKey(date); if(!k)return null;
+  return CAL_DATA.days[k]||null;
 }
 
 // HTMLエスケープ（ユーザー入力を画面に出す際のXSS・表示崩れ防止）
@@ -1713,8 +1732,12 @@ function calculateFortune(params){
   const today=new Date();
   const todayStr=`${today.getFullYear()}-${today.getMonth()+1}-${today.getDate()}`;
   // v3: pinpointをオブジェクト形式に変更 → バージョン付きキーで旧キャッシュを自動破棄
-  const CACHE_VER='v4';
-  const cacheKey=`${CACHE_VER}|${todayStr}|${gameTitle}|${targetName}|${gachaTitle}|${gachaDeadline}`;
+  // v5: キーに生年月日・星座・血液型・干支・ガチャ設定を含める。
+  //     v4 までは入っていなかったため、生年月日などを入れ替えても
+  //     前回の結果がそのまま返ってしまっていた。
+  const CACHE_VER='v5';
+  const cacheKey=[CACHE_VER,todayStr,gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,
+                  birthdate,zodiac,bloodType,eto,pickupRate,pityCount,currentPulls,guaranteedNow?'1':'0'].join('|');
   try{
     const cachedRaw=window.__govRankingRun?null:SS.get('gachaOracle_result');
     const cachedKey=window.__govRankingRun?null:SS.get('gachaOracle_key');
@@ -1724,6 +1747,11 @@ function calculateFortune(params){
       // 旧形式チェック: pinpointがオブジェクトでない場合は無効
       const firstTime=parsed&&parsed.luckyTimes&&parsed.luckyTimes[0];
       if(firstTime&&firstTime.pinpoint&&typeof firstTime.pinpoint==='object'&&firstTime.pinpoint.range){
+        // JSON を通ると Date が文字列に化けるので、日付を Date に戻してから返す
+        if(Array.isArray(parsed.luckyTimes))parsed.luckyTimes.forEach(function(t){
+          if(t&&t._calDate)t._calDate=toDate(t._calDate);
+        });
+        if(parsed._calDate)parsed._calDate=toDate(parsed._calDate);
         return parsed;
       }
     }
@@ -3312,7 +3340,7 @@ function downloadImage(){
   gb.addColorStop(0,'transparent');gb.addColorStop(0.5,'rgba(201,168,76,0.6)');gb.addColorStop(1,'transparent');
   ctx.fillStyle=gb;ctx.fillRect(0,0,W,3);
   // 機能C: 画像冒頭の暦ヘッダー（六曜・月齢・九星・日柱／画面ヘッダーと同値）
-  var _nine='';try{_nine=getDayKyusei(r._calDate||new Date()).name;}catch(e){}
+  var _nine='';try{_nine=getDayKyusei(toDate(r._calDate)||new Date()).name;}catch(e){}
   ctx.textAlign='center';ctx.fillStyle='#C9A84C';ctx.font='19px serif';
   // v3.1 修正：result の実データに合わせて値を取り出す
   //   rokuyo は {name,icon,...} のオブジェクト、月齢は moonPhase.name、
@@ -3434,7 +3462,7 @@ function downloadICS(){
   }
   // ① TOP3 ラッキー時刻（将来日を含む）
   (r.luckyTimes||[]).slice(0,3).forEach(function(t){
-    var base=t._calDate?new Date(t._calDate):new Date();
+    var base=toDate(t._calDate)||new Date();
     var pp=(t.pinpoint&&typeof t.pinpoint==='object')?t.pinpoint:{start:String(t.time||'').split(' ')[0],width:30};
     var st=parseHM(pp.start);
     var sd=new Date(base.getFullYear(),base.getMonth(),base.getDate(),st.h,st.m,0);
@@ -5316,9 +5344,12 @@ function addPlayingTitle(){
   }
   if(el)el.value='';
   refreshGameSelect();
+  renderPlayingList();
   _toast('「'+name+'」をプレイ中に追加しました');
 }
 function removePlayingTitle(value){
+  // トーストは内部名(value)ではなく画面に出ている表示名で出す
+  var shown=(effectivePlaying().filter(function(g){return g.value===value;})[0]||{}).label||value;
   var add=playAdded().filter(function(g){return g.value!==value;});
   _lsSet(PLAY_ADDED_KEY,add);
   var known=(GAMES_JSON&&GAMES_JSON.playing||[]).some(function(g){return g.value===value;});
@@ -5328,7 +5359,8 @@ function removePlayingTitle(value){
     _lsSet(PLAY_REMOVED_KEY,rm);
   }
   refreshGameSelect();
-  _toast('「'+value+'」をプレイ中から外しました');
+  renderPlayingList();
+  _toast('「'+shown+'」をプレイ中から外しました');
 }
 function resetPlayingOverrides(){
   _lsSet(PLAY_REMOVED_KEY,[]);
@@ -5336,27 +5368,61 @@ function resetPlayingOverrides(){
   refreshGameSelect();
   _toast('自動更新の状態に戻しました');
 }
+// 設定パネルを開いて「プレイ中のタイトル」まで運ぶ。
+//   一覧は設定の奥にあって気づきにくいので、ゲーム選択のすぐ下から直接飛べるようにする。
+function openPlayingManager(){
+  var box=document.getElementById('play-manage');
+  if(!box){ _toast('設定パネルが見つかりませんでした'); return; }
+  var d=box.closest?box.closest('details'):null;
+  if(d)d.open=true;
+  try{ renderPlayingList(); }catch(e){}
+  setTimeout(function(){
+    box.scrollIntoView({behavior:'smooth',block:'start'});
+    // どこに飛んだか分かるように一瞬光らせる
+    box.style.background='rgba(201,168,76,.10)';
+    box.style.boxShadow='0 0 0 1px rgba(201,168,76,.45)';
+    setTimeout(function(){ box.style.background=''; box.style.boxShadow=''; },1600);
+    var f=document.getElementById('play-filter');
+    if(f&&window.innerWidth>=768)f.focus();
+  },60);
+}
 function renderPlayingList(){
   var box=document.getElementById('play-list');
   if(!box)return;
-  var list=effectivePlaying();
+  var all=effectivePlaying();
   var cap=document.getElementById('play-count');
+  var nSus=all.filter(function(g){return g.sunsetting;}).length;
   if(cap){
     var nAdd=playAdded().length, nRm=playRemoved().length;
-    cap.textContent=list.length+'本'+(nAdd?'（追加'+nAdd+'）':'')+(nRm?'（削除'+nRm+'）':'');
+    cap.textContent=all.length+'本'+(nSus?'／要確認'+nSus:'')
+      +(nAdd?'（追加'+nAdd+'）':'')+(nRm?'（削除'+nRm+'）':'');
   }
-  if(!list.length){
+  var fEl=document.getElementById('play-filter');
+  var q=((fEl&&fEl.value)||'').trim().toLowerCase();
+  var list=q?all.filter(function(g){
+    return String(g.label||'').toLowerCase().indexOf(q)>=0
+        || String(g.value||'').toLowerCase().indexOf(q)>=0;
+  }):all;
+  if(!all.length){
     box.innerHTML='<div style="font-size:.68rem;color:var(--muted)">プレイ中のタイトルがありません。上の欄から追加できます。</div>';
     return;
   }
-  // セルラン順（圏外は末尾）
+  if(!list.length){
+    box.innerHTML='<div style="font-size:.68rem;color:var(--muted)">「'+esc(q)+'」に一致するタイトルはありません。</div>';
+    return;
+  }
+  // ⚠要確認 → 手動追加 → セルラン順（圏外は末尾）。
+  // 判断が要るものを上に置かないと、55本の下の方に埋もれて気づけない。
   list=list.slice().map(function(g,i){return{g:g,i:i};}).sort(function(a,b){
+    var sa=a.g.sunsetting?0:a.g.src==='user'?1:2, sb=b.g.sunsetting?0:b.g.src==='user'?1:2;
+    if(sa!==sb)return sa-sb;
     var ra=typeof a.g.rank==='number'?a.g.rank:9999, rb=typeof b.g.rank==='number'?b.g.rank:9999;
     return ra-rb||a.i-b.i;
   }).map(function(x){return x.g;});
   box.innerHTML=list.map(function(g){
-    return '<div style="display:flex;align-items:center;gap:8px;padding:6px 9px;margin-bottom:5px;'
-      +'background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:9px">'
+    return '<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;margin-bottom:5px;'
+      +'background:'+(g.sunsetting?'rgba(251,191,36,.07)':'rgba(255,255,255,.02)')+';'
+      +'border:1px solid '+(g.sunsetting?'rgba(251,191,36,.28)':'rgba(255,255,255,.07)')+';border-radius:9px">'
       +'<span style="flex:1;min-width:0;font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(g.label)+'</span>'
       +(g.src==='user'?'<span style="flex:none;font-size:.56rem;color:#7DD3FC;border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:1px 6px">手動</span>':'')
       +(g.sunsetting?'<span title="'+esc(g.reason||'App Storeで見つかりませんでした')
@@ -5365,8 +5431,8 @@ function renderPlayingList(){
           +'border-radius:8px;padding:1px 6px">⚠要確認</span>':'')
       +salesRankBadge(typeof g.rank==='number'?g.rank:salesRankOf(g.value),{small:true})
       +'<button type="button" title="プレイ中から外す" onclick="removePlayingTitle('+JSON.stringify(g.value).replace(/"/g,'&quot;')+')" '
-      +'style="flex:none;background:none;border:1px solid rgba(255,255,255,.16);border-radius:7px;color:var(--muted);'
-      +'font-size:.64rem;padding:3px 9px;cursor:pointer">✕</button></div>';
+      +'style="flex:none;background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.38);border-radius:7px;color:#F87171;'
+      +'font-size:.64rem;padding:4px 10px;cursor:pointer;white-space:nowrap">✕ 削除</button></div>';
   }).join('');
 }
 var GAMES_JSON=null;              // 読み込んだ games.json
