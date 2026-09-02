@@ -4,9 +4,139 @@
  "rankingSize": 160,
  "playing": [
   {
+   "value": "ウマ娘",
+   "label": "ウマ娘 プリティーダービー",
+   "rank": 5
+  },
+  {
+   "value": "Fate/GO",
+   "label": "Fate/Grand Order",
+   "rank": 6
+  },
+  {
+   "value": "Pokémon GO",
+   "label": "Pokémon GO",
+   "rank": 7
+  },
+  {
+   "value": "ツムツム",
+   "label": "LINE：ディズニー ツムツム",
+   "rank": 11
+  },
+  {
+   "value": "アークナイツ：エンドフィールド",
+   "label": "アークナイツ：エンドフィールド",
+   "rank": 12
+  },
+  {
+   "value": "Pokémon Trading Card Game Pocket",
+   "label": "Pokémon TCG Pocket",
+   "rank": 14
+  },
+  {
+   "value": "崩壊：スターレイル",
+   "label": "崩壊：スターレイル",
+   "rank": 17
+  },
+  {
+   "value": "荒野行動",
+   "label": "荒野行動",
+   "rank": 18
+  },
+  {
+   "value": "Gジェネ ET",
+   "label": "SDガンダム ジージェネレーション エターナル",
+   "rank": 19
+  },
+  {
+   "value": "原神",
+   "label": "原神",
+   "rank": 25
+  },
+  {
+   "value": "白猫",
+   "label": "白猫プロジェクト",
+   "rank": 36
+  },
+  {
+   "value": "グラブル",
+   "label": "グランブルーファンタジー",
+   "rank": 37
+  },
+  {
+   "value": "DQウォーク",
+   "label": "ドラゴンクエストウォーク",
+   "rank": 38
+  },
+  {
+   "value": "NIKKE",
+   "label": "勝利の女神：NIKKE",
+   "rank": 40
+  },
+  {
    "value": "コンパス",
    "label": "＃コンパス 戦闘摂理解析システム",
    "rank": 45
+  },
+  {
+   "value": "PokémonMaster",
+   "label": "ポケモンマスターズ EX",
+   "rank": 47
+  },
+  {
+   "value": "ゼンレスゾーンゼロ",
+   "label": "ゼンレスゾーンゼロ",
+   "rank": 51
+  },
+  {
+   "value": "まどドラ",
+   "label": "マギアエクセドラ",
+   "rank": 109
+  },
+  {
+   "value": "鳴潮",
+   "label": "鳴潮",
+   "rank": 140
+  },
+  {
+   "value": "ぷよクエ",
+   "label": "ぷよぷよ!!クエスト",
+   "rank": 149
+  },
+  {
+   "value": "ブルーアーカイブ",
+   "label": "ブルーアーカイブ",
+   "rank": 158
+  },
+  {
+   "value": "PUBG",
+   "label": "PUBG MOBILE",
+   "rank": 168
+  },
+  {
+   "value": "まおりゅう",
+   "label": "転スラ 魔王と竜の建国譚",
+   "rank": 179
+  },
+  {
+   "value": "グラクロ",
+   "label": "七つの大罪 光と闇の交戦 : グラクロ",
+   "rank": 186
+  },
+  {
+   "value": "LINE MF",
+   "label": "LINE：モンスターファーム",
+   "rank": 190
+  },
+  {
+   "value": "Master Duel",
+   "label": "遊戯王 マスターデュエル",
+   "rank": 198
+  },
+  {
+   "value": "Call of Duty",
+   "label": "Call of Duty: Mobile",
+   "rank": 199
   },
   {
    "value": "AFKアリーナ",
@@ -24,16 +154,6 @@
    "rank": null
   },
   {
-   "value": "Call of Duty",
-   "label": "Call of Duty: Mobile",
-   "rank": 199
-  },
-  {
-   "value": "DQウォーク",
-   "label": "ドラゴンクエストウォーク",
-   "rank": 38
-  },
-  {
    "value": "Echocalypse",
    "label": "Echocalypse -緋紅の神約-",
    "rank": null
@@ -44,49 +164,9 @@
    "rank": null
   },
   {
-   "value": "Fate/GO",
-   "label": "Fate/Grand Order",
-   "rank": 6
-  },
-  {
-   "value": "LINE MF",
-   "label": "LINE：モンスターファーム",
-   "rank": 190
-  },
-  {
-   "value": "Master Duel",
-   "label": "遊戯王 マスターデュエル",
-   "rank": 198
-  },
-  {
-   "value": "NIKKE",
-   "label": "勝利の女神：NIKKE",
-   "rank": 40
-  },
-  {
-   "value": "Pokémon Trading Card Game Pocket",
-   "label": "Pokémon TCG Pocket",
-   "rank": 14
-  },
-  {
-   "value": "Pokémon GO",
-   "label": "Pokémon GO",
-   "rank": 7
-  },
-  {
-   "value": "PokémonMaster",
-   "label": "ポケモンマスターズ EX",
-   "rank": 47
-  },
-  {
    "value": "PSO2es",
    "label": "PSO2es",
    "rank": null
-  },
-  {
-   "value": "PUBG",
-   "label": "PUBG MOBILE",
-   "rank": 168
   },
   {
    "value": "アサルトリリィ",
@@ -104,11 +184,6 @@
    "rank": null
   },
   {
-   "value": "ウマ娘",
-   "label": "ウマ娘 プリティーダービー",
-   "rank": 5
-  },
-  {
    "value": "おねがい社長！",
    "label": "おねがい社長！",
    "rank": null
@@ -119,34 +194,14 @@
    "rank": null
   },
   {
-   "value": "グラクロ",
-   "label": "七つの大罪 光と闇の交戦 : グラクロ",
-   "rank": 186
-  },
-  {
-   "value": "グラブル",
-   "label": "グランブルーファンタジー",
-   "rank": 37
-  },
-  {
    "value": "けもフレ3",
    "label": "けものフレンズ3",
    "rank": null
   },
   {
-   "value": "ゼンレスゾーンゼロ",
-   "label": "ゼンレスゾーンゼロ",
-   "rank": 51
-  },
-  {
    "value": "チェンクロ",
    "label": "チェインクロニクル",
    "rank": null
-  },
-  {
-   "value": "ツムツム",
-   "label": "LINE：ディズニー ツムツム",
-   "rank": 11
   },
   {
    "value": "ディスガイアRPG",
@@ -159,19 +214,9 @@
    "rank": null
   },
   {
-   "value": "ぷよクエ",
-   "label": "ぷよぷよ!!クエスト",
-   "rank": 149
-  },
-  {
    "value": "プリコネR",
    "label": "プリンセスコネクト！Re:Dive",
    "rank": null
-  },
-  {
-   "value": "ブルーアーカイブ",
-   "label": "ブルーアーカイブ",
-   "rank": 158
   },
   {
    "value": "ブレソル",
@@ -182,16 +227,6 @@
    "value": "ヘブバン",
    "label": "ヘブンバーンズレッド",
    "rank": null
-  },
-  {
-   "value": "まおりゅう",
-   "label": "転スラ 魔王と竜の建国譚",
-   "rank": 179
-  },
-  {
-   "value": "まどドラ",
-   "label": "マギアエクセドラ",
-   "rank": 109
   },
   {
    "value": "ゆるドラ",
@@ -214,29 +249,9 @@
    "rank": null
   },
   {
-   "value": "原神",
-   "label": "原神",
-   "rank": 25
-  },
-  {
-   "value": "荒野行動",
-   "label": "荒野行動",
-   "rank": 18
-  },
-  {
    "value": "走れ！女神",
    "label": "走れ！女神",
    "rank": null
-  },
-  {
-   "value": "白猫",
-   "label": "白猫プロジェクト",
-   "rank": 36
-  },
-  {
-   "value": "崩壊：スターレイル",
-   "label": "崩壊：スターレイル",
-   "rank": 17
   },
   {
    "value": "崩壊3rd",
@@ -249,24 +264,23 @@
    "rank": null
   },
   {
-   "value": "鳴潮",
-   "label": "鳴潮",
-   "rank": 140
-  },
-  {
-   "value": "Gジェネ ET",
-   "label": "SDガンダム ジージェネレーション エターナル",
-   "rank": 19
-  },
-  {
    "value": "七つの大罪：Origin",
    "label": "七つの大罪：Origin",
    "rank": null
   },
   {
-   "value": "アークナイツ：エンドフィールド",
-   "label": "アークナイツ：エンドフィールド",
-   "rank": 12
+   "value": "うたわれLF",
+   "label": "うたわれるもの ロストフラグ",
+   "rank": null,
+   "sunsetting": true,
+   "reason": "App Storeで確認できませんでした（自動削除はしません）"
+  },
+  {
+   "value": "STAR DIVE",
+   "label": "モンギル：STAR DIVE",
+   "rank": null,
+   "sunsetting": true,
+   "reason": "App Storeで確認できませんでした（自動削除はしません）"
   }
  ],
  "trending": [
@@ -1099,24 +1113,6 @@
    "rank": null
   }
  ],
- "removed": [
-  "うたわれるもの ロストフラグ",
-  "STAR DIVE"
- ],
- "eos": [
-  {
-   "value": "うたわれLF",
-   "label": "うたわれるもの ロストフラグ",
-   "since": "2026-09-02",
-   "reason": "検索結果に本タイトルが無い（スマホで読むうたわれるもの vol.03, O Xマスター ○×ゲーム）"
-  },
-  {
-   "value": "STAR DIVE",
-   "label": "STAR DIVE",
-   "since": "2026-09-02",
-   "reason": "ストアに終了告知（サービス終了）"
-  }
- ],
  "appIds": {
   "コンパス": 1164400646,
   "AFKアリーナ": 1478872810,
@@ -1560,6 +1556,22 @@
    "alive": true,
    "rank": 12,
    "reason": ""
+  }
+ ],
+ "suspect": [
+  {
+   "value": "うたわれLF",
+   "label": "うたわれるもの ロストフラグ",
+   "since": "2026-09-02",
+   "days": 3,
+   "reason": "App Storeで確認できませんでした（自動削除はしません）"
+  },
+  {
+   "value": "STAR DIVE",
+   "label": "モンギル：STAR DIVE",
+   "since": "2026-09-02",
+   "days": 3,
+   "reason": "App Storeで確認できませんでした（自動削除はしません）"
   }
  ]
 }

@@ -431,7 +431,9 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
       <span id="play-count" style="margin-left:auto;font-size:.64rem;color:var(--muted)"></span>
     </div>
     <div style="font-size:.62rem;color:var(--muted);margin-bottom:8px">
-      プルダウンの「★ プレイ中のタイトル」に出す一覧です。自動更新の結果に、ここでの追加・削除が反映されます。
+      プルダウンの「★ プレイ中のタイトル」に出す一覧です。自動更新の結果に、ここでの追加・削除が反映されます。<br>
+      App Storeで見つからなかったタイトルには <span style="color:#FBBF24">⚠要確認</span> が付きますが、
+      <b>自動では削除しません</b>（ストア名の変更で見つからないだけの場合があるため）。消すかどうかはここで決めてください。
     </div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
       <input id="play-add-name" list="play-add-cands" placeholder="追加するゲーム名（例：モンスターストライク）"
@@ -817,9 +819,13 @@ var KICHI=(function(){
                desc:'弁財天の使いである白蛇に由来する金運・財運日。',good:'弁財天参拝・宝くじ・口座開設'},
     寅の日   :{yomi:'とらのひ',       icon:'🐯',bonus:3,rank:11,
                desc:'金運の吉日。虎は千里を往って千里を帰る。',good:'財布新調・高額な買い物・旅行'},
-    神吉日   :{yomi:'かみよしにち',   icon:'⛩️',bonus:2,rank:12,
+    辰の日   :{yomi:'たつのひ',       icon:'🐲',bonus:3,rank:12,
+               desc:'十二支唯一の霊獣・龍の日。天に昇る勢いで運気が上向く。',good:'新規開始・願掛け・昇進祈願'},
+    天一天上 :{yomi:'てんいちてんじょう',icon:'🕊',bonus:3,rank:13,
+               desc:'天一神が天に昇る16日間。方角の障りが消え、どこへ動いても凶が無い。',good:'移動・引っ越し・掃除・参拝'},
+    神吉日   :{yomi:'かみよしにち',   icon:'⛩️',bonus:2,rank:14,
                desc:'神事や神社参拝に特に縁起が良いとされる日。',good:'神社参拝・地鎮祭・先祖供養'},
-    大安     :{yomi:'たいあん',       icon:'◎',bonus:0,rank:13,
+    大安     :{yomi:'たいあん',       icon:'◎',bonus:0,rank:15,
                desc:'六曜の中で最も吉とされる日。一日を通して害がない。',good:'結納・結婚式・内祝い・納車'}
   };
 
@@ -840,15 +846,20 @@ var KICHI=(function(){
     if(TSUKITOKU[sm]===ks.stem)names.push('月徳日');
     if(ks.branch==='寅')names.push('寅の日');
     if(ks.branch==='巳')names.push(ks.name==='己巳'?'己巳の日':'巳の日');
+    if(ks.branch==='辰')names.push('辰の日');
     if(ks.name==='甲子')names.push('甲子の日');
+    // 天一天上: 天一神が天に昇っている 癸巳(干支番号30)〜戊申(45) の16日間
+    // 検証: 2026年は 1/19-2/3, 3/20-4/4, 5/19-6/3, 7/18-8/2, 9/16-10/1, 11/15-11/30
+    if(ks.num>=30&&ks.num<=45)names.push('天一天上');
     names.sort(function(a,b){return META[a].rank-META[b].rank;});
     var raw=0,list=names.map(function(nm){
       raw+=META[nm].bonus;
       return{name:nm,yomi:META[nm].yomi,icon:META[nm].icon,bonus:META[nm].bonus,
              desc:META[nm].desc,good:META[nm].good};
     });
-    // 運気スコアへの寄与。全日平均 raw≒6.2 を中心0に据える（他項目と同じ設計）
-    var score=Math.max(-4,Math.min(12,Math.round((raw-6.2)*0.55)));
+    // 運気スコアへの寄与。全日平均 raw≒7.26 を中心0に据える（他項目と同じ設計）
+    // ※ 辰の日・天一天上を加えたぶん平均が上がったので中心値も更新している
+    var score=Math.max(-4,Math.min(12,Math.round((raw-7.26)*0.55)));
     var res={list:list,names:names,raw:raw,score:score,count:names.length,
              top:list.length?list[0].name:'',kanshi:ks.name,setsuMonth:sm,
              shuku:ALM.shuku(n),
@@ -875,12 +886,22 @@ function getKichijitsu(date){ return KICHI.ofDate(date); }
 var KYOU=(function(){
   var BR=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
   // 節月1〜12 → 日の十二支（添字0が節月1月）
+  //   2026年9月の公開暦と突き合わせて検証済み。
+  //   十死日と三箇の悪日は当初「1ヶ月ごとに十二支が1つ進む」と実装していたが、
+  //   実際は十死日が3ヶ月周期（酉・巳・丑）、三箇の悪日は月ごとに
+  //   大禍日+7・狼藉日+3・滅門日+7 で進む。そのため 2026-09-02（節月7・卯の日）を
+  //   十死日かつ狼藉日と誤判定していた（正しくはいずれにも該当しない）。
+  //   確認できた実データ:
+  //     大禍日 2026-09-04(節月7・巳) / 狼藉日 2026-09-05(節月7・午), 09-08・09-20(節月8・酉)
+  //     十死日 節月3・6・9・12 は丑
+  //     三箇の悪日は生まれ年の十二支で忌月が決まる（寅年=節月1: 大禍亥・狼藉子・滅門巳、
+  //     子年=節月11: 酉・午・卯、丑年=節月12: 辰・酉・戌、巳年=節月4: 申・酉・寅）
   var T={
     受死日:'戌辰亥巳子午丑未寅申卯酉',
-    十死日:'酉申未午巳辰卯寅丑子亥戌',
-    大禍日:'申酉戌亥子丑寅卯辰巳午未',
-    狼藉日:'酉戌亥子丑寅卯辰巳午未申',
-    滅門日:'戌亥子丑寅卯辰巳午未申酉',
+    十死日:'酉巳丑酉巳丑酉巳丑酉巳丑',
+    大禍日:'亥午丑申卯戌巳子未寅酉辰',
+    狼藉日:'子卯午酉子卯午酉子卯午酉',
+    滅門日:'巳子未寅酉辰亥午丑申卯戌',
     帰忌日:'丑寅子丑寅子丑寅子丑寅子',
     血忌日:'丑未寅申卯酉辰戌巳亥午子',
     天火日:'子卯午酉子卯午酉子卯午酉',
@@ -891,6 +912,12 @@ var KYOU=(function(){
             5:'丁癸',11:'丁癸',3:'戊己',6:'戊己',9:'戊己',12:'戊己'};
   // 往亡日: 節入り日を1日目として数えた日数
   var OUMOU={1:7,2:14,3:21,4:8,5:16,6:24,7:9,8:18,9:27,10:10,11:20,12:30};
+  // 不成就日: 旧暦の「月」と「日」で決まる（節月でも日の十二支でもない）。
+  //   同じ月内では8日おきに巡る。旧暦月が変わると起点がずれる。
+  //   検証: 2026年9月は 9/8(旧7/27)・9/12(旧8/2)・9/20(旧8/10)・9/28(旧8/18) で公開暦と一致。
+  var FUJOJU={1:[3,11,19,27],7:[3,11,19,27], 2:[2,10,18,26],8:[2,10,18,26],
+              3:[1,9,17,25], 9:[1,9,17,25],  4:[4,12,20,28],10:[4,12,20,28],
+              5:[5,13,21,29],11:[5,13,21,29],6:[6,14,22,30],12:[6,14,22,30]};
 
   // penalty は運気スコアへの寄与（マイナス）。凶意の強さ順に配分する。
   var META={
@@ -914,6 +941,8 @@ var KYOU=(function(){
             desc:'天に火気が満ちる日。棟上げ・火の元に凶。',avoid:'一気に石を燃やすこと'},
     地火日:{yomi:'じかにち',icon:'🌋',penalty:-3,label:'地火日',
             desc:'地に火気が満ちる日。動土・種まきに凶。',avoid:'長期育成の着手'},
+    不成就日:{yomi:'ふじょうじゅび',icon:'🚷',penalty:-5,label:'不成就日',
+            desc:'何事も成就しないとされる日。新しく始めた事は実らない。',avoid:'新ガチャの初回・願掛け'},
     重日  :{yomi:'じゅうにち',icon:'♾',penalty:0, label:'重日',
             desc:'事が重なる日。吉は二倍、凶も二倍になるとされる。',avoid:'（吉凶を増幅する日）'},
     復日  :{yomi:'ふくにち',icon:'🔁',penalty:0, label:'復日',
@@ -929,6 +958,8 @@ var KYOU=(function(){
     if(FUKU[sm].indexOf(ks.stem)>=0)names.push('復日');
     if(ks.branch==='巳'||ks.branch==='亥')names.push('重日');
     if(n-ALM.setsuStartDay(n)+1===OUMOU[sm])names.push('往亡日');
+    var lun=ALM.lunisolar(n);
+    if((FUJOJU[lun.month]||[]).indexOf(lun.day)>=0)names.push('不成就日');
     names.sort(function(a,b){return META[a].penalty-META[b].penalty;});
     var raw=0,list=names.map(function(nm){
       raw+=META[nm].penalty;
@@ -1010,17 +1041,22 @@ function fmtHourRange(r){ return String(r[0]).padStart(2,'0')+':00〜'+String((r
 //   ガチャの「引くべき日か」を1つの値に集約する。
 //   重日・復日はその日の吉凶を増幅する暦注なので倍率として掛ける。
 // ═══════════════════════════════════════════════════
+// 凶日 raw の全日平均。凶日が1つも無い日は「平均より良い日」として＋に寄与させる。
+// これを引かないと暦注下段の項目だけが常に大きなマイナスになり、総合スコアが
+// 全体的に沈んでしまう（実測で平均 -6 の偏り）。
+var KYOU_RAW_MEAN=-6.11;
 function getRekichu(date){
   var kichi=getKichijitsu(date), kyou=getKyoujitsu(date);
-  var base=kichi.score+kyou.raw;
-  var score=Math.max(-22,Math.min(14,Math.round(kyou.amplify?base*1.4:base)));
+  var kyouPt=Math.max(-16,Math.min(6,Math.round((kyou.raw-KYOU_RAW_MEAN)*0.55)));
+  var base=kichi.score+kyouPt;
+  var score=Math.max(-20,Math.min(14,Math.round(kyou.amplify?base*1.4:base)));
   var verdict = kyou.severe ? '凶'
     : score>=8  ? '大吉'
     : score>=4  ? '吉'
     : score<=-8 ? '凶'
     : score<=-3 ? '小凶'
     : '平';
-  return{kichi:kichi,kyou:kyou,score:score,verdict:verdict,
+  return{kichi:kichi,kyou:kyou,score:score,kyouPt:kyouPt,verdict:verdict,
          amplify:kyou.amplify,severe:kyou.severe};
 }
 
@@ -5172,6 +5208,21 @@ function renderMonthlyRanking(){
     });
     html+='</table></div>';
     // ── 今月の主要な吉日ダイジェスト ──
+    // 連続する日はまとめて「9/16〜9/30」の形にする（天一天上のような期間もの向け）
+    function fmtDays(ds){
+      var out=[],st=null,pv=null;
+      ds.forEach(function(d){
+        if(st===null){st=d;}
+        else if(d!==pv+1){out.push([st,pv]);st=d;}
+        pv=d;
+      });
+      if(st!==null)out.push([st,pv]);
+      return out.map(function(r){
+        return r[0]===r[1]?((m+1)+'/'+r[0])
+          :(r[1]-r[0]===1?((m+1)+'/'+r[0]+'、'+(m+1)+'/'+r[1])
+                         :((m+1)+'/'+r[0]+'〜'+(m+1)+'/'+r[1]));
+      }).join('、');
+    }
     function digestRows(list,pick,color){
       return list.map(function(nm){
         var ds=rows.filter(function(r){return pick(r).indexOf(nm)>=0;})
@@ -5182,12 +5233,13 @@ function renderMonthlyRanking(){
         var label=color==='k'?nm:meta.label;
         return '<div style="display:flex;gap:8px;padding:3px 0;font-size:.7rem;align-items:baseline">'
           +'<span style="min-width:6.8em;color:'+c+'">'+meta.icon+esc(label)+'</span>'
-          +'<span style="color:var(--text)">'+ds.map(function(d){return (m+1)+'/'+d;}).join('、')+'</span></div>';
+          +'<span style="color:var(--text)">'+fmtDays(ds)+'</span></div>';
       }).join('');
     }
-    var digest=digestRows(['天赦日','一粒万倍日','鬼宿日','甲子の日','己巳の日','寅の日','巳の日'],
+    var digest=digestRows(['天赦日','一粒万倍日','鬼宿日','甲子の日','己巳の日',
+                           '寅の日','巳の日','辰の日','天一天上'],
                           function(r){return r.kichi.names;},'k');
-    var digestK=digestRows(['受死日','十死日','大禍日','狼藉日','滅門日','往亡日'],
+    var digestK=digestRows(['受死日','十死日','大禍日','狼藉日','滅門日','往亡日','不成就日'],
                            function(r){return r.kyou.names;},'y');
     if(digest||digestK){
       html+='<div style="margin-top:14px;padding:10px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px">';
@@ -5238,7 +5290,8 @@ function effectivePlaying(){
   var base=(GAMES_JSON&&Array.isArray(GAMES_JSON.playing))?GAMES_JSON.playing:[];
   var rm=playRemoved();
   var out=base.filter(function(g){return rm.indexOf(g.value)<0;})
-              .map(function(g){return{value:g.value,label:g.label,rank:g.rank,sunsetting:g.sunsetting,src:'auto'};});
+              .map(function(g){return{value:g.value,label:g.label,rank:g.rank,
+                                      sunsetting:g.sunsetting,reason:g.reason,src:'auto'};});
   var seen={}; out.forEach(function(g){seen[g.value]=1;});
   playAdded().forEach(function(g){
     if(seen[g.value])return;
@@ -5306,7 +5359,10 @@ function renderPlayingList(){
       +'background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:9px">'
       +'<span style="flex:1;min-width:0;font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(g.label)+'</span>'
       +(g.src==='user'?'<span style="flex:none;font-size:.56rem;color:#7DD3FC;border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:1px 6px">手動</span>':'')
-      +(g.sunsetting?'<span style="flex:none;font-size:.56rem;color:#FBBF24">⚠終了予定</span>':'')
+      +(g.sunsetting?'<span title="'+esc(g.reason||'App Storeで見つかりませんでした')
+          +'\nストア名の変更で見つからないだけの場合もあります。自動では削除しません。" '
+          +'style="flex:none;font-size:.56rem;color:#FBBF24;border:1px solid rgba(251,191,36,.4);'
+          +'border-radius:8px;padding:1px 6px">⚠要確認</span>':'')
       +salesRankBadge(typeof g.rank==='number'?g.rank:salesRankOf(g.value),{small:true})
       +'<button type="button" title="プレイ中から外す" onclick="removePlayingTitle('+JSON.stringify(g.value).replace(/"/g,'&quot;')+')" '
       +'style="flex:none;background:none;border:1px solid rgba(255,255,255,.16);border-radius:7px;color:var(--muted);'
@@ -5345,7 +5401,7 @@ function refreshGameSelect(){
       var label=g.label;
       var rank=(typeof g.rank==='number')?g.rank:salesRankOf(g.value);
       if(hasRank)label+=(typeof rank==='number')?'（セルラン'+rank+'位）':'（セルラン圏外）';
-      if(g.sunsetting)label+=' ⚠終了予定';
+      if(g.sunsetting)label+=' ⚠要確認';
       return '<option value="'+esc(g.value)+'">'+esc(label)+'</option>';
     }
     // セルラン上位から並べる（圏外は元の並びのまま末尾へ）
@@ -5378,9 +5434,10 @@ function refreshGameSelect(){
     var cap=document.getElementById('games-updated-cap');
     if(cap){
       var nRank=playing.filter(function(g){return typeof g.rank==='number';}).length;
-      var eos=(d.eos&&d.eos.length)?'｜サ終除外'+d.eos.length+'本':'';
+      var nSus=playing.filter(function(g){return g.sunsetting;}).length;
       cap.textContent='📡 リスト自動更新: '+(d.updated||'')+'｜プレイ中'+playing.length+'本'
-        +(hasRank?'（セルラン掲載'+nRank+'本）':'')+'＋人気'+(d.trending?d.trending.length:0)+'本'+eos
+        +(hasRank?'（セルラン掲載'+nRank+'本）':'')+'＋人気'+(d.trending?d.trending.length:0)+'本'
+        +(nSus?'｜要確認'+nSus+'本':'')
         +(d.rankSources?'｜順位: '+d.rankSources:'');
     }
   }

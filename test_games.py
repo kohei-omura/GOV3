@@ -223,7 +223,7 @@ finally:
 
 
 # ── ⑤ 除外までの一連の流れ ──────────────────────────────
-print('⑤ サ終タイトルが GRACE_DAYS 日で消えるか')
+print('⑤ 見つからないタイトルの扱い（自動削除しない）')
 ALIVE = {'原神': 1, 'ウマ娘 プリティーダービー': 2}
 SEED = [('原神', '原神', '原神'),
         ('ウマ娘', 'ウマ娘 プリティーダービー', 'ウマ娘 プリティーダービー'),
@@ -264,11 +264,17 @@ try:
         ug.main()
         d = json.load(open('games.json', encoding='utf-8'))
         seen.append(len(d['playing']))
-    check(seen[0] == 3 and seen[-1] == 2,
-          f'猶予中は残り、{ug.GRACE_DAYS}日で消える（playing: {seen}）')
-    check([e['label'] for e in d['eos']] == ['ドルウェブ'], 'eos にサ終タイトルが記録される',
-          str(d['eos']))
-    ranks = {g['value']: g.get('rank') for g in d['playing']}
+    # 自動削除はしない: 見つからなくてもプレイ中には残り続ける
+    check(seen == [3] * (ug.GRACE_DAYS + 1),
+          f'見つからなくても自動では消えない（playing: {seen}）')
+    dol = [g for g in d['playing'] if g['value'] == 'ドルウェブ']
+    check(len(dol) == 1 and dol[0].get('sunsetting') is True,
+          '見つからないタイトルに「終了の可能性」の印が付く', str(dol))
+    check([e['label'] for e in d['suspect']] == ['ドルウェブ'],
+          'suspect に終了候補として記録される', str(d.get('suspect')))
+    check('removed' not in d and 'eos' not in d,
+          '自動削除の名残（removed / eos）が残っていない')
+    ranks = {g['value']: g.get('rank') for g in d['playing'] if g.get('rank')}
     check(ranks == {'原神': 9, 'ウマ娘': 3}, 'プレイ中タイトルにセルランが付く', str(ranks))
 finally:
     os.chdir(cwd)
