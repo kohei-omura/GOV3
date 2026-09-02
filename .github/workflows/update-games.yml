@@ -18,8 +18,29 @@ jobs:
         with:
           python-version: '3.12'
 
+      # 生存判定・セルラン付与のロジックをネットワーク無しで検証してから走らせる
+      # （照合を壊すとサ終タイトルが消えない／稼働中タイトルが消えるので先に落とす）
+      - name: Test updater logic
+        run: python test_games.py
+
       - name: Generate games.json
         run: python update_games.py
+
+      - name: Report removals
+        run: |
+          python - <<'EOF'
+          import json
+          d = json.load(open('games.json', encoding='utf-8'))
+          eos = d.get('eos', [])
+          print(f"プレイ中 {len(d['playing'])}本 / 人気 {len(d.get('trending', []))}本")
+          ranked = sum(1 for g in d['playing'] if g.get('rank'))
+          print(f"セルラン掲載 {ranked}本")
+          for e in eos:
+              print(f"::notice::サ終として除外: {e['label']}（{e.get('since','')}） — {e.get('reason','')}")
+          sunset = [g['label'] for g in d['playing'] if g.get('sunsetting')]
+          for lb in sunset:
+              print(f"::warning::未検出（猶予中）: {lb}")
+          EOF
 
       - name: Commit & push (with rebase retry)
         run: |

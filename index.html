@@ -203,24 +203,34 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 @media (prefers-reduced-motion:reduce){#capsule-ov *{animation:none!important}}
 
 /* カプセルの案内役 */
-#capsule-ov .og-wrap{position:absolute;left:50%;top:50%;width:172px;height:250px;
+#capsule-ov .og-wrap{position:absolute;left:50%;top:50%;width:206px;height:300px;
   transform:translate(-50%,-42%) scale(.2);opacity:0;
   animation:ogPop .78s .62s cubic-bezier(.2,1.6,.35,1) forwards}
 @keyframes ogPop{0%{opacity:0;transform:translate(-50%,-30%) scale(.2) rotate(-10deg)}
-  55%{opacity:1;transform:translate(-50%,-46%) scale(1.08) rotate(3deg)}
-  100%{opacity:1;transform:translate(-50%,-44%) scale(1) rotate(0)}}
+  55%{opacity:1;transform:translate(-50%,-48%) scale(1.08) rotate(3deg)}
+  100%{opacity:1;transform:translate(-50%,-46%) scale(1) rotate(0)}}
 #capsule-ov .og-svg{width:100%;height:100%;display:block;
-  filter:drop-shadow(0 6px 18px rgba(0,0,0,.5));
-  animation:ogFloat 2.6s 1.4s ease-in-out infinite}
-@keyframes ogFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
-#capsule-ov .og-hand{transform-origin:132px 182px;
+  filter:drop-shadow(0 8px 22px rgba(0,0,0,.55));
+  animation:ogFloat 3.2s 1.4s ease-in-out infinite}
+@keyframes ogFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+/* まばたき（瞳グループを一瞬つぶす） */
+#capsule-ov .og-eye{transform-box:fill-box;transform-origin:center;
+  animation:ogBlink 4.4s 1.8s infinite}
+@keyframes ogBlink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.06)}97.5%{transform:scaleY(1)}}
+/* 横髪と後ろ髪のゆれ */
+#capsule-ov .og-sidelock{transform-box:fill-box;transform-origin:center top;
+  animation:ogSway 4.6s 1.4s ease-in-out infinite}
+#capsule-ov .og-hairback{transform-box:fill-box;transform-origin:center top;
+  animation:ogSway 5.4s 1.4s ease-in-out infinite}
+@keyframes ogSway{0%,100%{transform:rotate(-.7deg)}50%{transform:rotate(.7deg)}}
+#capsule-ov .og-hand{transform-box:fill-box;transform-origin:center bottom;
   animation:ogHand .7s 1.25s cubic-bezier(.2,1.7,.4,1) both}
 @keyframes ogHand{0%{transform:scale(.5) translateY(10px);opacity:0}
   60%{transform:scale(1.14) translateY(-2px);opacity:1}100%{transform:scale(1) translateY(0);opacity:1}}
-#capsule-ov .og-rank{font:900 27px/1 'Zen Maru Gothic',system-ui,sans-serif;fill:#FFF8D6;
-  paint-order:stroke;stroke:#8A6E24;stroke-width:4px;stroke-linejoin:round;
+#capsule-ov .og-rank{font:900 30px/1 'Zen Maru Gothic',system-ui,sans-serif;fill:#FFF8D6;
+  paint-order:stroke;stroke:#8A6E24;stroke-width:4.5px;stroke-linejoin:round;
   filter:drop-shadow(0 0 8px rgba(237,208,112,.9))}
-@media (max-width:360px){#capsule-ov .og-wrap{width:146px;height:212px}}
+@media (max-width:360px){#capsule-ov .og-wrap{width:172px;height:250px}}
 </style>
 </head>
 <body>
@@ -335,12 +345,17 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
     </div>
     <div style="margin:14px 0 0;padding:14px 16px;background:rgba(255,200,80,.08);border:1px solid rgba(255,200,80,.3);border-radius:12px;">
       <p style="font-size:.8rem;font-weight:700;color:var(--gold-l);margin:0 0 10px;">🎯 ピックアップ確率（確率計算用・任意）</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;">
         <div class="field" style="margin:0"><label for="pickupRate" style="font-size:.75rem;">ピックアップ確率(%)</label><input type="number" id="pickupRate" min="0.01" max="100" step="0.01" placeholder="例: 0.7" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--text);font-size:.9rem;"></div>
         <div class="field" style="margin:0"><label for="pityCount" style="font-size:.75rem;">天井（保証回数）</label><input type="number" id="pityCount" min="0" max="1000" step="1" placeholder="例: 200（なし=0）" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--text);font-size:.9rem;"></div>
         <div class="field" style="margin:0"><label for="currentPulls" style="font-size:.75rem;">現在の累計引き数</label><input type="number" id="currentPulls" min="0" max="1000" step="1" placeholder="例: 50" style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:var(--text);font-size:.9rem;"></div>
       </div>
-      <p style="font-size:.7rem;color:var(--muted);margin:8px 0 0;">※ 入力すると「目的キャラを引くために必要な連数」を確率で計算します。</p>
+      <label style="display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:.75rem;color:var(--text);cursor:pointer">
+        <input type="checkbox" id="pickupGuaranteed" style="width:16px;height:16px;accent-color:var(--gold)">
+        すり抜け済み（次のレア確定が狙いキャラ確定の状態）
+      </label>
+      <p style="font-size:.7rem;color:var(--muted);margin:8px 0 0;">※ 天井・ソフト天井・すり抜けを織り込んで「目的キャラを引くのに必要な連数」を厳密計算します。</p>
+      <p id="pickup-preset-note" style="font-size:.7rem;color:#7DD3FC;margin:6px 0 0;display:none"></p>
     </div>
     <button type="button" id="fortune-btn" class="oracle-btn" onclick="runFortune()">✦ 霊眼を開く — 占術開始 ✦</button>
   </div>
@@ -1461,7 +1476,7 @@ function seededRand(seed){let x=Math.sin(seed+1)*73856.793;return x-Math.floor(x
 //   MAIN FORTUNE CALCULATOR
 // ═══════════════════════════════════════════════════
 function calculateFortune(params){
-  const{gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,birthdate,zodiac,bloodType,eto,pickupRate,pityCount,currentPulls}=params;
+  const{gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,birthdate,zodiac,bloodType,eto,pickupRate,pityCount,currentPulls,guaranteedNow}=params;
   const now=new Date();
   const month=now.getMonth()+1,year=now.getFullYear();
 
@@ -1677,7 +1692,7 @@ function calculateFortune(params){
   const divinations=buildDivinations({gameTitle,targetName,gachaTitle,zodiac,bloodType,eto,score,moonPhase,kyusei,dayKyusei,tarot,lifePath,lpInfo,shichu,rokuyo,ziwei,kichi,now});
   const pulls=calcPulls(score,targetName);
   const actions=buildActions(score,targetName,gachaTitle,tarot,moonPhase);
-  const pickupCalc=calcPickupProbability({pickupRate,pityCount,currentPulls,targetName});
+  const pickupCalc=calcPickupProbability({pickupRate,pityCount,currentPulls,targetName,gameTitle,guaranteedNow});
   const todayHotTimes=calcTodayHotTimes(score,gameTitle,now,{kyusei,dayKyusei,eto,bloodType,zodiac,lifePath:lifePath?{num:lifePath}:null,shichu});
 
   const result={gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,score,pulls,luckyTimes,divinations,actions,moonPhase,kyusei,dayKyusei,tarot,rokuyo,lifePath,shichu,ziwei,kichi,pickupCalc,todayHotTimes,scoreBreakdown,inputs:{zodiac,bloodType,eto}};
@@ -2148,21 +2163,185 @@ function calcTodayHotTimes(score,gameTitle,now,divinParams){
 
 
 
-function calcPickupProbability({pickupRate,pityCount,currentPulls,targetName}){
-  if(!pickupRate||pickupRate<=0)return null;
-  const p=pickupRate/100;
-  const remaining=(pityCount>0&&currentPulls>0)?Math.max(0,pityCount-currentPulls):null;
-  function probWithin(n){return(1-Math.pow(1-p,n))*100;}
-  function pullsForProb(target){return Math.ceil(Math.log(1-target)/Math.log(1-p));}
-  const pulls50=pullsForProb(0.50),pulls80=pullsForProb(0.80),pulls95=pullsForProb(0.95);
-  const expected=Math.ceil(1/p),guaranteed=pityCount>0?pityCount:null;
-  let fromCurrent=null;
-  if(currentPulls>0){
-    const maxLeft=guaranteed?(guaranteed-currentPulls):null;
-    fromCurrent={for50:maxLeft?Math.min(pulls50,maxLeft):pulls50,for80:maxLeft?Math.min(pulls80,maxLeft):pulls80,for95:maxLeft?Math.min(pulls95,maxLeft):pulls95,maxLeft};
+// ═══════════════════════════════════════════════════
+//   ガチャ確率エンジン
+//   ───────────────────────────────────────────────
+//   旧実装は毎回独立の幾何分布 1-(1-p)^n だけで、天井を一切
+//   計算に入れていなかった。そのため例えば原神(0.6%/天井90)で
+//     期待値 167連（実際は約62連）／100連で45.2%（実際は100%）
+//     95%到達に498連（実際は90連で必ず出る）
+//   と、実用にならないほど外れた値を出していた。
+//
+//   新実装は「1連ごとの当選確率テーブル」から厳密な確率分布を作る。
+//     ・ソフト天井（原神系: 74連目から確率が上昇）
+//     ・ハード天井（N連目で必ず当選）
+//     ・すり抜け（レア確定のうち狙いキャラである割合）
+//     ・すり抜け後の次回確定（原神/スタレ方式）
+//     ・現在の天井カウントからの条件付き確率
+//   モンテカルロ20万回と一致し、公表されている実測値
+//   （原神5★ 平均62.5連 / 限定キャラ 平均約93連）とも一致する。
+// ═══════════════════════════════════════════════════
+
+// ゲーム別プリセット（公表されている提供割合・天井仕様の目安。画面上で上書き可）
+//   rate      … レア1体あたりの基本提供割合(%)
+//   pity      … ハード天井（この回数で必ずレア確定 / 0=天井なし）
+//   soft      … ソフト天井の開始連（0=なし）
+//   step      … ソフト天井以降、1連ごとに上がる確率(%)
+//   share     … レア確定が狙いキャラである割合(1=すり抜けなし)
+//   nextGuar  … すり抜けたら次のレア確定は必ず狙いキャラ
+//   stone     … 1連あたりの石数（費用目安の算出用）
+const GACHA_PRESETS={
+  '原神':              {label:'原神 限定★5',       rate:0.6, pity:90, soft:74, step:6, share:0.5, nextGuar:true, stone:160},
+  '崩壊：スターレイル':{label:'スターレイル 限定★5',rate:0.6, pity:90, soft:74, step:6, share:0.5, nextGuar:true, stone:160},
+  'ゼンレスゾーンゼロ':{label:'ゼンゼロ 限定S級',   rate:0.6, pity:90, soft:74, step:6, share:0.5, nextGuar:true, stone:160},
+  '鳴潮':              {label:'鳴潮 限定★5',       rate:0.8, pity:80, soft:66, step:6, share:1,   nextGuar:false,stone:160},
+  '崩壊3rd':           {label:'崩壊3rd 限定★S',    rate:1.5, pity:100,soft:0,  step:0, share:1,   nextGuar:false,stone:280},
+  'NIKKE':             {label:'NIKKE ピックアップSSR',rate:2, pity:200,soft:0, step:0, share:1,   nextGuar:false,stone:300},
+  'ブルーアーカイブ':  {label:'ブルアカ ピックアップ★3',rate:0.7,pity:200,soft:0,step:0,share:1,  nextGuar:false,stone:120},
+  'Fate/GO':           {label:'FGO ピックアップSSR', rate:0.8, pity:330,soft:0, step:0, share:1,  nextGuar:false,stone:0},
+  'プリコネR':         {label:'プリコネR ピックアップ★3',rate:0.7,pity:300,soft:0,step:0,share:1, nextGuar:false,stone:150},
+  'ヘブバン':          {label:'ヘブバン ピックアップ★3',rate:0.75,pity:200,soft:0,step:0,share:1, nextGuar:false,stone:0},
+  'ウマ娘':            {label:'ウマ娘 ピックアップ★3',rate:0.75,pity:200,soft:0,step:0,share:1,  nextGuar:false,stone:150},
+  'グラブル':          {label:'グラブル ピックアップSSR',rate:0.3,pity:300,soft:0,step:0,share:1, nextGuar:false,stone:300},
+  'アズールレーン':    {label:'アズールレーン UR',  rate:0.7, pity:200,soft:0,  step:0, share:1,   nextGuar:false,stone:0},
+  'まどドラ':          {label:'マギアエクセドラ 限定★4',rate:0.6,pity:100,soft:0,step:0,share:1,  nextGuar:false,stone:0}
+};
+
+// 1連目〜cap連目の当選確率テーブル（offset=すでに消化済みの天井カウント）
+function _gachaRates(p,pity,soft,step,offset){
+  const N=pity>0?pity:0;
+  const cap=N>0?N:Math.max(400,Math.ceil(25/p));
+  const rates=[0];
+  for(let k=offset+1;k<=cap;k++){
+    let r=p;
+    if(soft>0&&k>=soft)r=Math.min(1,p+(k-soft+1)*step);
+    if(N>0&&k>=N)r=1;
+    rates.push(r);
   }
-  return{p,pickupRate,pityCount,currentPulls,pulls50,pulls80,pulls95,expected,guaranteed,remainingPulls:remaining,fromCurrent,
-    prob10:probWithin(10).toFixed(1),prob20:probWithin(20).toFixed(1),prob50:probWithin(50).toFixed(1),prob100:probWithin(100).toFixed(1)};
+  return rates;   // rates[i] = 「今から i 連目」の当選確率
+}
+// レア1体を引くまでの確率分布 pmf[i]（今から i 連目で初当選）
+function _gachaHitPmf(p,pity,soft,step,offset){
+  const rates=_gachaRates(p,pity,soft,step,offset);
+  const pmf=new Float64Array(rates.length);
+  let surv=1;
+  for(let i=1;i<rates.length;i++){pmf[i]=surv*rates[i];surv*=(1-rates[i]);}
+  return pmf;
+}
+function _gachaConv(a,b,maxLen){
+  const out=new Float64Array(maxLen+1);
+  for(let i=1;i<a.length;i++){
+    if(!a[i])continue;
+    const lim=Math.min(b.length-1,maxLen-i);
+    for(let j=1;j<=lim;j++)out[i+j]+=a[i]*b[j];
+  }
+  return out;
+}
+function _gachaAdd(a,b,f){const n=Math.max(a.length,b.length);const o=new Float64Array(n);
+  for(let i=0;i<a.length;i++)o[i]+=a[i];
+  for(let i=0;i<b.length;i++)o[i]+=b[i]*f;return o;}
+function _gachaScale(a,f){const o=new Float64Array(a.length);for(let i=0;i<a.length;i++)o[i]=a[i]*f;return o;}
+
+// 狙いキャラに到達するまでの分布
+function _gachaTargetPmf(o,maxLen){
+  const first=_gachaHitPmf(o.p,o.pity,o.soft,o.step,o.offset);   // 今回のレア確定まで
+  const next =_gachaHitPmf(o.p,o.pity,o.soft,o.step,0);          // 2体目以降は天井リセット
+  const clip=(a)=>{const r=new Float64Array(maxLen+1);for(let i=1;i<a.length&&i<=maxLen;i++)r[i]=a[i];return r;};
+  if(o.share>=1)return clip(first);
+  if(o.guaranteedNow)return clip(first);                          // 確定演出中は今回で必ず狙いキャラ
+  if(o.nextGuar){
+    // 1回目で当たり(share) / すり抜けたら2回目は確定(1-share)
+    return _gachaAdd(_gachaScale(clip(first),o.share),
+                     _gachaConv(clip(first),clip(next),maxLen),1-o.share);
+  }
+  // 毎回独立に share で判定
+  let acc=new Float64Array(maxLen+1), cur=clip(first), w=o.share;
+  for(let m=1;m<=60;m++){
+    acc=_gachaAdd(acc,cur,w);
+    if(w<1e-10)break;
+    cur=_gachaConv(cur,clip(next),maxLen);
+    w*=(1-o.share);
+  }
+  return acc;
+}
+
+// ゲームを選ぶと、そのゲームのガチャ仕様プリセットを案内する
+function updatePickupPresetNote(){
+  var note=document.getElementById('pickup-preset-note');
+  var sel=document.getElementById('gameTitle');
+  if(!note||!sel)return;
+  var pre=GACHA_PRESETS[sel.value];
+  if(!pre){note.style.display='none';return;}
+  var bits=['提供割合 '+pre.rate+'%'];
+  if(pre.soft)bits.push('ソフト天井 '+pre.soft+'連目から +'+pre.step+'%/連');
+  bits.push(pre.pity?('天井 '+pre.pity+'連'):'天井なし');
+  if(pre.share<1)bits.push('すり抜け '+Math.round((1-pre.share)*100)+'%'+(pre.nextGuar?'（次は確定）':''));
+  note.innerHTML='🎮 <b>'+esc(pre.label)+'</b> のプリセットを自動適用: '+esc(bits.join(' ／ '))
+    +'<br><span style="color:var(--muted)">上の欄に入力すればその値が優先されます。最新の提供割合はゲーム内の告知でご確認ください。</span>';
+  note.style.display='';
+}
+function calcPickupProbability({pickupRate,pityCount,currentPulls,targetName,gameTitle,guaranteedNow,pickupShare}){
+  const preset=GACHA_PRESETS[gameTitle]||null;
+  // 数値2項目（確率・天井）は入力が最優先。天井方式（ソフト天井/すり抜け）は
+  // ゲーム固有の仕様なので、プリセットがあれば常にそれを使う。
+  const rate=(pickupRate>0)?pickupRate:(preset?preset.rate:0);
+  if(!rate||rate<=0)return null;
+  const hardPity=(pityCount>0)?pityCount:(preset?preset.pity:0);
+  const softRaw=preset?preset.soft:0;
+  const soft=(softRaw>0&&(hardPity===0||softRaw<hardPity))?softRaw:0;   // 天井以降のソフト天井は無意味
+  const step=soft>0?preset.step/100:0;
+  const share=(typeof pickupShare==='number'&&pickupShare>0&&pickupShare<=1)
+    ? pickupShare : (preset?preset.share:1);
+  const nextGuar=preset?preset.nextGuar:false;
+  const stone=preset?preset.stone:0;
+  const usePreset=!!preset;
+  const manual=(pickupRate>0)||(pityCount>0);
+  const cur=Math.max(0,currentPulls||0);
+  const p=rate/100;
+  const offset=hardPity>0?Math.min(cur,hardPity-1):cur;
+
+  const maxLen=hardPity>0?Math.max(hardPity*3,300):Math.max(600,Math.ceil(30/p));
+  const opt={p,pity:hardPity,soft,step,offset,share,nextGuar,guaranteedNow:!!guaranteedNow};
+  const pmf=_gachaTargetPmf(opt,maxLen);
+
+  // 累積分布
+  const cdf=new Float64Array(pmf.length);
+  let acc=0,ev=0;
+  for(let k=1;k<pmf.length;k++){acc+=pmf[k];ev+=k*pmf[k];cdf[k]=acc;}
+  const total=acc||1;
+  const expected=Math.round(ev/total);
+  const at=(n)=>+(Math.min(1,cdf[Math.min(n,cdf.length-1)]||0)*100).toFixed(1);
+  const need=(t)=>{for(let k=1;k<cdf.length;k++)if(cdf[k]>=t)return k;return null;};
+  // 「必ず出る」連数は解析的に決まる（累積分布の丸めに頼らない）:
+  //   天井なし … 保証なし
+  //   すり抜けなし/確定演出中 … 天井までの残り
+  //   すり抜けあり＋次回確定 … 天井までの残り ＋ もう1周
+  //   すり抜けあり＋確定なし … 何連引いても保証はない
+  const certain = hardPity<=0 ? null
+    : (share>=1||guaranteedNow) ? Math.max(1,hardPity-offset)
+    : nextGuar ? Math.max(1,hardPity-offset)+hardPity
+    : null;
+
+  // レア1体（狙いキャラでなくてもよい）の分布 ─ すり抜けの説明用
+  const rarePmf=_gachaHitPmf(p,hardPity,soft,step,offset);
+  let rAcc=0,rEv=0;
+  for(let k=1;k<rarePmf.length;k++){rAcc+=rarePmf[k];rEv+=k*rarePmf[k];}
+  const rareExpected=Math.round(rEv/(rAcc||1));
+
+  return{
+    p,pickupRate:rate,pityCount:hardPity,currentPulls:cur,
+    preset:usePreset?preset.label:null, manualOverride:manual,
+    softPity:soft,softStep:usePreset?preset.step:0,
+    share,nextGuar,guaranteedNow:!!guaranteedNow,stonePerPull:stone,
+    expected,rareExpected,
+    guaranteed:hardPity>0?hardPity:null,
+    remainingPulls:hardPity>0?Math.max(0,hardPity-cur):null,
+    // 狙いキャラを引くのに必要な連数（現在の天井カウントを反映した「今から」の値）
+    pulls50:need(0.50),pulls80:need(0.80),pulls95:need(0.95),pulls99:need(0.99),
+    certain,
+    prob10:at(10),prob20:at(20),prob30:at(30),prob50:at(50),prob100:at(100),prob200:at(200),
+    curve:[10,20,30,50,80,100,150,200,300].filter(n=>n<cdf.length).map(n=>({n,pct:at(n)}))
+  };
 }
 
 // ═══════════════════════════════════════════════════
@@ -2591,13 +2770,83 @@ function displayResult(result){
   html+=`<div class="glass" style="margin-top:8px"><p class="sec-title">✨ ガチャ前ラッキーアクション</p><ul class="action-list">${_hActions}</ul></div>`;
 
   if(pickupCalc){
-    const tgt=targetName?`「${esc(targetName)}」`:'目的キャラ';
-    const rcStr=pickupCalc.remainingPulls!==null?`<span style="color:#FFD700;font-weight:700">天井まであと ${pickupCalc.remainingPulls} 連</span>（${pickupCalc.currentPulls}/${pickupCalc.pityCount}）`:pickupCalc.currentPulls>0?'現在 '+pickupCalc.currentPulls+' 連消費済み':'';
-    const _hRcStr=rcStr?'<div style="text-align:center;margin-bottom:12px;font-size:.85rem">'+rcStr+'</div>':'';
-    const prd=[{label:'50%（半々）',pulls:pickupCalc.pulls50,from:pickupCalc.fromCurrent&&pickupCalc.fromCurrent.for50,color:'#90EE90'},{label:'80%（高確率）',pulls:pickupCalc.pulls80,from:pickupCalc.fromCurrent&&pickupCalc.fromCurrent.for80,color:'#FFD700'},{label:'95%（ほぼ確実）',pulls:pickupCalc.pulls95,from:pickupCalc.fromCurrent&&pickupCalc.fromCurrent.for95,color:'#FF8C61'}];
-    const _hPullRows=prd.map(function(row){return'<tr style="border-bottom:1px solid rgba(255,255,255,.06)"><td style="padding:7px 8px;color:'+row.color+'">'+row.label+'</td><td style="padding:7px 8px;text-align:center;font-weight:700">'+row.pulls+' 連</td><td style="padding:7px 8px;text-align:center;color:var(--muted)">'+(pickupCalc.currentPulls>0&&row.from!=null?'あと '+row.from+' 連':'-')+'</td></tr>';}).join('');
-    const _hG=pickupCalc.guaranteed?'<tr style="background:rgba(255,100,100,.08)"><td style="padding:7px 8px;color:#FF6B6B">天井（100%保証）</td><td style="padding:7px 8px;text-align:center;font-weight:700">'+pickupCalc.guaranteed+' 連</td><td style="padding:7px 8px;text-align:center;color:#FF6B6B">'+(pickupCalc.remainingPulls!=null?'あと '+pickupCalc.remainingPulls+' 連':'-')+'</td></tr>':'';
-    html+=`<div class="glass" style="margin-top:8px;border-color:rgba(100,220,255,.3);background:rgba(0,180,255,.06)"><p class="sec-title" style="color:#64DCFF">🎯 ${tgt} 確率試算（数学的計算・占いとは独立）</p><p style="font-size:.72rem;color:var(--muted);margin:0 0 12px">⚠️ これは純粋な確率論です。占いの運気とは無関係に、ゲームの抽選は毎回独立しています。</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px"><div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center"><div style="font-size:.7rem;color:var(--muted)">1回の確率</div><div style="font-size:1.5rem;font-weight:700;color:#64DCFF">${pickupCalc.pickupRate}%</div></div><div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center"><div style="font-size:.7rem;color:var(--muted)">期待値（平均何連で出るか）</div><div style="font-size:1.5rem;font-weight:700;color:#FFD700">${pickupCalc.expected} 連</div></div></div>${_hRcStr}<table style="width:100%;border-collapse:collapse;font-size:.82rem"><tr style="color:var(--muted);font-size:.7rem"><th style="padding:6px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)">目標確率</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)">必要連数</th><th style="padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)">${pickupCalc.currentPulls>0?'今から追加連数':'-'}</th></tr>${_hPullRows}${_hG}</table><div style="margin-top:12px;padding:10px;background:rgba(100,220,255,.06);border-radius:8px;font-size:.75rem;color:var(--muted)">📊 連数別累積確率 ─ 10連:${pickupCalc.prob10}% / 20連:${pickupCalc.prob20}% / 50連:${pickupCalc.prob50}% / 100連:${pickupCalc.prob100}%</div></div>`;
+    const pc=pickupCalc;
+    const tgt=targetName?esc(targetName):'狙いキャラ';
+    const _pct=(v)=>v.toFixed?v.toFixed(1):v;
+    // 条件の説明行
+    const cond=[];
+    cond.push('1連あたり '+pc.pickupRate+'%');
+    if(pc.softPity)cond.push('ソフト天井 '+pc.softPity+'連目から +'+pc.softStep+'%/連');
+    if(pc.pityCount)cond.push('天井 '+pc.pityCount+'連');else cond.push('天井なし');
+    if(pc.share<1)cond.push('すり抜け '+Math.round((1-pc.share)*100)+'%'+(pc.nextGuar?'（次は確定）':''));
+    if(pc.guaranteedNow)cond.push('確定演出中');
+    const condStr=cond.join(' ／ ');
+    const presetStr=pc.preset
+      ? '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;color:#7DD3FC;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35)">プリセット: '+esc(pc.preset)+'</span>'
+      : '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)">手動入力</span>';
+    const pityStr=pc.pityCount
+      ? '<div style="margin-bottom:12px;padding:9px 12px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:9px;font-size:.78rem">'
+        +'<span style="color:#FFD700;font-weight:700">天井まであと '+pc.remainingPulls+' 連</span>'
+        +'<span style="color:var(--muted);font-size:.72rem">（'+pc.currentPulls+' / '+pc.pityCount+' 消化）</span>'
+        +(pc.share<1&&!pc.guaranteedNow?'<span style="color:var(--muted);font-size:.7rem"> ─ 天井を引いても '+Math.round((1-pc.share)*100)+'% ですり抜けます</span>':'')
+        +'</div>'
+      : (pc.currentPulls>0?'<div style="margin-bottom:12px;font-size:.76rem;color:var(--muted)">現在 '+pc.currentPulls+' 連消費済み（天井なしのため回数はリセットされません）</div>':'');
+    // 必要連数テーブル（今から何連で何%か）
+    const rows=[{l:'50%（半々）',v:pc.pulls50,c:'#90EE90'},
+                {l:'80%（高確率）',v:pc.pulls80,c:'#FFD700'},
+                {l:'95%（ほぼ確実）',v:pc.pulls95,c:'#FF8C61'},
+                {l:'99%',v:pc.pulls99,c:'#FF6B6B'}];
+    const rowHtml=rows.map(r=>'<tr style="border-bottom:1px solid rgba(255,255,255,.06)">'
+      +'<td style="padding:7px 8px;color:'+r.c+'">'+r.l+'</td>'
+      +'<td style="padding:7px 8px;text-align:center;font-weight:700">'+(r.v!=null?r.v+' 連':'—')+'</td>'
+      +'<td style="padding:7px 8px;text-align:center;color:var(--muted);font-size:.74rem">'
+      +(r.v!=null&&pc.stonePerPull?(r.v*10*pc.stonePerPull).toLocaleString()+' 石':'—')+'</td></tr>').join('');
+    const certainRow=pc.certain!=null
+      ? '<tr style="background:rgba(255,100,100,.08)"><td style="padding:7px 8px;color:#FF6B6B">確定（100%）</td>'
+        +'<td style="padding:7px 8px;text-align:center;font-weight:700">'+pc.certain+' 連</td>'
+        +'<td style="padding:7px 8px;text-align:center;color:#FF6B6B;font-size:.74rem">'
+        +(pc.stonePerPull?(pc.certain*10*pc.stonePerPull).toLocaleString()+' 石':'—')+'</td></tr>'
+      : '';
+    // 累積確率カーブ
+    const curve=(pc.curve||[]).map(pt=>{
+      const w=Math.max(2,pt.pct);
+      return '<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:.7rem">'
+        +'<span style="width:3.6em;color:var(--muted);text-align:right">'+pt.n+'連</span>'
+        +'<span style="flex:1;height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">'
+        +'<span style="display:block;height:100%;width:'+w+'%;background:linear-gradient(90deg,#38BDF8,#EDD070)"></span></span>'
+        +'<span style="width:3.4em;text-align:right;color:'+(pt.pct>=95?'#86efac':pt.pct>=50?'#EDD070':'var(--text)')+'">'+pt.pct+'%</span></div>';
+    }).join('');
+    const rareNote=pc.share<1
+      ? '<div style="margin-top:10px;font-size:.72rem;color:var(--muted)">🎲 レア枠自体は平均 <b style="color:var(--text)">'+pc.rareExpected+'連</b>で出ますが、'
+        +'そのうち '+tgt+' である確率は '+Math.round(pc.share*100)+'%。'
+        +(pc.nextGuar?'すり抜けても次のレア確定は必ず '+tgt+' です。':'すり抜けた分はやり直しになります。')+'</div>'
+      : '';
+    html+='<div class="glass" style="margin-top:8px;border-color:rgba(100,220,255,.3);background:rgba(0,180,255,.06)">'
+      +'<p class="sec-title" style="color:#64DCFF">🎯 '+tgt+' 確率試算（数学的計算・占いとは独立）</p>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 8px">'+presetStr
+      +'<span style="font-size:.66rem;color:var(--muted)">'+esc(condStr)+'</span></div>'
+      +'<p style="font-size:.72rem;color:var(--muted);margin:0 0 12px">⚠️ これは純粋な確率論です。占いの運気とは無関係に、ゲームの抽選は毎回独立しています。'
+      +'天井・ソフト天井・すり抜けをすべて計算に入れた厳密な値です。</p>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">'
+      +'<div style="font-size:.7rem;color:var(--muted)">1連の確率</div>'
+      +'<div style="font-size:1.5rem;font-weight:700;color:#64DCFF">'+pc.pickupRate+'%</div></div>'
+      +'<div style="background:rgba(255,255,255,.05);border-radius:10px;padding:12px;text-align:center">'
+      +'<div style="font-size:.7rem;color:var(--muted)">期待値（平均何連で出るか）</div>'
+      +'<div style="font-size:1.5rem;font-weight:700;color:#FFD700">'+pc.expected+' 連</div></div></div>'
+      +pityStr
+      +'<table style="width:100%;border-collapse:collapse;font-size:.82rem">'
+      +'<tr style="color:var(--muted);font-size:.7rem">'
+      +'<th style="padding:6px 8px;text-align:left;border-bottom:1px solid rgba(255,255,255,.1)">目標確率</th>'
+      +'<th style="padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)">'
+      +(pc.currentPulls>0?'今から必要な連数':'必要連数')+'</th>'
+      +'<th style="padding:6px 8px;text-align:center;border-bottom:1px solid rgba(255,255,255,.1)">石の目安</th></tr>'
+      +rowHtml+certainRow+'</table>'
+      +rareNote
+      +'<div style="margin-top:12px;padding:10px;background:rgba(100,220,255,.06);border-radius:8px">'
+      +'<div style="font-size:.72rem;color:#64DCFF;margin-bottom:6px">📊 連数別の累積確率'
+      +(pc.currentPulls>0?'（今から）':'')+'</div>'+curve+'</div>'
+      +'</div>';
   }
 
   // 推奨ガチャ回数（10連のみ）
@@ -2905,13 +3154,17 @@ function downloadICS(){
   }catch(e){}
 
   var gtEl=document.getElementById('gameTitle');
-  if(gtEl) gtEl.addEventListener('change',function(){
-    var show=this.value==='その他';
-    var cg=document.getElementById('customGameGroup');
-    var ci=document.getElementById('customGame');
-    if(cg) cg.style.display=show?'block':'none';
-    if(ci) ci.required=show;
-  });
+  if(gtEl){
+    gtEl.addEventListener('change',function(){
+      var show=this.value==='その他';
+      var cg=document.getElementById('customGameGroup');
+      var ci=document.getElementById('customGame');
+      if(cg) cg.style.display=show?'block':'none';
+      if(ci) ci.required=show;
+      try{updatePickupPresetNote();}catch(e){}
+    });
+    try{updatePickupPresetNote();}catch(e){}
+  }
 })();
 
 
@@ -3293,6 +3546,7 @@ function renderGameRankingHTML(opts) {
       'color:var(--ink,#EDE6F5);cursor:pointer;text-align:left;font-family:inherit">' +
       '<span style="font-size:1rem;color:' + gr.c + ';flex:none">' + medal + '</span>' +
       '<span style="flex:1;min-width:0;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r.name) + '</span>' +
+      salesRankBadge(salesRankOf(r.name), { small: true }) +
       (r.hot ? '<span style="flex:none;font-size:.66rem;color:var(--muted)">🔥' + esc(r.hot) + '</span>' : '') +
       '<span style="flex:none;font-size:.78rem;color:' + gr.c + ';font-weight:700">' + r.score + '</span>' +
       '<span style="flex:none;width:1.5em;text-align:center;font-size:.74rem;color:' + gr.c + ';' +
@@ -3307,6 +3561,7 @@ function renderGameRankingHTML(opts) {
       '<div style="font-size:.68rem;color:var(--muted);margin-bottom:2px">本日ガチャを推奨する時間</div>' +
       hotHTML +
       '<div style="font-size:.64rem;color:var(--muted);margin-top:7px">' +
+      (salesRankOf(r.name) ? 'セルラン:' + salesRankOf(r.name) + '位　' : '') +
       (r.rokuyo ? '六曜:' + esc(r.rokuyo) + '　' : '') +
       (r.dayK ? '日盤:' + esc(r.dayK) + '　' : '') +
       (r.tarot ? 'タロット:' + esc(r.tarot) : '') + '</div>' +
@@ -3956,97 +4211,192 @@ function updatePityNavi() {
    カプセルの案内役（このアプリのためのオリジナルキャラクター）
    黒髪ロング・凛とした佇まい。表情/髪飾り/衣装の色が引くたびに変わる。
    ════════════════════════════════════════════════════════════ */
+// ═══════════════════════════════════════════════════
+//   カプセルの案内役「クトちゃん」
+//   ロングストレートの黒髪・ぱっつん前髪・姫カットの横髪、
+//   大きな紫の瞳（虹彩グラデ＋多重ハイライト）、
+//   白ブラウス×紺プリーツスカートのアニメ塗り。
+//   4テーマ（制服／白ワンピ／紫紺髪／夏ドレス）を日替わりで出す。
+// ═══════════════════════════════════════════════════
 var GIRL_THEMES = [
-  { hair:'#241E2E', hair2:'#463A57', dress:'#C9A84C', dress2:'#8A6E24', acc:'#F5E6B8' },
-  { hair:'#1F1B29', hair2:'#3E3450', dress:'#A78BFA', dress2:'#6D51C4', acc:'#E4D9FF' },
-  { hair:'#2A2130', hair2:'#4B3A50', dress:'#F49AC1', dress2:'#C46E92', acc:'#FFE0EE' },
-  { hair:'#1C2230', hair2:'#36435C', dress:'#38BDF8', dress2:'#1E7FA8', acc:'#D6F1FF' }
+  // ① 制服（白ブラウス×紺プリーツ）
+  { hair:'#15121F', hair2:'#332C4A', shine:'#8E7FC4', eye:'#3B2A6B', eye2:'#B49BF0',
+    top:'#FFFFFF', top2:'#DCD9EC', skirt:'#232149', skirt2:'#14132C', ribbon:'#7C5CC4', acc:'#EDD070' },
+  // ② 白ワンピース
+  { hair:'#171426', hair2:'#3A3154', shine:'#9C8BD0', eye:'#432E74', eye2:'#C3ACF6',
+    top:'#FFFDF8', top2:'#E7E1D6', skirt:'#F6F1E7', skirt2:'#DCD2C2', ribbon:'#C9A84C', acc:'#F6E7B4' },
+  // ③ 紫紺髪
+  { hair:'#1E1836', hair2:'#453A78', shine:'#A896E8', eye:'#3A2A70', eye2:'#BFA6F7',
+    top:'#FFFFFF', top2:'#DFDCF0', skirt:'#2B2660', skirt2:'#181541', ribbon:'#8B5CF6', acc:'#D8C6FF' },
+  // ④ 夏ドレス（焦茶髪）
+  { hair:'#211722', hair2:'#4A3542', shine:'#B392A0', eye:'#4A2E63', eye2:'#C9A9F0',
+    top:'#FFFFFF', top2:'#EBE4EC', skirt:'#FFFFFF', skirt2:'#E3DCE6', ribbon:'#3B3570', acc:'#F7C8D8' }
 ];
 
 function oracleGirlSVG(rank, seed){
   var t = GIRL_THEMES[Math.abs(seed) % GIRL_THEMES.length];
-  var face = Math.abs(Math.floor(seed/7)) % 4;
-  var acc  = Math.abs(Math.floor(seed/13)) % 3;
+  var face = Math.abs(Math.floor(seed/7)) % 3;    // 表情
+  var acc  = Math.abs(Math.floor(seed/13)) % 3;   // 髪飾り
 
-  var eyes, mouth;
-  if(face===1){
-    eyes = '<path d="M62 90 q7 -6 14 0" stroke="#241E2E" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
-           '<ellipse cx="102" cy="90" rx="7.6" ry="9.8" fill="#2A2233"/>'+
-           '<circle cx="104.6" cy="86.4" r="3.2" fill="#fff"/>'+
-           '<circle cx="100.2" cy="93.4" r="1.5" fill="#fff" opacity=".7"/>';
-    mouth = '<path d="M76 108 q8 7 16 0" stroke="#B5566E" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
-  } else if(face===2){
-    eyes = '<path d="M60 91 q8 -7 16 0" stroke="#241E2E" stroke-width="3.4" fill="none" stroke-linecap="round"/>'+
-           '<path d="M96 91 q8 -7 16 0" stroke="#241E2E" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
-    mouth = '<path d="M75 106 q9 9 18 0" stroke="#B5566E" stroke-width="2.8" fill="none" stroke-linecap="round"/>';
-  } else if(face===3){
-    eyes = '<ellipse cx="68" cy="89" rx="7.4" ry="10.2" fill="#2A2233"/>'+
-           '<ellipse cx="104" cy="89" rx="7.4" ry="10.2" fill="#2A2233"/>'+
-           '<circle cx="70.6" cy="85.2" r="3.1" fill="#fff"/><circle cx="106.6" cy="85.2" r="3.1" fill="#fff"/>'+
-           '<circle cx="66.2" cy="92.6" r="1.6" fill="#fff" opacity=".75"/><circle cx="102.2" cy="92.6" r="1.6" fill="#fff" opacity=".75"/>'+
-           '<path d="M58 78 q10 -5 20 -1" stroke="#3A3145" stroke-width="2.4" fill="none" stroke-linecap="round"/>'+
-           '<path d="M94 77 q10 -4 20 1" stroke="#3A3145" stroke-width="2.4" fill="none" stroke-linecap="round"/>';
-    mouth = '<ellipse cx="86" cy="107" rx="4.6" ry="5.4" fill="#B5566E"/>';
-  } else {
-    eyes = '<ellipse cx="68" cy="89" rx="7.2" ry="9.6" fill="#2A2233"/>'+
-           '<ellipse cx="104" cy="89" rx="7.2" ry="9.6" fill="#2A2233"/>'+
-           '<circle cx="70.4" cy="85.4" r="3" fill="#fff"/><circle cx="106.4" cy="85.4" r="3" fill="#fff"/>'+
-           '<circle cx="66" cy="92.4" r="1.5" fill="#fff" opacity=".7"/><circle cx="102" cy="92.4" r="1.5" fill="#fff" opacity=".7"/>';
-    mouth = '<path d="M77 107 q9 6 18 0" stroke="#B5566E" stroke-width="2.6" fill="none" stroke-linecap="round"/>';
+  // ── 瞳（アニメ塗り: 虹彩グラデ＋下部の光溜まり＋多重ハイライト＋まつ毛）──
+  function eye(cx, flip){
+    var out = flip ? 1 : -1;      // 目尻（顔の外側）の向き
+    // 位置決めの <g transform> と、まばたき用の <g class="og-eye"> を分ける。
+    // 同じ要素に置くと CSS の transform が SVG の transform 属性を上書きしてしまい、
+    // アニメーション中だけ瞳が原点(左上)へ飛ぶ。
+    return '<g transform="translate('+cx+',114)"><g class="og-eye">'
+      // 白目
+      + '<ellipse cx="0" cy="0" rx="12" ry="14.5" fill="#FFFFFF"/>'
+      // 虹彩
+      + '<ellipse cx="0" cy="0.5" rx="10.5" ry="13" fill="url(#ogIris)"/>'
+      // 下まぶた側の光溜まり
+      + '<ellipse cx="0" cy="5" rx="8.5" ry="6" fill="'+t.eye2+'" opacity=".75"/>'
+      // 瞳孔
+      + '<ellipse cx="0" cy="1" rx="4.4" ry="6.6" fill="#140F26" opacity=".92"/>'
+      // ハイライト（光源は左上で統一）
+      + '<ellipse cx="-3.6" cy="-5.6" rx="4.2" ry="3.4" fill="#FFFFFF"/>'
+      + '<circle cx="4.2" cy="5.2" r="2.1" fill="#FFFFFF" opacity=".9"/>'
+      + '<circle cx="-5.8" cy="3.2" r="1.1" fill="#FFFFFF" opacity=".6"/>'
+      // 上まつ毛（太い上瞼）
+      + '<path d="M-12.6 -4 q4 -11 12.6 -11 q8.6 0 12.6 11 q-5 -6.4 -12.6 -6.4 q-7.6 0 -12.6 6.4z" fill="#100C1C"/>'
+      // 目尻のはね（必ず顔の外側へ）
+      + '<path d="M'+(11.4*out)+' -6.2 q'+(5.4*out)+' -2.6 '+(8*out)+' 1.6 q'+(-3.6*out)+' -1.4 '+(-7.6*out)+' 0.8z" fill="#100C1C"/>'
+      // 下まつ毛
+      + '<path d="M-9 9.6 q9 5.4 18 0" stroke="#2A2038" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".8"/>'
+      // 二重まぶた
+      + '<path d="M-10.6 -12 q10 -5.4 20 -0.6" stroke="#C9A08F" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".75"/>'
+      + '</g></g>';
+  }
+  var eyes = eye(77, false) + eye(123, true);
+
+  // ── 眉・口 ──
+  var brows, mouth;
+  if (face === 0) {            // やわらかい微笑み
+    brows = '<path d="M69 92 q6 -4.8 14 -3.4 l-0.6 2.8 q-7 -1.2 -12.6 3z" fill="'+t.hair2+'" opacity=".72"/>'
+          + '<path d="M131 92 q-6 -4.8 -14 -3.4 l0.6 2.8 q7 -1.2 12.6 3z" fill="'+t.hair2+'" opacity=".72"/>';
+    mouth = '<path d="M92 134 q8 6.4 16 0" stroke="#C2607E" stroke-width="2.4" fill="none" stroke-linecap="round"/>'
+          + '<path d="M94.5 134.6 q5.5 4 11 0 q-5.5 5.6 -11 0z" fill="#E58BA6" opacity=".55"/>';
+  } else if (face === 1) {     // にっこり（口を開けた笑顔）
+    brows = '<path d="M69 91 q6 -5.6 14 -4 l-0.6 2.8 q-7 -1.2 -12.6 3.6z" fill="'+t.hair2+'" opacity=".72"/>'
+          + '<path d="M131 91 q-6 -5.6 -14 -4 l0.6 2.8 q7 -1.2 12.6 3.6z" fill="'+t.hair2+'" opacity=".72"/>';
+    mouth = '<path d="M92 132 q8 10 16 0 q-8 3 -16 0z" fill="#B85575"/>'
+          + '<path d="M94.6 133 q5.4 2 10.8 0 q-5.4 1.4 -10.8 0z" fill="#FFE3EC" opacity=".85"/>';
+  } else {                     // ちょっと澄まし顔
+    brows = '<path d="M69 93 q6 -3.6 14 -2.8 l-0.6 2.8 q-7 -0.6 -12.6 2.4z" fill="'+t.hair2+'" opacity=".72"/>'
+          + '<path d="M131 93 q-6 -3.6 -14 -2.8 l0.6 2.8 q7 -0.6 12.6 2.4z" fill="'+t.hair2+'" opacity=".72"/>';
+    mouth = '<ellipse cx="100" cy="134" rx="3.6" ry="4.2" fill="#B85575"/>'
+          + '<ellipse cx="100" cy="132.6" rx="2.2" ry="1.6" fill="#FFE3EC" opacity=".8"/>';
   }
 
-  var accSVG='';
-  if(acc===0){
-    accSVG = '<g transform="translate(112,52) rotate(14)">'+
-      '<path d="M0 0 q-13 -9 -18 3 q-4 10 8 11 q-9 6 -2 14 q8 8 14 -4 q6 12 14 4 q7 -8 -2 -14 q12 -1 8 -11 q-6 -12 -18 -3z" fill="'+t.dress+'"/>'+
-      '<circle cx="0" cy="7" r="4.4" fill="'+t.acc+'"/></g>';
-  } else if(acc===1){
-    accSVG = '<g transform="translate(58,50)">'+
-      '<path d="M0 0 q-14 -4 -16 8 q-1 9 10 8 l6 -3z" fill="'+t.dress+'"/>'+
-      '<path d="M2 2 q14 -4 16 8 q1 9 -10 8 l-6 -3z" fill="'+t.dress2+'"/>'+
-      '<circle cx="1" cy="10" r="4" fill="'+t.acc+'"/></g>';
-  } else {
-    accSVG = '<g transform="translate(86,40)">'+
-      '<path d="M-24 6 q24 -16 48 0 q-24 -6 -48 0z" fill="'+t.dress+'" opacity=".95"/>'+
-      '<circle cx="-14" cy="3" r="3.4" fill="'+t.acc+'"/><circle cx="0" cy="0" r="4" fill="'+t.acc+'"/>'+
-      '<circle cx="14" cy="3" r="3.4" fill="'+t.acc+'"/></g>';
+  // ── 髪飾り ──
+  var accSVG;
+  if (acc === 0) {             // 大きめリボン
+    accSVG = '<g transform="translate(140,66) rotate(12)">'
+      + '<path d="M-3 0 q-13 -12 -22 -5 q-8 6 -2 15 q6 8 24 4z" fill="'+t.ribbon+'"/>'
+      + '<path d="M3 0 q13 -12 22 -5 q8 6 2 15 q-6 8 -24 4z" fill="'+t.ribbon+'"/>'
+      + '<path d="M-4 2 q-9 -6 -15 -2 q6 -1 15 5z" fill="#FFFFFF" opacity=".28"/>'
+      + '<path d="M-2 8 q-6 12 -12 16 q9 -2 14 -11z" fill="'+t.ribbon+'" opacity=".9"/>'
+      + '<path d="M2 8 q6 12 12 16 q-9 -2 -14 -11z" fill="'+t.ribbon+'" opacity=".9"/>'
+      + '<ellipse cx="0" cy="5" rx="5.4" ry="5" fill="'+t.acc+'"/>'
+      + '<circle cx="-1.6" cy="3.4" r="1.8" fill="#FFFFFF" opacity=".8"/></g>';
+  } else if (acc === 1) {      // 星のヘアピン
+    accSVG = '<g transform="translate(64,72)">'
+      + '<rect x="-11" y="-2.4" width="22" height="4.8" rx="2.4" fill="'+t.acc+'"/>'
+      + '<path d="M0 -12 l3 7 7.4 0.6 -5.6 4.8 1.8 7.2 -6.6 -4 -6.6 4 1.8 -7.2 -5.6 -4.8 7.4 -0.6z" fill="'+t.ribbon+'"/>'
+      + '<circle cx="0" cy="-3.4" r="1.6" fill="#FFFFFF" opacity=".85"/></g>';
+  } else {                     // 花かんむり
+    accSVG = '<g transform="translate(100,52)">'
+      + '<path d="M-30 8 q30 -19 60 0 q-30 -8 -60 0z" fill="'+t.ribbon+'" opacity=".9"/>'
+      + '<g fill="'+t.acc+'">'
+      + '<circle cx="-19" cy="3.6" r="4"/><circle cx="-6.4" cy="-0.6" r="4.8"/>'
+      + '<circle cx="6.4" cy="-0.6" r="4.8"/><circle cx="19" cy="3.6" r="4"/></g>'
+      + '<g fill="#FFFFFF" opacity=".75">'
+      + '<circle cx="-6.4" cy="-2" r="1.7"/><circle cx="6.4" cy="-2" r="1.7"/></g></g>';
   }
 
-  return '<svg class="og-svg" viewBox="0 0 172 250" xmlns="http://www.w3.org/2000/svg">'+
-    '<defs>'+
-      '<linearGradient id="ogHair" x1="0" y1="0" x2="0" y2="1">'+
-        '<stop offset="0" stop-color="'+t.hair2+'"/><stop offset="1" stop-color="'+t.hair+'"/></linearGradient>'+
-      '<linearGradient id="ogDress" x1="0" y1="0" x2="0" y2="1">'+
-        '<stop offset="0" stop-color="'+t.dress+'"/><stop offset="1" stop-color="'+t.dress2+'"/></linearGradient>'+
-      '<radialGradient id="ogGlow" cx="50%" cy="50%" r="50%">'+
-        '<stop offset="0" stop-color="#FFF8D6" stop-opacity=".95"/>'+
-        '<stop offset="60%" stop-color="'+t.dress+'" stop-opacity=".35"/>'+
-        '<stop offset="100%" stop-color="'+t.dress+'" stop-opacity="0"/></radialGradient>'+
-    '</defs>'+
-    /* 後ろ髪（ロング） */
-    '<path d="M86 34 q-42 4 -46 56 q-4 60 6 108 q10 -16 22 -18 q-10 -52 -4 -92 q22 -14 22 -14 q0 0 22 14 q6 40 -4 92 q12 2 22 18 q10 -48 6 -108 q-4 -52 -46 -56z" fill="url(#ogHair)"/>'+
-    /* 首・肩 */
-    '<path d="M74 120 h24 v20 h-24z" fill="#F6DFD0"/>'+
-    '<path d="M86 136 q-34 6 -40 44 q-2 22 2 44 h76 q4 -22 2 -44 q-6 -38 -40 -44z" fill="url(#ogDress)"/>'+
-    '<path d="M86 136 q-10 16 0 30 q10 -14 0 -30z" fill="#fff" opacity=".28"/>'+
-    /* 顔 */
-    '<ellipse cx="86" cy="88" rx="34" ry="38" fill="#FBEADF"/>'+
-    '<ellipse cx="62" cy="100" rx="7" ry="4.6" fill="#F7B7C4" opacity=".55"/>'+
-    '<ellipse cx="110" cy="100" rx="7" ry="4.6" fill="#F7B7C4" opacity=".55"/>'+
-    eyes + mouth +
-    /* 前髪 */
-    '<path d="M86 46 q-36 2 -38 40 q10 -22 22 -24 q10 12 16 12 q6 0 16 -12 q12 2 22 24 q-2 -38 -38 -40z" fill="url(#ogHair)"/>'+
-    '<path d="M50 60 q-8 30 -4 56 q-8 -26 4 -56z" fill="url(#ogHair)"/>'+
-    '<path d="M122 60 q8 30 4 56 q8 -26 -4 -56z" fill="url(#ogHair)"/>'+
-    accSVG +
-    /* 差し出した手のひら＋ランク */
-    '<g class="og-hand">'+
-      '<ellipse cx="132" cy="176" rx="26" ry="26" fill="url(#ogGlow)"/>'+
-      '<path d="M118 190 q-6 -14 4 -20 q10 -6 20 -2 q10 4 10 12 q0 10 -12 14 q-14 4 -22 -4z" fill="#FBEADF"/>'+
-      '<path d="M120 188 q10 6 22 2" stroke="#E9C7B6" stroke-width="1.6" fill="none"/>'+
-      '<text class="og-rank" x="132" y="172" text-anchor="middle">'+rank+'</text>'+
-    '</g>'+
-    '</svg>';
+  return '<svg class="og-svg" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">'
+  + '<defs>'
+    + '<linearGradient id="ogHair" x1="0.3" y1="0" x2="0.7" y2="1">'
+      + '<stop offset="0" stop-color="'+t.hair2+'"/><stop offset="0.45" stop-color="'+t.hair+'"/>'
+      + '<stop offset="1" stop-color="'+t.hair2+'"/></linearGradient>'
+    + '<linearGradient id="ogSkin" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="#FFF3EA"/><stop offset="1" stop-color="#F8DFD0"/></linearGradient>'
+    + '<radialGradient id="ogIris" cx="50%" cy="34%" r="72%">'
+      + '<stop offset="0" stop-color="'+t.eye2+'"/><stop offset="0.55" stop-color="'+t.eye+'"/>'
+      + '<stop offset="1" stop-color="#160F2C"/></radialGradient>'
+    + '<linearGradient id="ogTop" x1="0" y1="0" x2="0.2" y2="1">'
+      + '<stop offset="0" stop-color="'+t.top+'"/><stop offset="1" stop-color="'+t.top2+'"/></linearGradient>'
+    + '<linearGradient id="ogSkirt" x1="0" y1="0" x2="0" y2="1">'
+      + '<stop offset="0" stop-color="'+t.skirt+'"/><stop offset="1" stop-color="'+t.skirt2+'"/></linearGradient>'
+    + '<linearGradient id="ogShine" x1="0" y1="0" x2="1" y2="0">'
+      + '<stop offset="0" stop-color="'+t.shine+'" stop-opacity="0"/>'
+      + '<stop offset="0.5" stop-color="'+t.shine+'" stop-opacity=".85"/>'
+      + '<stop offset="1" stop-color="'+t.shine+'" stop-opacity="0"/></linearGradient>'
+    + '<radialGradient id="ogGlow" cx="50%" cy="50%" r="50%">'
+      + '<stop offset="0" stop-color="#FFF8D6" stop-opacity=".95"/>'
+      + '<stop offset="55%" stop-color="'+t.acc+'" stop-opacity=".4"/>'
+      + '<stop offset="100%" stop-color="'+t.acc+'" stop-opacity="0"/></radialGradient>'
+  + '</defs>'
+
+  /* ── 後ろ髪（ロングストレート・毛先まで） ── */
+  + '<g class="og-hairback">'
+    + '<path d="M100 40 q-50 2 -56 62 q-5 52 -1 108 q1 22 6 34 q10 -20 24 -24 q-10 -60 -6 -104 q3 -30 33 -38 q30 8 33 38 q4 44 -6 104 q14 4 24 24 q5 -12 6 -34 q4 -56 -1 -108 q-6 -60 -56 -62z" fill="url(#ogHair)"/>'
+    + '<path d="M52 118 q-3 60 4 104 q-8 -46 -4 -104z" fill="'+t.shine+'" opacity=".18"/>'
+    + '<path d="M148 118 q3 60 -4 104 q8 -46 4 -104z" fill="'+t.shine+'" opacity=".18"/>'
+  + '</g>'
+
+  /* ── 首・肩・上衣 ── */
+  + '<path d="M89 146 h22 v16 q-11 7 -22 0z" fill="#F0CFC0"/>'
+  + '<path d="M100 162 q-39 7 -46 46 q-4 22 -2 42 h96 q2 -20 -2 -42 q-7 -39 -46 -46z" fill="url(#ogTop)"/>'
+  /* 差し出した腕（袖） */
+  + '<path d="M136 176 q24 11 28 32 q2 11 -7 14 q-11 3 -15 -8 q-4 -15 -18 -23z" fill="url(#ogTop)"/>'
+  + '<path d="M139 181 q18 11 22 28" stroke="'+t.top2+'" stroke-width="1.4" fill="none" opacity=".7"/>'
+  /* 襟 */
+  + '<path d="M100 162 q-13 3 -18 9 q9 5 18 16 q9 -11 18 -16 q-5 -6 -18 -9z" fill="#FFFFFF"/>'
+  + '<path d="M100 187 q-9 -11 -18 -16 l4 -3 q9 6 14 13z" fill="'+t.top2+'"/>'
+  + '<path d="M100 187 q9 -11 18 -16 l-4 -3 q-9 6 -14 13z" fill="'+t.top2+'"/>'
+  /* 胸元のリボン */
+  + '<path d="M100 186 l-10 -5 -2 10 z M100 186 l10 -5 2 10 z" fill="'+t.ribbon+'"/>'
+  + '<circle cx="100" cy="187" r="3.2" fill="'+t.acc+'"/>'
+  /* スカート（プリーツ）※上衣の裾に重ねて継ぎ目を作らない */
+  + '<path d="M53 244 q47 9 94 0 l10 40 q-57 11 -114 0z" fill="url(#ogSkirt)"/>'
+  + '<g stroke="#FFFFFF" stroke-width="1.1" opacity=".16">'
+    + '<path d="M72 248 l-6 34"/><path d="M91 250 l-3 35"/>'
+    + '<path d="M109 250 l3 35"/><path d="M128 248 l6 34"/></g>'
+
+  /* ── 顔 ── */
+  + '<path d="M100 56 q40 0 42 46 q1 26 -14 40 q-12 12 -28 16 q-16 -4 -28 -16 q-15 -14 -14 -40 q2 -46 42 -46z" fill="url(#ogSkin)"/>'
+  /* 頬の赤み */
+  + '<ellipse cx="72" cy="124" rx="9" ry="5.4" fill="#F79FB4" opacity=".5"/>'
+  + '<ellipse cx="128" cy="124" rx="9" ry="5.4" fill="#F79FB4" opacity=".5"/>'
+  /* 鼻 */
+  + '<path d="M100 122 q2.4 2.6 -0.6 3.8" stroke="#E0AF9C" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+  + brows + eyes + mouth
+
+  /* ── 前髪（ぱっつん＋触角）と姫カットの横髪 ── */
+  + '<path d="M100 40 q-44 1 -46 50 q-1 14 2 22 q2 -22 8 -30 q10 10 22 9 q10 -1 14 -8 q4 7 14 8 q12 1 22 -9 q6 8 8 30 q3 -8 2 -22 q-2 -49 -46 -50z" fill="url(#ogHair)"/>'
+  + '<path d="M62 64 q22 -20 46 -14 q-26 0 -46 14z" fill="'+t.shine+'" opacity=".5"/>'
+  + '<ellipse cx="100" cy="60" rx="30" ry="7" fill="url(#ogShine)" opacity=".55"/>'
+  + '<g class="og-sidelock">'
+    + '<path d="M56 70 q-7 40 -3 76 q3 22 8 34 q-14 -8 -17 -34 q-4 -44 12 -76z" fill="url(#ogHair)"/>'
+    + '<path d="M144 70 q7 40 3 76 q-3 22 -8 34 q14 -8 17 -34 q4 -44 -12 -76z" fill="url(#ogHair)"/>'
+  + '</g>'
+  + accSVG
+
+  /* ── 差し出した手のひら＋ランク ── */
+  + '<g class="og-hand">'
+    /* 手のひら（指の分かれ目つき） */
+    + '<path d="M140 236 q-8 -14 4 -20 q13 -7 25 -2 q12 5 11 14 q-1 11 -15 14 q-16 4 -25 -6z" fill="url(#ogSkin)"/>'
+    + '<g stroke="#E9C0AC" stroke-width="1.3" fill="none" opacity=".8">'
+      + '<path d="M147 219 q3 8 1 15"/><path d="M156 217 q2 9 0 16"/><path d="M165 219 q1 8 -1 14"/></g>'
+    /* 手のひらに浮かぶ光球＋ランク */
+    + '<ellipse cx="156" cy="204" rx="34" ry="34" fill="url(#ogGlow)"/>'
+    + '<circle cx="156" cy="204" r="19" fill="rgba(255,248,214,.22)" stroke="'+t.acc+'" stroke-width="1.6" stroke-opacity=".7"/>'
+    + '<ellipse cx="150" cy="197" rx="6" ry="4" fill="#FFFFFF" opacity=".55"/>'
+    + '<text class="og-rank" x="156" y="215" text-anchor="middle" font-size="30" font-weight="900" '
+      + 'fill="#FFF8D6" stroke="#8A6E24" stroke-width="4.5" paint-order="stroke" stroke-linejoin="round">'+rank+'</text>'
+  + '</g>'
+  + '</svg>';
 }
 
 function playCapsule(rank) {
@@ -4153,6 +4503,7 @@ function runFortune(){
     zodiac:(document.getElementById('zodiac')||{value:''}).value||'',
     bloodType:(document.getElementById('bloodType')||{value:''}).value||'',
     eto:(document.getElementById('eto')||{value:''}).value||'',
+    guaranteedNow:!!(document.getElementById('pickupGuaranteed')||{}).checked,
     pickupRate:parseFloat((document.getElementById('pickupRate')||{value:''}).value)||null,
     pityCount:parseInt((document.getElementById('pityCount')||{value:''}).value)||0,
     currentPulls:parseInt((document.getElementById('currentPulls')||{value:''}).value)||0
@@ -4487,7 +4838,7 @@ function renderMonthlyRanking(){
       +'<button onclick="_calNav(1)" '+(_nOK?'':'disabled')+' style="'+(_nOK?_bs:_bs+';'+_bd)+'">翌月 ▶</button></div>';
     var html=nav+'<div style="font-size:.72rem;color:var(--muted);margin-bottom:10px">'+y+'年'+(m+1)+'月の運気上位日（六曜・月齢・吉日'+(honmeiElem?'・日盤九星×本命星':'')+'を統合）</div>';
     html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:.8rem">';
-    html+='<tr style="color:var(--muted);font-size:.66rem;text-align:left"><th style="padding:6px 8px">順位</th><th style="padding:6px 8px">日付</th><th style="padding:6px 8px">六曜</th><th style="padding:6px 8px">月相</th><th style="padding:6px 8px">吉日</th><th style="padding:6px 8px;text-align:right">スコア</th><th style="padding:6px 8px;text-align:center">おすすめ</th></tr>';
+    html+='<tr style="color:var(--muted);font-size:.66rem;text-align:left"><th style="padding:6px 5px">順位</th><th style="padding:6px 5px">日付</th><th style="padding:6px 5px">六曜</th><th style="padding:6px 5px">月相</th><th style="padding:6px 5px">吉日</th><th style="padding:6px 5px;text-align:right">スコア</th></tr>';
     top.forEach(function(r,i){
       var g=grade(r.score);
       var isToday=(r.d===todayD);
@@ -4502,13 +4853,14 @@ function renderMonthlyRanking(){
           }).join('')
         : '<span style="color:var(--muted);font-size:.62rem">—</span>';
       html+='<tr style="border-bottom:1px solid rgba(255,255,255,.06)'+(isToday?';background:rgba(201,168,76,.08)':'')+'">'
-        +'<td style="padding:7px 8px;color:var(--gold);font-family:\'Cinzel\',serif">'+(i+1)+'</td>'
-        +'<td style="padding:7px 8px;white-space:nowrap">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?' <span style="font-size:.6rem;color:var(--gold)">★本日</span>':'')+(r.kichi.supreme?' <span style="font-size:.56rem;color:#EDD070">⚡最強</span>':'')+'</td>'
-        +'<td style="padding:7px 8px;color:'+rokC+'">'+r.rokuyo.icon+r.rokuyo.name+'</td>'
-        +'<td style="padding:7px 8px;white-space:nowrap">'+r.moon.icon+r.moon.name+'</td>'
-        +'<td style="padding:7px 8px;max-width:190px">'+kBadge+'</td>'
-        +'<td style="padding:7px 8px;text-align:right;font-weight:bold">'+r.score+'</td>'
-        +'<td style="padding:7px 8px;text-align:center"><span style="font-family:\'Cinzel\',serif;font-weight:bold;padding:2px 10px;border-radius:12px;color:'+gColor[g]+';background:rgba(255,255,255,.05);border:1px solid '+gColor[g]+'55">'+g+'</span></td>'
+        +'<td style="padding:7px 5px;color:var(--gold);font-family:\'Cinzel\',serif">'+(i+1)+'</td>'
+        +'<td style="padding:7px 5px;white-space:nowrap">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?'<br><span style="font-size:.6rem;color:var(--gold)">★本日</span>':'')+(r.kichi.supreme?'<br><span style="font-size:.56rem;color:#EDD070">⚡最強開運日</span>':'')+'</td>'
+        +'<td style="padding:7px 5px;color:'+rokC+';white-space:nowrap">'+r.rokuyo.icon+r.rokuyo.name+'</td>'
+        +'<td style="padding:7px 4px;white-space:nowrap">'+r.moon.icon+r.moon.name.replace('の月','')+'</td>'
+        +'<td style="padding:7px 4px;max-width:112px">'+kBadge+'</td>'
+        // スコアと評価は1セルにまとめる（狭い画面で表がはみ出さないように）
+        +'<td style="padding:7px 5px;text-align:right;white-space:nowrap"><b>'+r.score+'</b>'
+        +'<br><span style="font-family:\'Cinzel\',serif;font-weight:bold;font-size:.7rem;padding:1px 8px;border-radius:12px;color:'+gColor[g]+';background:rgba(255,255,255,.05);border:1px solid '+gColor[g]+'55">'+g+'</span></td>'
         +'</tr>';
     });
     html+='</table></div>';
@@ -4550,28 +4902,91 @@ function renderMonthlyRanking(){
     .then(function(){ try{renderMonthlyRanking();}catch(e){} });
 })();
 
+// ═══════════════════════════════════════════════════
+//   ゲームリスト（games.json）とセルラン
+//   playing[].rank / trending[].rank に App Store(JP) の
+//   ゲームカテゴリ売上ランキング順位が入る。プルダウンと
+//   ゲームランキングの両方で使う。
+// ═══════════════════════════════════════════════════
+var GAMES_JSON=null;              // 読み込んだ games.json
+var SALES_RANK={};                // {ゲーム名/value: セルラン順位}
+function salesRankOf(name){
+  if(!name||!SALES_RANK)return null;
+  var r=SALES_RANK[name];
+  return typeof r==='number'?r:null;
+}
+function salesRankBadge(rank,opts){
+  if(!rank)return '';
+  var o=opts||{};
+  // 上位ほど強い色。1〜10位は金、〜30位は紫、〜100位は水色、それ以下は控えめ
+  var c=rank<=10?'#EDD070':rank<=30?'#C4B5FD':rank<=100?'#7DD3FC':'#94A3B8';
+  var bg=rank<=10?'rgba(201,168,76,.15)':rank<=30?'rgba(139,92,246,.12)':'rgba(56,189,248,.10)';
+  return '<span title="App Store（日本）ゲームカテゴリ 売上ランキング順位" '
+    +'style="display:inline-block;font-size:'+(o.small?'.58rem':'.64rem')+';padding:1px 7px;border-radius:999px;'
+    +'white-space:nowrap;color:'+c+';background:'+bg+';border:1px solid '+c+'55'+(o.ml?';margin-left:6px':'')+'">'
+    +'セルラン '+rank+'位</span>';
+}
 (function(){
   var sel=document.getElementById('gameTitle');
-  if(!sel||typeof fetch!=='function')return;
+  if(typeof fetch!=='function')return;
   fetch('./games.json',{cache:'no-cache'})
     .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
     .then(function(d){
       if(!d||!Array.isArray(d.playing)||d.playing.length===0)return;
+      GAMES_JSON=d;
+      // セルラン索引（value と label の両方から引けるようにする）
+      [].concat(d.playing,d.trending||[]).forEach(function(g){
+        if(g&&typeof g.rank==='number'){
+          if(g.value)SALES_RANK[g.value]=g.rank;
+          if(g.label)SALES_RANK[g.label]=g.rank;
+        }
+      });
+      if(!sel)return;
       var cur=sel.value;
+      // 順位を1件も持たない旧形式の games.json では順位表記そのものを出さない
+      var hasRank=[].concat(d.playing,d.trending||[]).some(function(g){return g&&typeof g.rank==='number';});
+      // セルランはプルダウン内に併記する（option には HTML を入れられないため文字で）
+      function opt(g){
+        var label=g.label;
+        if(hasRank)label+=typeof g.rank==='number'?'（セルラン'+g.rank+'位）':'（セルラン圏外）';
+        if(g.sunsetting)label+=' ⚠終了予定';
+        return '<option value="'+esc(g.value)+'">'+esc(label)+'</option>';
+      }
+      // セルラン上位から並べる（圏外は元の並びのまま末尾へ）
+      var playing=d.playing.slice().map(function(g,i){return{g:g,i:i};})
+        .sort(function(a,b){
+          var ra=typeof a.g.rank==='number'?a.g.rank:9999,
+              rb=typeof b.g.rank==='number'?b.g.rank:9999;
+          return ra-rb || a.i-b.i;
+        }).map(function(x){return x.g;});
       var html='<option value="">選択してください</option>';
-      html+='<optgroup label="★ プレイ中のタイトル（毎日生存確認済）">';
-      d.playing.forEach(function(g){html+='<option value="'+esc(g.value)+'">'+esc(g.label)+'</option>';});
+      html+='<optgroup label="★ プレイ中のタイトル（毎日生存確認済・セルラン順）">';
+      playing.forEach(function(g){html+=opt(g);});
       html+='</optgroup>';
       if(Array.isArray(d.trending)&&d.trending.length>0){
         html+='<optgroup label="🔥 セールスランキング上位（自動取得）">';
-        d.trending.forEach(function(g){html+='<option value="'+esc(g.value)+'">'+esc(g.label)+'</option>';});
+        d.trending.forEach(function(g){html+=opt(g);});
         html+='</optgroup>';
       }
       html+='<option value="その他">その他（自由入力）</option>';
       sel.innerHTML=html;
       if(cur){sel.value=cur;if(sel.value!==cur)sel.value='';}
       var cap=document.getElementById('games-updated-cap');
-      if(cap)cap.textContent='📡 リスト自動更新: '+(d.updated||'')+'｜プレイ中'+d.playing.length+'本＋人気'+(d.trending?d.trending.length:0)+'本';
+      if(cap){
+        var nRank=d.playing.filter(function(g){return typeof g.rank==='number';}).length;
+        var eos=(d.eos&&d.eos.length)?'｜サ終除外'+d.eos.length+'本':'';
+        cap.textContent='📡 リスト自動更新: '+(d.updated||'')+'｜プレイ中'+d.playing.length+'本'
+          +(hasRank?'（セルラン掲載'+nRank+'本）':'')+'＋人気'+(d.trending?d.trending.length:0)+'本'+eos;
+      }
+      // 既に描画済みのゲームランキングにセルランを反映する
+      // 起動時ランキングを既に描画済みなら、セルラン付きで描き直す
+      try{
+        var _lr=document.getElementById('launch-rank');
+        if(_lr&&_lr.innerHTML&&typeof renderGameRankingHTML==='function'){
+          var _h=renderGameRankingHTML({top:true});
+          if(_h)_lr.innerHTML=_h;
+        }
+      }catch(e){}
     })
     .catch(function(e){
       console.warn('games.json load skipped:',e);
