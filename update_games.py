@@ -240,25 +240,115 @@ def fetch_appmedia():
     return entries
 
 
+# App Store のカテゴリ名（gi-meta）でゲームか判定する。
+# Game-i は各項目にストアの主カテゴリを併記しているので、キーワードよりも確実。
+NON_GAME_CATEGORIES = {
+    'productivity', 'photo & video', 'entertainment', 'social networking', 'music',
+    'books', 'news', 'finance', 'shopping', 'lifestyle', 'utilities', 'education',
+    'health & fitness', 'travel', 'food & drink', 'business', 'medical', 'navigation',
+    'reference', 'weather', 'developer tools', 'graphics & design', 'stickers',
+    'magazines & newspapers', 'newsstand',
+    '仕事効率化', '写真/ビデオ', 'エンターテインメント', 'ソーシャルネットワーキング',
+    'ミュージック', 'ブック', 'ニュース', 'ファイナンス', 'ショッピング', 'ライフスタイル',
+    'ユーティリティ', '教育', 'ヘルスケア/フィットネス', '旅行', 'フード/ドリンク',
+    'ビジネス', 'メディカル', 'ナビゲーション', '辞書/辞典/その他', '天気',
+}
+
+
+def parse_gamei(html, limit):
+    """Game-i の売上ランキングを抽出する。
+
+    ページ構造（2026-09 時点）:
+        <article class="gi-ranking-item">
+          <div class="gi-rank rank-1"><strong>1</strong><span class="up">▲3</span></div>
+          <a href=".../?APP/6448311069"><img class="gi-icon" alt="ChatGPTのアイコン" ...>
+            ...<div class="gi-company">…</div><div class="gi-meta">Productivity</div></a>
+        </article>
+    順位・アプリ名・ストアのカテゴリが1ブロックに揃っているので、
+    ゲーム以外の判定はキーワードではなくカテゴリで行える。
+    戻り値の各要素に category を持たせ、呼び出し側で除外する。
+    """
+    out = []
+    for m in re.finditer(r'(?is)<article[^>]*class="[^"]*gi-ranking-item[^"]*"[^>]*>(.*?)</article>', html):
+        block = m.group(1)
+        rm = re.search(r'(?is)class="[^"]*gi-rank[^"]*"[^>]*>\s*<strong>\s*(\d{1,4})\s*</strong>', block)
+        if not rm:
+            rm = re.search(r'(?is)class="[^"]*gi-rank[^"]*rank-(\d{1,4})', block)
+        if not rm:
+            continue
+        rank = int(rm.group(1))
+        if not (1 <= rank <= 999) or rank > limit:
+            continue
+        # アプリ名: アイコンの alt（"◯◯のアイコン"）が最も安定
+        name = ''
+        am = re.search(r'(?is)<img[^>]*class="[^"]*gi-icon[^"]*"[^>]*\balt="([^"]+)"', block)
+        if not am:
+            am = re.search(r'(?is)\balt="([^"]+)のアイコン"', block)
+        if am:
+            name = re.sub(r'のアイコン$', '', am.group(1)).strip()
+        if not name:
+            nm = re.search(r'(?is)<div[^>]*class="[^"]*gi-(?:name|title|app)[^"]*"[^>]*>(.*?)</div>', block)
+            if nm:
+                name = strip_tags(nm.group(1)).strip().split('\n')[0].strip()
+        if not name:
+            continue
+        cm = re.search(r'(?is)<div[^>]*class="[^"]*gi-meta[^"]*"[^>]*>(.*?)</div>', block)
+        category = strip_tags(cm.group(1)).strip().split('\n')[0].strip() if cm else ''
+        appid = None
+        im = re.search(r'\?APP/(\d+)', block)
+        if im:
+            appid = im.group(1)
+        out.append({'rank': rank, 'name': name, 'id': appid, 'category': category})
+    out.sort(key=lambda e: e['rank'])
+    # 同順位が複数出た場合は先勝ち
+    seen, uniq = set(), []
+    for e in out:
+        if e['rank'] in seen:
+            continue
+        seen.add(e['rank'])
+        uniq.append(e)
+    return uniq
+
+
+def is_game_entry(entry):
+    """Game-i の1件がゲームかどうか。カテゴリ優先、無ければキーワードで判定。"""
+    cat = (entry.get('category') or '').strip().lower()
+    if cat:
+        if 'game' in cat or 'ゲーム' in cat:
+            return True
+        if cat in NON_GAME_CATEGORIES:
+            return False
+    return not is_non_game(entry['name'])
+
+
 def fetch_gamei(min_rank):
     """Game-i の App Store 売上ランキングから min_rank 位以降を取得。
-    ゲーム以外のアプリが混ざるため、キーワードで除外したうえで順位は詰めずに保つ。"""
+    ゲーム以外のアプリが混ざるため、ストアのカテゴリで除外してから採用する。
+    順位は詰めずに実際の App Store 順位のまま保つ。"""
     try:
         html = _http_text(GAMEI_URL)
     except Exception as ex:
         print(f"[warn] Game-i 取得失敗: {ex}", file=sys.stderr)
         return []
-    entries = parse_rank_rows(html, RANK_MAX)
+    entries = parse_gamei(html, RANK_MAX)
+    if not entries:                      # 構造が変わった場合は汎用パーサで拾い直す
+        entries = parse_rank_rows(html, RANK_MAX)
+        print('[warn] Game-i: gi-ranking-item を検出できず汎用パーサにフォールバック', file=sys.stderr)
     if not validate_ranks(entries, need_top=10, min_count=80, source='Game-i'):
         return []
     kept, dropped = [], []
     for e in entries:
         if e['rank'] < min_rank:
             continue
-        if is_non_game(e['name']):
-            dropped.append(f"{e['rank']}位 {e['name']}")
-            continue
-        kept.append(e)
+        if is_game_entry(e):
+            kept.append(e)
+        else:
+            dropped.append(f"{e['rank']}位 {e['name']}({e.get('category') or 'カテゴリ不明'})")
+    cats = {}
+    for e in entries:
+        cats[e.get('category') or '(なし)'] = cats.get(e.get('category') or '(なし)', 0) + 1
+    top_cats = sorted(cats.items(), key=lambda kv: -kv[1])[:8]
+    print(f"[rank] Game-i: カテゴリ内訳 {top_cats}")
     if dropped:
         print(f"[rank] Game-i: ゲーム以外を{len(dropped)}件除外 "
               f"({', '.join(dropped[:8])}{' ...' if len(dropped) > 8 else ''})")

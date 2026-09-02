@@ -124,7 +124,6 @@ def _list(n, names):
 
 
 APPMEDIA_HTML = _table(100, _G, False)
-GAMEI_HTML = _table(300, _G + _NON, True)
 
 check(len(ug.parse_rank_rows(APPMEDIA_HTML, 100)) == 100, '表組みから100件抽出')
 check(len(ug.parse_rank_rows(_list(100, _G), 100)) == 100, 'リスト構造からも100件抽出')
@@ -139,6 +138,43 @@ check(ug.is_non_game('LINE') and ug.is_non_game('ピッコマ') and ug.is_non_ga
       'ゲーム以外を判定できる')
 check(not ug.is_non_game('原神') and not ug.is_non_game('ブルーアーカイブ'),
       'ゲームを誤って除外しない')
+
+# Game-i は <article class="gi-ranking-item"> 構造（実ページから起こしたフィクスチャ）
+def _gamei_article(rank, name, appid, cat):
+    return (f'<article class="gi-ranking-item">'
+            f'<div class="gi-rank rank-{rank}"><strong>{rank}</strong><span class="up">▲3</span></div>'
+            f'<a href="https://game-i.daa.jp/?APP/{appid}">'
+            f'<img class="gi-icon" src="https://example.invalid/x.jpg" alt="{name}のアイコン" width="48">'
+            f'<div class="gi-name">{name}</div><div class="gi-company">Some Co</div>'
+            f'<div class="gi-meta">{cat}</div></a>'
+            f'<a class="gi-chip" href="#">5min</a></article>')
+
+
+_GAMEI_ROWS = [(1, 'ChatGPT', '6448311069', 'Productivity'),
+               (2, 'YouTube', '544007664', 'Photo & Video'),
+               (3, 'モンスターストライク', '1', 'Games'),
+               (4, 'ピッコマ', '2', 'Books'),
+               (5, '原神', '3', 'Games')]
+_GAMEI_ROWS += [(i, ('原神' if i % 3 else 'LINE') + str(i), str(i),
+                 'Games' if i % 3 else 'Social Networking') for i in range(6, 301)]
+GAMEI_HTML = ('<html><body><div class="gi-ranking-list">'
+              + ''.join(_gamei_article(*r) for r in _GAMEI_ROWS) + '</div></body></html>')
+
+_gi = ug.parse_gamei(GAMEI_HTML, 300)
+check(len(_gi) == 300, 'Game-i の article 構造から300件抽出', f'実際 {len(_gi)}件')
+check(_gi[0]['rank'] == 1 and _gi[0]['name'] == 'ChatGPT' and _gi[0]['id'] == '6448311069',
+      '順位・アプリ名・アプリIDが取れる', str(_gi[0]))
+check(_gi[0]['category'] == 'Productivity', 'ストアのカテゴリが取れる', str(_gi[0]))
+check(not ug.is_game_entry(_gi[0]) and not ug.is_game_entry(_gi[1]) and not ug.is_game_entry(_gi[3]),
+      'カテゴリでゲーム以外（ChatGPT/YouTube/ピッコマ）を除外')
+check(ug.is_game_entry(_gi[2]) and ug.is_game_entry(_gi[4]),
+      'カテゴリがGamesのものは残す')
+check(ug.is_game_entry({'rank': 1, 'name': '原神', 'category': 'Games / Role Playing'}),
+      'ゲームのサブカテゴリ表記でも残す')
+check(ug.is_game_entry({'rank': 1, 'name': '原神', 'category': 'ゲーム'}), '日本語のカテゴリ表記も通る')
+check(not ug.is_game_entry({'rank': 1, 'name': 'LINE', 'category': ''})
+      and ug.is_game_entry({'rank': 1, 'name': '原神', 'category': ''}),
+      'カテゴリが無い場合はキーワードで判定')
 
 _orig_http = ug._http_text
 _orig_itunes = ug.fetch_itunes_ranking
@@ -173,8 +209,10 @@ try:
         raise Exception('down')
     ug._http_text = _http_gamei_only
     g3, f3, src3 = ug.fetch_ranking()
-    check('Game-i' in src3 and g3 and g3[0]['rank'] == 1,
-          'AppMedia だけ落ちたら Game-i が1位から埋める')
+    # 1位がゲーム以外なら除外されるので、先頭は必ずしも1位にならない（順位は詰めない）
+    check('Game-i' in src3 and g3 and g3[0]['rank'] <= 10 and len(g3) > 100,
+          'AppMedia だけ落ちたら Game-i が上位から埋める',
+          f"先頭 {g3[0]['rank'] if g3 else '-'}位 / {len(g3)}件")
 finally:
     ug._http_text = _orig_http
     ug.fetch_itunes_ranking = _orig_itunes
