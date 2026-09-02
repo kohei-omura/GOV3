@@ -1,7 +1,7 @@
 {
- "updated": "2026-09-02 21:07 JST",
- "rankSources": "1〜100位 AppMedia",
- "rankingSize": 100,
+ "updated": "2026-09-02 21:18 JST",
+ "rankSources": "1〜100位 AppMedia / 101位以降 Game-i",
+ "rankingSize": 163,
  "playing": [
   {
    "value": "コンパス",
@@ -20,15 +20,13 @@
   },
   {
    "value": "Black Desert Mobile",
-   "label": "黒い砂漠モバイル",
-   "rank": null,
-   "sunsetting": true,
-   "reason": "検索結果に本タイトルが無い（New 黒い砂漠 MOBILE, Black Desert+, HIT : The World-MMORPGオンラインMMO）"
+   "label": "New 黒い砂漠 MOBILE",
+   "rank": null
   },
   {
    "value": "Call of Duty",
    "label": "Call of Duty: Mobile",
-   "rank": null
+   "rank": 199
   },
   {
    "value": "DQウォーク",
@@ -53,12 +51,12 @@
   {
    "value": "LINE MF",
    "label": "LINE：モンスターファーム",
-   "rank": null
+   "rank": 190
   },
   {
    "value": "Master Duel",
    "label": "遊戯王 マスターデュエル",
-   "rank": null
+   "rank": 198
   },
   {
    "value": "NIKKE",
@@ -88,7 +86,7 @@
   {
    "value": "PUBG",
    "label": "PUBG MOBILE",
-   "rank": null
+   "rank": 168
   },
   {
    "value": "アサルトリリィ",
@@ -129,10 +127,8 @@
   },
   {
    "value": "グラクロ",
-   "label": "七つの大罪 グランドクロス",
-   "rank": null,
-   "sunsetting": true,
-   "reason": "検索結果に本タイトルが無い（七つの大罪 光と闇の交戦 : グラクロ, 七つの大罪 リトルクロニクル（リトクロ）, 七つの大罪：Origin-Half Anniversary）"
+   "label": "七つの大罪 光と闇の交戦 : グラクロ",
+   "rank": 186
   },
   {
    "value": "グラブル",
@@ -166,15 +162,13 @@
   },
   {
    "value": "ドルウェブ",
-   "label": "ドルウェブ",
-   "rank": null,
-   "sunsetting": true,
-   "reason": "検索結果に本タイトルが無い（ドルフィンウェーブ, ドルフィン ブラウザ - 簡単なアドブロック & 高速ウェブ検索, 画像保存 / 大量ダウンロード / iDig）"
+   "label": "ドルフィンウェーブ",
+   "rank": null
   },
   {
    "value": "ぷよクエ",
    "label": "ぷよぷよ!!クエスト",
-   "rank": 87
+   "rank": 149
   },
   {
    "value": "プリコネR",
@@ -184,7 +178,7 @@
   {
    "value": "ブルーアーカイブ",
    "label": "ブルーアーカイブ",
-   "rank": 98
+   "rank": 158
   },
   {
    "value": "ブレソル",
@@ -199,12 +193,12 @@
   {
    "value": "まおりゅう",
    "label": "転スラ 魔王と竜の建国譚",
-   "rank": null
+   "rank": 179
   },
   {
    "value": "まどドラ",
    "label": "マギアエクセドラ",
-   "rank": 69
+   "rank": 109
   },
   {
    "value": "ゆるドラ",
@@ -213,10 +207,8 @@
   },
   {
    "value": "ロススト",
-   "label": "ロススト",
-   "rank": null,
-   "sunsetting": true,
-   "reason": "検索結果に本タイトルが無い（コードギアス 反逆のルルーシュ　ロストストーリーズ, [777Real]パチスロ コードギアス 反逆のルルーシュ, Akinator）"
+   "label": "コードギアス 反逆のルルーシュ　ロストストーリーズ",
+   "rank": null
   },
   {
    "value": "陰陽師本格幻想",
@@ -266,7 +258,7 @@
   {
    "value": "鳴潮",
    "label": "鳴潮",
-   "rank": 86
+   "rank": 140
   },
   {
    "value": "STAR DIVE",
@@ -688,6 +680,111 @@
    "rank": 100
   },
   {
+   "value": "GoodNovel(グッドノベル) - ネット小説が楽しめる",
+   "label": "GoodNovel(グッドノベル) - ネット小説が楽しめる",
+   "rank": 104
+  },
+  {
+   "value": "netkeiba ネットケイバ",
+   "label": "netkeiba ネットケイバ",
+   "rank": 150
+  },
+  {
+   "value": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム",
+   "label": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム",
+   "rank": 151
+  },
+  {
+   "value": "X-Clash: サバイバル",
+   "label": "X-Clash: サバイバル",
+   "rank": 164
+  },
+  {
+   "value": "NBAダンクシティ",
+   "label": "NBAダンクシティ",
+   "rank": 165
+  },
+  {
+   "value": "プロサッカークラブをつくろう！",
+   "label": "プロサッカークラブをつくろう！",
+   "rank": 167
+  },
+  {
+   "value": "スタンドマイヒーローズ: 恋愛×パズル 女性向け乙女ゲーム",
+   "label": "スタンドマイヒーローズ: 恋愛×パズル 女性向け乙女ゲーム",
+   "rank": 169
+  },
+  {
+   "value": "eBaseball™: MLB PRO SPIRIT",
+   "label": "eBaseball™: MLB PRO SPIRIT",
+   "rank": 170
+  },
+  {
+   "value": "ジョジョの奇妙な冒険 オラオラオーバードライブ",
+   "label": "ジョジョの奇妙な冒険 オラオラオーバードライブ",
+   "rank": 176
+  },
+  {
+   "value": "聖霊伝説：最強への道",
+   "label": "聖霊伝説：最強への道",
+   "rank": 177
+  },
+  {
+   "value": "転生したらスライムだった件 魔王と竜の建国譚【まおりゅう】",
+   "label": "転生したらスライムだった件 魔王と竜の建国譚【まおりゅう】",
+   "rank": 179
+  },
+  {
+   "value": "ミステリータウン：マージゲーム (Mystery Town)",
+   "label": "ミステリータウン：マージゲーム (Mystery Town)",
+   "rank": 181
+  },
+  {
+   "value": "ドラゴンクエストタクト ドラクエのタクティクスRPG",
+   "label": "ドラゴンクエストタクト ドラクエのタクティクスRPG",
+   "rank": 182
+  },
+  {
+   "value": "城とドラゴン",
+   "label": "城とドラゴン",
+   "rank": 183
+  },
+  {
+   "value": "信長の野望 出陣",
+   "label": "信長の野望 出陣",
+   "rank": 184
+  },
+  {
+   "value": "セルサバイバー - シューティングゲーム",
+   "label": "セルサバイバー - シューティングゲーム",
+   "rank": 187
+  },
+  {
+   "value": "TopTop(トップトップ): サクッと遊んで、パッと友達",
+   "label": "TopTop(トップトップ): サクッと遊んで、パッと友達",
+   "rank": 191
+  },
+  {
+   "value": "ゼブラック：人気の漫画（マンガ）が読めるコミックアプリ",
+   "label": "ゼブラック：人気の漫画（マンガ）が読めるコミックアプリ",
+   "rank": 195
+  },
+  {
+   "value": "BRAVE FRONTIER LEGION",
+   "label": "BRAVE FRONTIER LEGION",
+   "rank": 196
+  },
+  {
+   "value": "杖と剣の伝説",
+   "label": "杖と剣の伝説",
+   "rank": 197
+  },
+  {
+   "value": "Wizardry Variants Daphne",
+   "label": "Wizardry Variants Daphne",
+   "rank": 200
+  },
+  {
    "value": "波乱水世界",
    "label": "波乱水世界",
    "rank": null
@@ -778,11 +875,6 @@
    "rank": null
   },
   {
-   "value": "TopTop(トップトップ): サクッと遊んで、パッと友達",
-   "label": "TopTop(トップトップ): サクッと遊んで、パッと友達",
-   "rank": null
-  },
-  {
    "value": "ArrowCube - 3DPuzzle",
    "label": "ArrowCube - 3DPuzzle",
    "rank": null
@@ -843,11 +935,6 @@
    "rank": null
   },
   {
-   "value": "X-Clash: サバイバル",
-   "label": "X-Clash: サバイバル",
-   "rank": null
-  },
-  {
    "value": "Arrow Pro 3D",
    "label": "Arrow Pro 3D",
    "rank": null
@@ -855,11 +942,6 @@
   {
    "value": "Fluffy Drop",
    "label": "Fluffy Drop",
-   "rank": null
-  },
-  {
-   "value": "セルサバイバー - シューティングゲーム",
-   "label": "セルサバイバー - シューティングゲーム",
    "rank": null
   },
   {
@@ -875,11 +957,6 @@
   {
    "value": "Water Sort Puzzle - Order Up",
    "label": "Water Sort Puzzle - Order Up",
-   "rank": null
-  },
-  {
-   "value": "ミステリータウン：マージゲーム (Mystery Town)",
-   "label": "ミステリータウン：マージゲーム (Mystery Town)",
    "rank": null
   },
   {
@@ -915,11 +992,6 @@
   {
    "value": "価値ズレ！ - 価値観協力オンラインゲーム",
    "label": "価値ズレ！ - 価値観協力オンラインゲーム",
-   "rank": null
-  },
-  {
-   "value": "NBAダンクシティ",
-   "label": "NBAダンクシティ",
    "rank": null
   },
   {
@@ -1089,13 +1161,18 @@
   "STAR DIVE": 6483252725,
   "Gジェネ ET": 6692611665,
   "七つの大罪：Origin": 6744205088,
-  "アークナイツ：エンドフィールド": 6752642477
+  "アークナイツ：エンドフィールド": 6752642477,
+  "Black Desert Mobile": 1477186880,
+  "PokémonMaster": 1442061397,
+  "グラクロ": 1268959718,
+  "ドルウェブ": 1533946351,
+  "ロススト": 1575830891
  },
  "missState": {
   "コンパス": 0,
   "AFKアリーナ": 0,
   "Alterna": 0,
-  "Black Desert Mobile": 1,
+  "Black Desert Mobile": 0,
   "Call of Duty": 0,
   "DQウォーク": 0,
   "Echocalypse": 0,
@@ -1112,18 +1189,18 @@
   "アサルトリリィ": 0,
   "アズールレーン": 0,
   "アリスギア": 0,
-  "うたわれLF": 1,
+  "うたわれLF": 2,
   "ウマ娘": 0,
   "おねがい社長！": 0,
   "カゲマス": 0,
-  "グラクロ": 1,
+  "グラクロ": 0,
   "グラブル": 0,
   "けもフレ3": 0,
   "ゼンレスゾーンゼロ": 0,
   "チェンクロ": 0,
   "ツムツム": 0,
   "ディスガイアRPG": 0,
-  "ドルウェブ": 1,
+  "ドルウェブ": 0,
   "ぷよクエ": 0,
   "プリコネR": 0,
   "ブルーアーカイブ": 0,
@@ -1132,7 +1209,7 @@
   "まおりゅう": 0,
   "まどドラ": 0,
   "ゆるドラ": 0,
-  "ロススト": 1,
+  "ロススト": 0,
   "陰陽師本格幻想": 0,
   "俺だけレベルアップな件：Arise": 0,
   "原神": 0,
@@ -1142,7 +1219,7 @@
   "崩壊3rd": 0,
   "無期迷途": 0,
   "鳴潮": 0,
-  "STAR DIVE": 1,
+  "STAR DIVE": 2,
   "Gジェネ ET": 0,
   "七つの大罪：Origin": 0,
   "アークナイツ：エンドフィールド": 0,
@@ -1169,14 +1246,14 @@
   },
   {
    "value": "Black Desert Mobile",
-   "alive": false,
+   "alive": true,
    "rank": null,
-   "reason": "検索結果に本タイトルが無い（New 黒い砂漠 MOBILE, Black Desert+, HIT : The World-MMORPGオンラインMMO）"
+   "reason": ""
   },
   {
    "value": "Call of Duty",
    "alive": true,
-   "rank": null,
+   "rank": 199,
    "reason": ""
   },
   {
@@ -1206,13 +1283,13 @@
   {
    "value": "LINE MF",
    "alive": true,
-   "rank": null,
+   "rank": 190,
    "reason": ""
   },
   {
    "value": "Master Duel",
    "alive": true,
-   "rank": null,
+   "rank": 198,
    "reason": ""
   },
   {
@@ -1237,7 +1314,7 @@
    "value": "PokémonMaster",
    "alive": true,
    "rank": 49,
-   "reason": "照合失敗だが売上49位に在位（検索結果に本タイトルが無い（Pokémon Masters EX, Pokémon Champions, Pokémon UNITE））"
+   "reason": ""
   },
   {
    "value": "PSO2es",
@@ -1248,7 +1325,7 @@
   {
    "value": "PUBG",
    "alive": true,
-   "rank": null,
+   "rank": 168,
    "reason": ""
   },
   {
@@ -1295,9 +1372,9 @@
   },
   {
    "value": "グラクロ",
-   "alive": false,
-   "rank": null,
-   "reason": "検索結果に本タイトルが無い（七つの大罪 光と闇の交戦 : グラクロ, 七つの大罪 リトルクロニクル（リトクロ）, 七つの大罪：Origin-Half Anniversary）"
+   "alive": true,
+   "rank": 186,
+   "reason": ""
   },
   {
    "value": "グラブル",
@@ -1337,14 +1414,14 @@
   },
   {
    "value": "ドルウェブ",
-   "alive": false,
+   "alive": true,
    "rank": null,
-   "reason": "検索結果に本タイトルが無い（ドルフィンウェーブ, ドルフィン ブラウザ - 簡単なアドブロック & 高速ウェブ検索, 画像保存 / 大量ダウンロード / iDig）"
+   "reason": ""
   },
   {
    "value": "ぷよクエ",
    "alive": true,
-   "rank": 87,
+   "rank": 149,
    "reason": ""
   },
   {
@@ -1356,7 +1433,7 @@
   {
    "value": "ブルーアーカイブ",
    "alive": true,
-   "rank": 98,
+   "rank": 158,
    "reason": ""
   },
   {
@@ -1374,13 +1451,13 @@
   {
    "value": "まおりゅう",
    "alive": true,
-   "rank": null,
+   "rank": 179,
    "reason": ""
   },
   {
    "value": "まどドラ",
    "alive": true,
-   "rank": 69,
+   "rank": 109,
    "reason": ""
   },
   {
@@ -1391,9 +1468,9 @@
   },
   {
    "value": "ロススト",
-   "alive": false,
+   "alive": true,
    "rank": null,
-   "reason": "検索結果に本タイトルが無い（コードギアス 反逆のルルーシュ　ロストストーリーズ, [777Real]パチスロ コードギアス 反逆のルルーシュ, Akinator）"
+   "reason": ""
   },
   {
    "value": "陰陽師本格幻想",
@@ -1452,7 +1529,7 @@
   {
    "value": "鳴潮",
    "alive": true,
-   "rank": 86,
+   "rank": 140,
    "reason": ""
   },
   {
