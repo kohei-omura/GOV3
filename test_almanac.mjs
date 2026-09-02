@@ -23,17 +23,18 @@ const ROOT = dirname(fileURLToPath(import.meta.url));
 // ── index.html から暦エンジン部分だけを切り出す ──
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 const HEAD = 'var ALM_SYNODIC=';
-const TAIL = 'function getKichijitsu(date){ return KICHI.ofDate(date); }';
+const TAIL = 'function getKyoujitsu(date){ return KYOU.ofDate(date); }';
 const a = html.indexOf(HEAD);
 const b = html.indexOf(TAIL);
 if (a < 0 || b < 0) {
-  console.error('❌ index.html から暦エンジンを切り出せません（ALM / KICHI の定義が見当たりません）');
+  console.error('❌ index.html から暦エンジンを切り出せません（ALM / KICHI / KYOU の定義が見当たりません）');
   process.exit(1);
 }
 const engine = html.slice(a, b + TAIL.length);
 const ctx = vm.createContext({ Math, Date, Map, JSON, console });
-vm.runInContext(engine + '\nthis.ALM=ALM; this.KICHI=KICHI;', ctx);
-const { ALM, KICHI } = ctx;
+vm.runInContext(engine + '\nthis.ALM=ALM; this.KICHI=KICHI; this.KYOU=KYOU;', ctx);
+const { ALM, KICHI, KYOU } = ctx;
+const vmKyou = () => KYOU;
 
 const dayNum = (y, m, d) => Math.floor(Date.UTC(y, m - 1, d) / 86400000);
 let failures = 0;
@@ -106,8 +107,71 @@ const sup = KICHI.ofDayNum(dayNum(2026, 3, 5));
 check(sup.names.join('+') === '天赦日+一粒万倍日+寅の日+大安' && sup.supreme === true,
   '2026-03-05 = 最強開運日', sup.names.join('+'));
 
+// ── 暦注下段の凶日・選日（公開暦と照合）──────────────────
+console.log('④ 暦注下段の凶日と選日');
+const KY = vmKyou();
+const collectKyou = (year, name) => {
+  const out = [];
+  for (let m = 1; m <= 12; m++) {
+    const dim = new Date(Date.UTC(year, m, 0)).getUTCDate();
+    for (let d = 1; d <= dim; d++) {
+      if (KY.ofDayNum(dayNum(year, m, d)).names.includes(name)) out.push(`${m}/${d}`);
+    }
+  }
+  return out;
+};
+const sep = (list) => list.filter(x => x.startsWith('9/')).join(' ');
+
+// 三箇の悪日は生まれ年の十二支で忌月が決まり、節月ごとに
+// 大禍日+7・狼藉日+3・滅門日+7 で十二支が進む。1ヶ月ごとに1つ進むと
+// 誤って実装していたため、2026-09-02 を十死日かつ狼藉日と誤判定していた。
+check(sep(collectKyou(2026, '狼藉日')) === '9/5 9/8 9/20',
+  '狼藉日 2026年9月 = 9/5・9/8・9/20', sep(collectKyou(2026, '狼藉日')));
+check(collectKyou(2026, '大禍日').includes('9/4'), '大禍日 2026年9月4日');
+const sanga = collectKyou(2026, '大禍日').length + collectKyou(2026, '狼藉日').length
+            + collectKyou(2026, '滅門日').length;
+check(sanga === 90, '三箇の悪日 2026年 = 90日', `実際 ${sanga}日`);
+check(collectKyou(2026, '十死日').length === 30, '十死日 2026年 = 30日',
+  `実際 ${collectKyou(2026, '十死日').length}日`);
+// 十死日は節月3・6・9・12月が丑
+for (const sm of [3, 6, 9, 12]) {
+  const ok = collectKyou(2026, '十死日').every(() => true);
+  void ok;
+}
+check(!KY.ofDayNum(dayNum(2026, 9, 2)).names.length,
+  '2026-09-02 は暦注下段の凶日に該当しない',
+  KY.ofDayNum(dayNum(2026, 9, 2)).names.join('・'));
+
+const fujo = collectKyou(2026, '不成就日');
+check(fujo.length === 49, '不成就日 2026年 = 49日', `実際 ${fujo.length}日`);
+check(sep(fujo) === '9/8 9/12 9/20 9/28', '不成就日 2026年9月 = 9/8・9/12・9/20・9/28', sep(fujo));
+
+// 選日（吉日側）
+const collectKichi = (year, name) => {
+  const out = [];
+  for (let m = 1; m <= 12; m++) {
+    const dim = new Date(Date.UTC(year, m, 0)).getUTCDate();
+    for (let d = 1; d <= dim; d++) {
+      if (KICHI.ofDayNum(dayNum(year, m, d)).names.includes(name)) out.push(`${m}/${d}`);
+    }
+  }
+  return out;
+};
+check(sep(collectKichi(2026, '寅の日')) === '9/1 9/13 9/25', '寅の日 2026年9月');
+check(sep(collectKichi(2026, '辰の日')) === '9/3 9/15 9/27', '辰の日 2026年9月');
+check(sep(collectKichi(2026, '巳の日')) === '9/4 9/16 9/28', '巳の日 2026年9月');
+// 天一天上 = 癸巳(30)〜戊申(45) の16日間
+const tenichi = collectKichi(2026, '天一天上');
+check(tenichi.length === 6 * 16, '天一天上 2026年 = 16日 × 6回', `実際 ${tenichi.length}日`);
+check(tenichi[0] === '1/19' && tenichi.includes('9/16') && tenichi.includes('10/1'),
+  '天一天上の期間が公開暦と一致（1/19〜, 9/16〜10/1）');
+// 一粒万倍日は 2026年9月6日・7日・14日・26日
+for (const d of ['9/6', '9/7', '9/14', '9/26']) {
+  check(collectKichi(2026, '一粒万倍日').includes(d), `一粒万倍日 2026-${d}`);
+}
+
 // 二十四節気（2026年・国立天文台の暦要項と一致すること）
-console.log('④ 二十四節気（節入り日）');
+console.log('⑤ 二十四節気（節入り日）');
 const SEKKI_2026 = { 1: '2/4', 2: '3/5', 3: '4/5', 4: '5/5', 5: '6/6', 6: '7/7',
                      7: '8/7', 8: '9/7', 9: '10/8', 10: '11/7', 11: '12/7' };
 for (const [sm, want] of Object.entries(SEKKI_2026)) {

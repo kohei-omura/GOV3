@@ -7,7 +7,9 @@ GACHA ORACLE ゲームタイトル自動更新スクリプト v2
 
 仕組み:
  1. プレイ中タイトル(SEED): App Store(JP)に「そのタイトル自身が」存在するかを毎日確認。
-    消えた(=サ終/配信停止)状態が GRACE_DAYS 日連続したら自動でリストから除外。
+    見つからない状態が続いたら「終了の可能性」の印を付ける。
+    ※ 自動削除はしない。ストア名の変更や検索のあいまいさで稼働中のタイトルを
+      誤って消してしまう事故が起きたため、消すかどうかは利用者が画面から決める。
  2. セールスランキング: App Store日本のゲームカテゴリ売上200位を取得し、
     プレイ中タイトルにも順位(セルラン)を付ける。
  3. 人気タイトル(TRENDING): 売上200 +無料100(新作検知)。新作は自動追加、
@@ -90,7 +92,7 @@ SEED = [
     ("崩壊3rd","崩壊3rd","崩壊3rd"),
     ("無期迷途","無期迷途","無期迷途"),
     ("鳴潮","鳴潮","鳴潮"),
-    ("STAR DIVE","STAR DIVE","スターダイブ STAR DIVE"),
+    ("STAR DIVE","モンギル：STAR DIVE","モンギル STAR DIVE"),
     ("Gジェネ ET","SDガンダム ジージェネレーション エターナル","ジージェネレーション エターナル"),
     ("七つの大罪：Origin","七つの大罪：Origin","七つの大罪 Origin"),
     ("アークナイツ：エンドフィールド","アークナイツ：エンドフィールド","アークナイツ エンドフィールド"),
@@ -620,7 +622,8 @@ def main():
     prev = load_prev()
     miss_state = dict(prev.get('missState', {}))    # {value: 連続未検出日数}
     app_ids = dict(prev.get('appIds', {}))          # {value: trackId}
-    eos_prev = {e['value']: e for e in prev.get('eos', []) if isinstance(e, dict) and 'value' in e}
+    eos_prev = {e['value']: e for e in prev.get('suspect', prev.get('eos', []))
+                if isinstance(e, dict) and 'value' in e}
 
     # ── ① セールスランキングを先に取る（プレイ中タイトルの順位付けにも使う） ──
     grossing, free, rank_sources = fetch_ranking()
@@ -629,7 +632,7 @@ def main():
           f" / 取得元: {rank_sources}")
 
     # ── ② プレイ中タイトルの生存確認 ──
-    playing, removed, eos, checks = [], [], [], []
+    playing, suspect, checks = [], [], []
     for value, label, term in SEED:
         r = check_title(value, label, term, app_ids.get(value))
         time.sleep(SEARCH_SLEEP)
@@ -651,27 +654,30 @@ def main():
             playing.append({'value': value, 'label': label, 'rank': rank})
         elif r['alive'] is False:
             miss_state[value] = miss_state.get(value, 0) + 1
-            if miss_state[value] >= GRACE_DAYS:
-                # サ終扱い → プルダウンから除外
-                removed.append(label)
-                eos.append({'value': value, 'label': label,
-                            'since': eos_prev.get(value, {}).get('since', today.strftime('%Y-%m-%d')),
+            # ── 自動削除はしない ──
+            # ストア名の変更や検索のあいまいさで、稼働中のタイトルを誤って
+            # 消してしまう事故が実際に起きたため（モンギル：STAR DIVE など）、
+            # プレイ中の一覧からは外さず「終了の可能性」として印を付けるだけにする。
+            # 実際に消すかどうかは利用者が画面から手動で決める。
+            playing.append({'value': value, 'label': label, 'rank': rank,
+                            'sunsetting': True, 'missDays': miss_state[value],
                             'reason': r['reason']})
-                print(f"[eos]  除外(連続{miss_state[value]}日): {label} — {r['reason']}")
+            if miss_state[value] >= GRACE_DAYS:
+                suspect.append({'value': value, 'label': label,
+                                'since': eos_prev.get(value, {}).get('since', today.strftime('%Y-%m-%d')),
+                                'days': miss_state[value], 'reason': r['reason']})
+                print(f"[warn] 終了の可能性(連続{miss_state[value]}回未検出): {label} — {r['reason']}")
             else:
-                # 猶予中は「終了予定」として残し、UI側で注意表示する
-                playing.append({'value': value, 'label': label, 'rank': rank,
-                                'sunsetting': True, 'reason': r['reason']})
-                print(f"[warn] 未検出{miss_state[value]}日目(猶予中): {label} — {r['reason']}")
+                print(f"[warn] 未検出{miss_state[value]}回目: {label} — {r['reason']}")
         else:
             # 通信失敗 → 前回状態を維持して掲載継続（未検出カウントは進めない）
             playing.append({'value': value, 'label': label, 'rank': rank})
 
-    # 一度サ終判定した後に復活した場合は eos から自然に落ちる（毎回作り直しているため）
+    # 再びストアで見つかれば missState が 0 に戻り、印も自然に外れる
 
     # ── ③ ランキング上位（新作の自動追加・サ終の自動消滅） ──
     seed_norms = {norm(v) for v, _, _ in SEED} | {norm(l) for _, l, _ in SEED}
-    eos_norms = {norm(e['label']) for e in eos} | {norm(e['value']) for e in eos}
+    # プレイ中は自動で消さないので、人気一覧からの重複除外だけ行う
     trending, seen = [], set()
     for e in grossing + free:
         name = e['name']
@@ -680,8 +686,6 @@ def main():
             continue
         if any(n.startswith(s) or s.startswith(n) for s in seed_norms if len(s) >= 2):
             continue  # プレイ中と重複
-        if any(n.startswith(s) or s.startswith(n) for s in eos_norms if len(s) >= 2):
-            continue  # サ終判定済み
         if any(k.lower() in name.lower() for k in EXCLUDE_KEYWORDS):
             continue  # 非ガチャ
         seen.add(n)
@@ -698,21 +702,21 @@ def main():
         'rankingSize': len(grossing),
         'playing': playing,
         'trending': trending[:200],
-        'removed': removed,
-        'eos': eos,
+        'suspect': suspect,          # 終了の可能性（自動削除はせず印だけ付ける）
         'appIds': app_ids,
         'missState': miss_state,
         'checks': checks,
     }
     if os.environ.get('GAMES_DRY_RUN') == '1':
-        print(json.dumps({k: out[k] for k in ('updated', 'removed', 'eos', 'checks')},
+        print(json.dumps({k: out[k] for k in ('updated', 'suspect', 'checks')},
                          ensure_ascii=False, indent=1))
         return
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
     print(f"[done] playing={len(playing)}（セルラン付き {ranked}件） "
-          f"trending={len(out['trending'])} 除外={len(removed)}")
-    if removed:
-        print('[done] 除外したタイトル: ' + ', '.join(removed))
+          f"trending={len(out['trending'])} 終了の可能性={len(suspect)}")
+    if suspect:
+        print('[done] 終了の可能性（自動削除はしません。画面から手動で削除してください）: '
+              + ', '.join(e['label'] for e in suspect))
 
 
 if __name__ == '__main__':
