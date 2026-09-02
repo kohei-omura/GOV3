@@ -31,7 +31,7 @@ iTunes の検索はあいまい一致のため、サ終済みタイトルでも�
 --------
 GAMES_DRY_RUN=1   games.json を書き出さずに判定結果だけ表示する
 """
-import json, time, unicodedata, urllib.request, urllib.parse, datetime, os, sys
+import json, re, time, unicodedata, urllib.request, urllib.parse, datetime, os, sys
 
 GRACE_DAYS = 3          # 連続で見つからなかったら除外するまでの日数
 SEARCH_SLEEP = 3.0      # iTunes Search APIのレート制限対策(約20回/分)
@@ -123,11 +123,151 @@ def fetch_json(url, timeout=25):
 
 # ────────────────────────────────────────────
 #  ランキング（セルラン）
+#  1〜100位  : AppMedia のセルランページ
+#  101位以降 : Game-i の App Store 売上ランキング
+#  どちらも取得・検証に失敗したら iTunes RSS へフォールバックする。
+#  Game-i はゲーム以外のアプリも載るため、ゲーム判定を通してから採用する。
 # ────────────────────────────────────────────
-def fetch_ranking():
-    """App Store日本 ゲームカテゴリのランキング。
-    戻り値: (grossing, free)  各要素 {'name':表示名, 'id':trackId or None, 'rank':順位}
-    売上ランキングは順位そのものが「セルラン」なので順位を保持する。"""
+APPMEDIA_URL = 'https://appmedia.jp/app_review/2607505'
+GAMEI_URL    = 'https://game-i.daa.jp/?appstore-topgrossing'
+APPMEDIA_MAX = 100      # AppMedia から採用する順位の上限
+RANK_MAX     = 300      # 最終的に保持する順位の上限
+
+# Game-i に載るゲーム以外のアプリ（日本の売上上位に常駐するもの）
+NON_GAME_KEYWORDS = [
+    'LINE', 'YouTube', 'Amazon', 'TVer', 'Netflix', 'Spotify', 'U-NEXT', 'ABEMA',
+    'Disney', 'dアニメ', 'radiko', 'PayPay', 'メルカリ', 'Tinder', 'Pairs', 'ペアーズ',
+    'with', 'タップル', 'Omiai', 'ピッコマ', 'LINEマンガ', 'コミックシーモア', 'めちゃコミ',
+    'マガポケ', 'ジャンプ', 'マンガUP', 'マンガワン', 'Kindle', 'dマガジン', 'クックパッド',
+    'Duolingo', 'Tinder', 'CapCut', 'Canva', 'Notion', 'Evernote', 'ChatGPT',
+    'DAZN', 'Hulu', 'FOD', 'Lemino', 'Rakuten', '楽天', 'Yahoo', 'ヤフー',
+    'ニコニコ', 'Pococha', 'IRIAM', 'SHOWROOM', '17LIVE', 'ふわっち', 'Bigo',
+    'メロディ', 'ボイコネ', 'スマートニュース', 'NewsPicks', '日経', 'Tantan',
+    'Zoom', 'Slack', 'Dropbox', 'Google', 'Apple', 'iCloud', 'マッチングアプリ',
+]
+
+
+def _http_text(url, timeout=30):
+    req = urllib.request.Request(url, headers=UA)
+    with urllib.request.urlopen(req, timeout=timeout) as r:
+        raw = r.read()
+    for enc in ('utf-8', 'euc-jp', 'cp932'):
+        try:
+            return raw.decode(enc)
+        except UnicodeDecodeError:
+            continue
+    return raw.decode('utf-8', errors='replace')
+
+
+def strip_tags(html):
+    html = re.sub(r'(?is)<(script|style)[^>]*>.*?</\1>', ' ', html)
+    html = re.sub(r'(?s)<[^>]+>', '\n', html)
+    html = html.replace('&nbsp;', ' ').replace('&amp;', '&') \
+               .replace('&lt;', '<').replace('&gt;', '>').replace('&quot;', '"')
+    return html
+
+
+def is_non_game(name):
+    n = name.lower()
+    return any(k.lower() in n for k in NON_GAME_KEYWORDS) \
+        or any(k.lower() in n for k in EXCLUDE_KEYWORDS)
+
+
+def parse_rank_rows(html, limit):
+    """順位とアプリ名の対を、表・リストのどちらの組み方でも拾えるように抽出する。
+
+    行の単位（<tr> か <li>）ごとにタグを剥がし、最初に現れる 1〜999 の整数を順位、
+    その後ろで最初に現れる「2文字以上の非数値テキスト」をアプリ名とみなす。
+    サイト側の class 名やカラム構成に依存しないので、多少の改装では壊れない。
+    """
+    rows = re.findall(r'(?is)<tr[^>]*>(.*?)</tr>', html)
+    if len(rows) < 20:
+        rows = re.findall(r'(?is)<li[^>]*>(.*?)</li>', html)
+    out, seen_rank = [], set()
+    for row in rows:
+        cells = [c.strip() for c in strip_tags(row).split('\n') if c.strip()]
+        if len(cells) < 2:
+            continue
+        rank = None
+        for i, c in enumerate(cells):
+            m = re.fullmatch(r'(\d{1,3})位?', c)
+            if m:
+                rank = int(m.group(1))
+                rest = cells[i + 1:]
+                break
+        if rank is None or not (1 <= rank <= 999) or rank in seen_rank:
+            continue
+        name = ''
+        for c in rest:
+            if len(c) >= 2 and not re.fullmatch(r'[\d\s.,%↑↓±+\-−–—位件人円]*', c):
+                name = c
+                break
+        if not name:
+            continue
+        seen_rank.add(rank)
+        out.append({'rank': rank, 'name': name, 'id': None})
+    out.sort(key=lambda e: e['rank'])
+    return [e for e in out if e['rank'] <= limit]
+
+
+def validate_ranks(entries, need_top, min_count, source):
+    """取得結果が「ランキングとして成立しているか」を確かめる。
+    誤ったページを掴んだまま採用してしまうと、セルランが丸ごと嘘になるため。"""
+    if len(entries) < min_count:
+        print(f"[warn] {source}: 件数不足 {len(entries)}件 < {min_count}件", file=sys.stderr)
+        return False
+    ranks = [e['rank'] for e in entries]
+    if min(ranks) > need_top:
+        print(f"[warn] {source}: 先頭が{min(ranks)}位（{need_top}位以内が必要）", file=sys.stderr)
+        return False
+    if len(set(ranks)) != len(ranks):
+        print(f"[warn] {source}: 順位が重複", file=sys.stderr)
+        return False
+    return True
+
+
+def fetch_appmedia():
+    """AppMedia のセルランページから 1〜100位を取得"""
+    try:
+        html = _http_text(APPMEDIA_URL)
+    except Exception as ex:
+        print(f"[warn] AppMedia 取得失敗: {ex}", file=sys.stderr)
+        return []
+    entries = parse_rank_rows(html, APPMEDIA_MAX)
+    if not validate_ranks(entries, need_top=3, min_count=30, source='AppMedia'):
+        return []
+    print(f"[rank] AppMedia: {len(entries)}件（{entries[0]['rank']}〜{entries[-1]['rank']}位）")
+    return entries
+
+
+def fetch_gamei(min_rank):
+    """Game-i の App Store 売上ランキングから min_rank 位以降を取得。
+    ゲーム以外のアプリが混ざるため、キーワードで除外したうえで順位は詰めずに保つ。"""
+    try:
+        html = _http_text(GAMEI_URL)
+    except Exception as ex:
+        print(f"[warn] Game-i 取得失敗: {ex}", file=sys.stderr)
+        return []
+    entries = parse_rank_rows(html, RANK_MAX)
+    if not validate_ranks(entries, need_top=10, min_count=80, source='Game-i'):
+        return []
+    kept, dropped = [], []
+    for e in entries:
+        if e['rank'] < min_rank:
+            continue
+        if is_non_game(e['name']):
+            dropped.append(f"{e['rank']}位 {e['name']}")
+            continue
+        kept.append(e)
+    if dropped:
+        print(f"[rank] Game-i: ゲーム以外を{len(dropped)}件除外 "
+              f"({', '.join(dropped[:8])}{' ...' if len(dropped) > 8 else ''})")
+    print(f"[rank] Game-i: {len(kept)}件（{min_rank}位以降）")
+    return kept
+
+
+def fetch_itunes_ranking():
+    """フォールバック: iTunes RSS（ゲームカテゴリの売上200＋無料100）"""
     def rss(url):
         out = []
         try:
@@ -146,6 +286,36 @@ def fetch_ranking():
     return grossing, free
 
 
+def fetch_ranking():
+    """セルランを組み立てる。
+    戻り値: (grossing, free, sources)
+      grossing … {'name','id','rank'} の配列（1位から順）
+      free     … 新作検知用（iTunes 無料ランキング）
+      sources  … 表示用の取得元ラベル"""
+    itunes_grossing, free = fetch_itunes_ranking()
+
+    appmedia = fetch_appmedia()
+    gamei = fetch_gamei(min_rank=(APPMEDIA_MAX + 1) if appmedia else 1)
+
+    merged, used = {}, []
+    for e in appmedia:
+        merged[e['rank']] = e
+    if appmedia:
+        used.append(f'1〜{APPMEDIA_MAX}位 AppMedia')
+    for e in gamei:
+        merged.setdefault(e['rank'], e)
+    if gamei:
+        used.append(f"{gamei[0]['rank']}位以降 Game-i")
+
+    if not merged:
+        print('[rank] AppMedia / Game-i とも取得できず → iTunes RSS を使用', file=sys.stderr)
+        return itunes_grossing, free, 'iTunes RSS（ゲーム）'
+
+    # iTunes RSS にしか無いタイトルは順位を補完せず、ゲーム判定の材料としてのみ使う
+    grossing = [merged[k] for k in sorted(merged)]
+    return grossing, free, ' / '.join(used)
+
+
 def build_rank_index(grossing):
     """セルラン検索用の索引。正規化名 → 順位 / trackId → 順位"""
     by_name, by_id = {}, {}
@@ -153,7 +323,7 @@ def build_rank_index(grossing):
         n = norm(e['name'])
         if n and n not in by_name:
             by_name[n] = e['rank']
-        if e['id'] and e['id'] not in by_id:
+        if e.get('id') and str(e['id']) not in by_id:
             by_id[str(e['id'])] = e['rank']
     return by_name, by_id
 
@@ -305,9 +475,10 @@ def main():
     eos_prev = {e['value']: e for e in prev.get('eos', []) if isinstance(e, dict) and 'value' in e}
 
     # ── ① セールスランキングを先に取る（プレイ中タイトルの順位付けにも使う） ──
-    grossing, free = fetch_ranking()
+    grossing, free, rank_sources = fetch_ranking()
     by_name, by_id = build_rank_index(grossing)
-    print(f"[rank] 売上ランキング {len(grossing)}件 / 無料ランキング {len(free)}件")
+    print(f"[rank] 売上ランキング {len(grossing)}件 / 無料ランキング {len(free)}件"
+          f" / 取得元: {rank_sources}")
 
     # ── ② プレイ中タイトルの生存確認 ──
     playing, removed, eos, checks = [], [], [], []
@@ -372,7 +543,7 @@ def main():
     ranked = sum(1 for g in playing if g.get('rank'))
     out = {
         'updated': today.strftime('%Y-%m-%d %H:%M JST'),
-        'rankingSource': 'App Store JP セールスランキング（ゲーム・上位200）',
+        'rankSources': rank_sources,
         'rankingSize': len(grossing),
         'playing': playing,
         'trending': trending[:200],
