@@ -506,6 +506,24 @@ const SS=(function(){
   };
 })();
 
+// ══════════════════════════════════════════════════
+//   計算リビジョン
+//   鑑定結果は端末（localStorage）に保存され、同じ日・同じ条件なら
+//   そのまま再利用される。暦やスコアの計算を直したときにここを上げないと、
+//   直す前の結果がその日いっぱい出続けてしまう。
+//   （地火日の誤りを直したのに画面から消えなかったのが実際の事故）
+//   ロジックを触ったら必ずこの文字列を更新すること。
+// ══════════════════════════════════════════════════
+var CALC_REV='2026-09-03-jikanichi';
+(function purgeStaleCalcCache(){
+  try{
+    if(SS.get('gachaOracle_calcRev')===CALC_REV)return;
+    ['gachaOracle_result','gachaOracle_key','gachaOracle_breakdown','gachaOracle_history']
+      .forEach(function(k){ SS.remove(k); });
+    SS.set('gachaOracle_calcRev',CALC_REV);
+  }catch(e){}
+})();
+
 // グローバル結果保持（ダウンロード用）
 let _lastResult=null,_lastHotTimes=null;
 // 高性能化A/B 用の状態（var＝TDZ回避・初回使用より前に宣言）
@@ -1739,8 +1757,8 @@ function calculateFortune(params){
   // v5: キーに生年月日・星座・血液型・干支・ガチャ設定を含める。
   //     v4 までは入っていなかったため、生年月日などを入れ替えても
   //     前回の結果がそのまま返ってしまっていた。
-  const CACHE_VER='v5';
-  const cacheKey=[CACHE_VER,todayStr,gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,
+  const CACHE_VER='v6';
+  const cacheKey=[CACHE_VER,CALC_REV,todayStr,gameTitle,targetName,gachaTitle,gachaDeadline,gachaDeadlineTime,
                   birthdate,zodiac,bloodType,eto,pickupRate,pityCount,currentPulls,guaranteedNow?'1':'0'].join('|');
   try{
     const cachedRaw=window.__govRankingRun?null:SS.get('gachaOracle_result');
