@@ -142,6 +142,21 @@ check(!KY.ofDayNum(dayNum(2026, 9, 2)).names.length,
   '2026-09-02 は暦注下段の凶日に該当しない',
   KY.ofDayNum(dayNum(2026, 9, 2)).names.join('・'));
 
+// 地火日は節月1の巳から1ヶ月ごとに1つ進む（節月7＝亥）。
+// 逆回りで入れていたため 2026-09-03（節月7・辰の日）を地火日と誤判定していた。
+const jika = collectKyou(2026, '地火日');
+check(jika.includes('1/6'), '地火日 2026-01-06（公開暦と一致）');
+check(!jika.includes('9/3'), '2026-09-03 は地火日ではない', jika.filter(x => x.startsWith('9/')).join(' '));
+check(sep(jika) === '9/11 9/23', '地火日 2026年9月 = 9/11・9/23', sep(jika));
+check(jika.length === 31, '地火日 2026年 = 31日', `実際 ${jika.length}日`);
+
+// 天火日は公開暦の年間リストと突き合わせ済み（節月1,5,9=子 / 2,6,10=卯 / 3,7,11=午 / 4,8,12=酉）
+const tenka = collectKyou(2026, '天火日');
+check(sep(tenka) === '9/5 9/8 9/20', '天火日 2026年9月 = 9/5・9/8・9/20', sep(tenka));
+check(tenka.filter(x => /^(10|11|12)\//.test(x)).join(' ') === '10/2 10/17 10/29 11/13 11/25 12/10 12/22',
+  '天火日 2026年10〜12月が公開暦と一致',
+  tenka.filter(x => /^(10|11|12)\//.test(x)).join(' '));
+
 const fujo = collectKyou(2026, '不成就日');
 check(fujo.length === 49, '不成就日 2026年 = 49日', `実際 ${fujo.length}日`);
 check(sep(fujo) === '9/8 9/12 9/20 9/28', '不成就日 2026年9月 = 9/8・9/12・9/20・9/28', sep(fujo));
