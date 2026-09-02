@@ -98,8 +98,90 @@ for app_id, names, want in [
     got = ug.lookup_rank(by_name, by_id, app_id, names)
     check(got == want, f'{names[1]} → {got}位' if got else f'{names[1]} → 圏外', f'期待 {want}')
 
-# ── ④ 除外までの一連の流れ ──────────────────────────────
-print('④ サ終タイトルが GRACE_DAYS 日で消えるか')
+# ── ④ セルランのスクレイピング（AppMedia / Game-i）──────
+print('④ セルランの取得と合成')
+_G = ['モンスターストライク', 'ドラゴンボールZ ドッカンバトル', 'プロ野球スピリッツA',
+      'パズル＆ドラゴンズ', 'Fate/Grand Order', '原神', 'ウマ娘 プリティーダービー',
+      'ブルーアーカイブ', '崩壊：スターレイル', '勝利の女神：NIKKE']
+_NON = ['LINE', 'YouTube', 'ピッコマ', 'Tinder', 'PayPay', 'TVer']
+
+
+def _table(n, names, with_kurai):
+    h = '<html><body><table><tr><th>順位</th><th>アプリ</th><th>売上</th></tr>'
+    for i in range(1, n + 1):
+        g = names[(i - 1) % len(names)] + ('' if i <= len(names) else str(i))
+        r = f'{i}位' if with_kurai else str(i)
+        h += f'<tr><td>{r}</td><td><a href="/x">{g}</a></td><td>1,234,567円</td><td>↑2</td></tr>'
+    return h + '</table></body></html>'
+
+
+def _list(n, names):
+    h = '<html><body><ol>'
+    for i in range(1, n + 1):
+        g = names[(i - 1) % len(names)] + ('' if i <= len(names) else str(i))
+        h += f'<li><span>{i}</span><span>{g}</span><span>+3</span></li>'
+    return h + '</ol></body></html>'
+
+
+APPMEDIA_HTML = _table(100, _G, False)
+GAMEI_HTML = _table(300, _G + _NON, True)
+
+check(len(ug.parse_rank_rows(APPMEDIA_HTML, 100)) == 100, '表組みから100件抽出')
+check(len(ug.parse_rank_rows(_list(100, _G), 100)) == 100, 'リスト構造からも100件抽出')
+check(ug.parse_rank_rows(APPMEDIA_HTML, 100)[0] == {'rank': 1, 'name': _G[0], 'id': None},
+      '1位の順位と名前が取れる')
+check(len(ug.parse_rank_rows('<html><body><p>メンテナンス中</p></body></html>', 100)) == 0,
+      '中身の無いページからは0件')
+check(ug.validate_ranks(ug.parse_rank_rows(APPMEDIA_HTML, 100), 3, 30, 't') is True,
+      '正常なランキングは検証を通る')
+check(ug.validate_ranks([], 3, 30, 't') is False, '空の結果は検証で弾く')
+check(ug.is_non_game('LINE') and ug.is_non_game('ピッコマ') and ug.is_non_game('YouTube'),
+      'ゲーム以外を判定できる')
+check(not ug.is_non_game('原神') and not ug.is_non_game('ブルーアーカイブ'),
+      'ゲームを誤って除外しない')
+
+_orig_http = ug._http_text
+_orig_itunes = ug.fetch_itunes_ranking
+try:
+    ug.fetch_itunes_ranking = lambda: ([{'name': 'モンスターストライク', 'id': '1', 'rank': 1}],
+                                       [{'name': '新作RPG', 'id': '99', 'rank': 1}])
+
+    def _http_ok(url, timeout=30):
+        if 'appmedia' in url:
+            return APPMEDIA_HTML
+        if 'game-i' in url:
+            return GAMEI_HTML
+        raise Exception('unknown')
+    ug._http_text = _http_ok
+    g, f, src = ug.fetch_ranking()
+    ranks = {e['rank']: e['name'] for e in g}
+    check('AppMedia' in src and 'Game-i' in src, f'両方から取得する（{src}）')
+    check(1 in ranks and 100 in ranks, '1〜100位が埋まる')
+    check(max(ranks) > 100, '101位以降も埋まる')
+    check(not [n for n in ranks.values() if ug.is_non_game(n)],
+          'ゲーム以外が最終結果に残らない')
+
+    def _http_ng(url, timeout=30):
+        raise Exception('down')
+    ug._http_text = _http_ng
+    g2, f2, src2 = ug.fetch_ranking()
+    check(src2.startswith('iTunes'), f'両方失敗すると iTunes RSS に落ちる（{src2}）')
+
+    def _http_gamei_only(url, timeout=30):
+        if 'game-i' in url:
+            return GAMEI_HTML
+        raise Exception('down')
+    ug._http_text = _http_gamei_only
+    g3, f3, src3 = ug.fetch_ranking()
+    check('Game-i' in src3 and g3 and g3[0]['rank'] == 1,
+          'AppMedia だけ落ちたら Game-i が1位から埋める')
+finally:
+    ug._http_text = _orig_http
+    ug.fetch_itunes_ranking = _orig_itunes
+
+
+# ── ⑤ 除外までの一連の流れ ──────────────────────────────
+print('⑤ サ終タイトルが GRACE_DAYS 日で消えるか')
 ALIVE = {'原神': 1, 'ウマ娘 プリティーダービー': 2}
 SEED = [('原神', '原神', '原神'),
         ('ウマ娘', 'ウマ娘 プリティーダービー', 'ウマ娘 プリティーダービー'),
@@ -130,7 +212,7 @@ orig = (ug.SEED, ug.SEARCH_SLEEP, ug.fetch_ranking, ug.itunes_search, ug.itunes_
 cwd = os.getcwd()
 try:
     ug.SEED, ug.SEARCH_SLEEP = SEED, 0
-    ug.fetch_ranking = lambda: (GROSSING, [])
+    ug.fetch_ranking = lambda: (GROSSING, [], 'テスト')
     ug.itunes_search, ug.itunes_lookup = fake_search, fake_lookup
     tmp = tempfile.mkdtemp()
     os.chdir(tmp)
