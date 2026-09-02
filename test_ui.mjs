@@ -163,5 +163,21 @@ for (const f of ['CALC_REV', 'birthdate', 'zodiac', 'bloodType', 'eto', 'pickupR
 check(/_calDate=toDate\(t\._calDate\)/.test(html.replace(/\s/g, '')),
   'キャッシュから戻すとき _calDate を Date に復元している');
 
+// ── ⑤ 候補日カードの重日・復日バッジ ────────────────────────
+console.log('⑤ 候補日カードの重日・復日');
+check(/ampNames:dKyou2\.names\.filter/.test(html.replace(/\s/g, '')),
+  '候補日の情報に重日・復日を持たせている');
+check(/\$\{\(t\.ampNames\|\|\[\]\)\.map/.test(html),
+  '候補日カードで重日・復日のバッジを描いている');
+{
+  // 9/4 は辛巳 → 重日。凶日ではないので kyouNames ではなく ampNames 側に入る
+  const n = Math.floor(Date.UTC(2026, 8, 4) / 86400000);
+  const names = ctx.KYOU.ofDayNum(n).names;
+  check(names.includes('重日') && names.includes('大禍日'),
+    '2026-09-04 は大禍日かつ重日', names.join('・'));
+  check(ctx.KYOU.META['重日'].penalty === 0 && ctx.KYOU.META['復日'].penalty === 0,
+    '重日・復日は単独では減点しない（増幅のみ）');
+}
+
 console.log(failures === 0 ? '\n✅ 全テストパス' : `\n❌ ${failures}件の不一致`);
 process.exit(failures === 0 ? 0 : 1);
