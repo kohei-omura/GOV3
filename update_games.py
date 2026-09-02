@@ -1,18 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-GACHA ORACLE ゲームタイトル自動更新スクリプト
+GACHA ORACLE ゲームタイトル自動更新スクリプト v2
 ================================================
 毎日 GitHub Actions で実行し games.json を生成する。
 
 仕組み:
- 1. プレイ中タイトル(SEED): iTunes Search APIで毎日生存確認。
-    App Storeから消えた(=サ終/配信停止)状態が GRACE_DAYS 日連続したら自動でリストから除外。
- 2. 人気タイトル(TRENDING): App Store日本のゲームカテゴリ
-    「セールスランキング上位200」+「無料ランキング上位100(新作検知用)」を毎日取得。
-    新リリースはランクインした時点で自動追加、サ終したゲームはランキングから
-    消える=自動的にリストから消える。
- 3. 出力: games.json（index.htmlが起動時に読み込んでプルダウンを再構築）
+ 1. プレイ中タイトル(SEED): App Store(JP)に「そのタイトル自身が」存在するかを毎日確認。
+    消えた(=サ終/配信停止)状態が GRACE_DAYS 日連続したら自動でリストから除外。
+ 2. セールスランキング: App Store日本のゲームカテゴリ売上200位を取得し、
+    プレイ中タイトルにも順位(セルラン)を付ける。
+ 3. 人気タイトル(TRENDING): 売上200 +無料100(新作検知)。新作は自動追加、
+    サ終はランキングから消える=自動的にリストから消える。
+ 4. 出力: games.json（index.htmlが起動時に読み込んでプルダウンを再構築）
+
+v2 の変更点（サ終タイトルが消えないバグの修正）
+-----------------------------------------------
+v1 の生存確認は iTunes Search API に検索語を投げて resultCount > 0 を見るだけだった。
+iTunes の検索はあいまい一致のため、サ終済みタイトルでも無関係なアプリが引っ掛かり、
+常に「生存」と判定されていた（実際 missState は全タイトル 0 のまま、removed は空で、
+サ終済みタイトルが延々とプルダウンに残り続けていた）。
+
+  ① 検索結果の trackName が「そのタイトル自身か」を名寄せ照合するようにした。
+  ② 一度でも同定できたら trackId を games.json に保存し、以後は /lookup?id= の
+     完全一致判定に切り替える（あいまい検索を経由しないので誤判定しない）。
+  ③ ストア説明文・更新履歴の「サービス終了」告知も未検出と同じ扱いにする。
+  ④ 判定の根拠を games.json の checks に残し、なぜ消えた/残ったかを追えるようにした。
+
+環境変数
+--------
+GAMES_DRY_RUN=1   games.json を書き出さずに判定結果だけ表示する
 """
 import json, time, unicodedata, urllib.request, urllib.parse, datetime, os, sys
 
@@ -85,42 +102,191 @@ EXCLUDE_KEYWORDS = ['Minecraft','マインクラフト','スイカゲーム','Bl
 
 UA = {'User-Agent': 'Mozilla/5.0 (GachaOracle GameListUpdater)'}
 
+# ストア説明文にこれが出ていたら「サービス終了告知済み」とみなす
+# （配信停止より先に告知が出るため、ストアから消える前に検知できる）
+EOS_PATTERNS = ['サービス終了', 'サービスを終了', 'サービス提供を終了',
+                '配信を終了', '配信終了のお知らせ', 'サービス終了日',
+                'end of service', 'service will end']
+
+
 def norm(s):
     """名寄せ用正規化: 全半角統一・空白記号除去・小文字化"""
     s = unicodedata.normalize('NFKC', s).lower()
     return ''.join(c for c in s if c.isalnum())
+
 
 def fetch_json(url, timeout=25):
     req = urllib.request.Request(url, headers=UA)
     with urllib.request.urlopen(req, timeout=timeout) as r:
         return json.load(r)
 
+
+# ────────────────────────────────────────────
+#  ランキング（セルラン）
+# ────────────────────────────────────────────
 def fetch_ranking():
-    """App Store日本: ゲームカテゴリのランキングを取得（売上200+無料100）"""
-    apps = []
-    for url in [
-        'https://itunes.apple.com/jp/rss/topgrossingapplications/limit=200/genre=6014/json',
-        'https://itunes.apple.com/jp/rss/topfreeapplications/limit=100/genre=6014/json',
-    ]:
+    """App Store日本 ゲームカテゴリのランキング。
+    戻り値: (grossing, free)  各要素 {'name':表示名, 'id':trackId or None, 'rank':順位}
+    売上ランキングは順位そのものが「セルラン」なので順位を保持する。"""
+    def rss(url):
+        out = []
         try:
             data = fetch_json(url)
-            for e in data['feed']['entry']:
-                name = e['im:name']['label']
-                apps.append(name)
+            for i, e in enumerate(data['feed']['entry'], 1):
+                out.append({
+                    'name': e['im:name']['label'],
+                    'id': (e.get('id', {}).get('attributes', {}) or {}).get('im:id'),
+                    'rank': i,
+                })
         except Exception as ex:
             print(f"[warn] ranking fetch failed: {url} -> {ex}", file=sys.stderr)
-    return apps
+        return out
+    grossing = rss('https://itunes.apple.com/jp/rss/topgrossingapplications/limit=200/genre=6014/json')
+    free = rss('https://itunes.apple.com/jp/rss/topfreeapplications/limit=100/genre=6014/json')
+    return grossing, free
 
-def check_alive(term):
-    """iTunes Search APIでApp Store(JP)に存在するか確認"""
-    url = 'https://itunes.apple.com/search?' + urllib.parse.urlencode(
-        {'term': term, 'country': 'JP', 'entity': 'software', 'limit': 5})
+
+def build_rank_index(grossing):
+    """セルラン検索用の索引。正規化名 → 順位 / trackId → 順位"""
+    by_name, by_id = {}, {}
+    for e in grossing:
+        n = norm(e['name'])
+        if n and n not in by_name:
+            by_name[n] = e['rank']
+        if e['id'] and e['id'] not in by_id:
+            by_id[str(e['id'])] = e['rank']
+    return by_name, by_id
+
+
+def lookup_rank(by_name, by_id, app_id, names):
+    """そのタイトルの売上ランキング順位。圏外なら None"""
+    if app_id and str(app_id) in by_id:
+        return by_id[str(app_id)]
+    cands = [norm(x) for x in names if x]
+    for c in cands:
+        if len(c) >= 2 and c in by_name:
+            return by_name[c]
+    # 表記ゆれ（"原神" と "原神 - Genshin Impact" 等）を包含関係で救う
+    for rn, rank in by_name.items():
+        for c in cands:
+            if len(c) >= 4 and (c in rn or rn in c):
+                return rank
+    return None
+
+
+# ────────────────────────────────────────────
+#  生存確認
+# ────────────────────────────────────────────
+def title_match_score(store_name, value, label, term):
+    """ストア上の名前が「そのタイトル自身」かを 2/1/0 で返す。
+      2 = 完全一致（正規化後）
+      1 = 包含一致（"原神" ⊂ "原神 - Genshin Impact" のようなサブタイトル付き表記）
+      0 = 別物
+
+    v1 は検索がヒットしたかどうかしか見ておらず、iTunes のあいまい検索が
+    無関係なアプリを返すためサ終済みタイトルも生存判定になっていた。
+
+    包含一致に使うのは label と term（正式名称）だけで、value は使わない。
+    value はアプリ内部で使う略称なので、包含を許すと同じシリーズの別ゲーム
+    （"アサルトリリィ Last Bullet" に対する "アサルトリリィ BOUQUET" 等）を
+    取り違えてサ終を見逃す。この区別は外さないこと。
+    """
+    sn = norm(store_name)
+    if not sn:
+        return 0
+    if any(norm(x or '') == sn for x in (value, label, term)):
+        return 2
+    for x in (label, term):
+        c = norm(x or '')
+        if len(c) >= 2 and len(sn) >= 2 and (c in sn or sn in c):
+            return 1
+    return 0
+
+
+def is_game_app(res):
+    """App Store の「ゲーム」カテゴリか。攻略本・非公式ガイドの誤検出を避ける"""
+    if res.get('primaryGenreId') == 6014:
+        return True
+    return res.get('primaryGenreName') in ('ゲーム', 'Games')
+
+
+def eos_notice(res):
+    """ストア説明文・更新履歴にサービス終了の告知が出ているか"""
+    blob = ((res.get('description') or '') + ' ' + (res.get('releaseNotes') or '')).lower()
+    for pat in EOS_PATTERNS:
+        if pat.lower() in blob:
+            return pat
+    return None
+
+
+def itunes_lookup(app_id):
+    """trackId による完全一致照会。配信停止済みなら resultCount=0 が返る。
+    戻り値: (result or None, ok)  ok=False は通信失敗（判定保留）"""
+    url = 'https://itunes.apple.com/lookup?' + urllib.parse.urlencode(
+        {'id': app_id, 'country': 'JP'})
     try:
         d = fetch_json(url)
-        return d.get('resultCount', 0) > 0
+        rs = [r for r in d.get('results', []) if r.get('wrapperType') == 'software'
+              or r.get('kind') == 'software']
+        return (rs[0] if rs else None), True
+    except Exception as ex:
+        print(f"[warn] lookup failed: {app_id} -> {ex}", file=sys.stderr)
+        return None, False
+
+
+def itunes_search(term):
+    """検索。戻り値: (results, ok)  ok=False は通信失敗（判定保留）"""
+    url = 'https://itunes.apple.com/search?' + urllib.parse.urlencode(
+        {'term': term, 'country': 'JP', 'entity': 'software', 'limit': 10})
+    try:
+        d = fetch_json(url)
+        return d.get('results', []), True
     except Exception as ex:
         print(f"[warn] search failed: {term} -> {ex}", file=sys.stderr)
-        return None  # 通信失敗は判定保留（除外カウントを進めない）
+        return [], False
+
+
+def check_title(value, label, term, app_id):
+    """タイトル1件の生存判定。
+    戻り値: {'alive': True/False/None, 'appId':.., 'name':.., 'reason':..}
+      alive=None は通信失敗（未検出カウントを進めない）"""
+    names = [value, label, term]
+
+    # ① trackId を知っていれば完全一致で照会する（あいまい検索を経由しない）
+    if app_id:
+        res, ok = itunes_lookup(app_id)
+        if not ok:
+            return {'alive': None, 'appId': app_id, 'name': None, 'reason': '通信失敗'}
+        if res is None:
+            return {'alive': False, 'appId': app_id, 'name': None, 'reason': 'ストアから配信停止'}
+        pat = eos_notice(res)
+        if pat:
+            return {'alive': False, 'appId': app_id, 'name': res.get('trackName'),
+                    'reason': f'ストアに終了告知（{pat}）'}
+        return {'alive': True, 'appId': app_id, 'name': res.get('trackName'), 'reason': ''}
+
+    # ② 未知のタイトルは検索し、名前が一致した結果だけを採用する。
+    #    完全一致 > 包含一致、同点ならゲームカテゴリを優先して最良の1件を選ぶ。
+    results, ok = itunes_search(term)
+    if not ok:
+        return {'alive': None, 'appId': None, 'name': None, 'reason': '通信失敗'}
+    best, best_key = None, (0, 0)
+    for res in results:
+        key = (title_match_score(res.get('trackName', ''), value, label, term),
+               1 if is_game_app(res) else 0)
+        if key[0] > 0 and key > best_key:
+            best, best_key = res, key
+    if best is not None:
+        pat = eos_notice(best)
+        if pat:
+            return {'alive': False, 'appId': best.get('trackId'), 'name': best.get('trackName'),
+                    'reason': f'ストアに終了告知（{pat}）'}
+        return {'alive': True, 'appId': best.get('trackId'), 'name': best.get('trackName'),
+                'reason': ''}
+    got = ', '.join(r.get('trackName', '') for r in results[:3]) or '該当なし'
+    return {'alive': False, 'appId': None, 'name': None,
+            'reason': f'検索結果に本タイトルが無い（{got}）'}
+
 
 def load_prev():
     if os.path.exists(OUT):
@@ -130,52 +296,102 @@ def load_prev():
             pass
     return {}
 
-def main():
-    prev = load_prev()
-    miss_state = prev.get('missState', {})   # {value: 連続未検出日数}
 
-    # ── ① プレイ中タイトルの生存確認 ──
-    playing, removed = [], []
+def main():
+    today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
+    prev = load_prev()
+    miss_state = dict(prev.get('missState', {}))    # {value: 連続未検出日数}
+    app_ids = dict(prev.get('appIds', {}))          # {value: trackId}
+    eos_prev = {e['value']: e for e in prev.get('eos', []) if isinstance(e, dict) and 'value' in e}
+
+    # ── ① セールスランキングを先に取る（プレイ中タイトルの順位付けにも使う） ──
+    grossing, free = fetch_ranking()
+    by_name, by_id = build_rank_index(grossing)
+    print(f"[rank] 売上ランキング {len(grossing)}件 / 無料ランキング {len(free)}件")
+
+    # ── ② プレイ中タイトルの生存確認 ──
+    playing, removed, eos, checks = [], [], [], []
     for value, label, term in SEED:
-        alive = check_alive(term)
+        r = check_title(value, label, term, app_ids.get(value))
         time.sleep(SEARCH_SLEEP)
-        if alive is True:
+        if r['appId']:
+            app_ids[value] = r['appId']
+        rank = lookup_rank(by_name, by_id, app_ids.get(value), [value, label, r['name']])
+        checks.append({'value': value, 'alive': r['alive'], 'rank': rank, 'reason': r['reason']})
+
+        if r['alive'] is False and rank is not None:
+            # 安全弁: 売上ランキングに載っているタイトルはサービス継続中で確実。
+            # SEED の表記ゆれ等で照合に失敗しても、稼働中のゲームは消さない。
+            print(f"[keep] 照合失敗だが売上{rank}位に在位 → 生存扱い: {label} — {r['reason']}")
+            checks[-1]['alive'] = True
+            checks[-1]['reason'] = f"照合失敗だが売上{rank}位に在位（{r['reason']}）"
+            r['alive'] = True
+
+        if r['alive'] is True:
             miss_state[value] = 0
-            playing.append({'value': value, 'label': label})
-        elif alive is False:
+            playing.append({'value': value, 'label': label, 'rank': rank})
+        elif r['alive'] is False:
             miss_state[value] = miss_state.get(value, 0) + 1
             if miss_state[value] >= GRACE_DAYS:
-                removed.append(label)   # サ終扱い → リストから除外
-                print(f"[info] 除外(連続{miss_state[value]}日未検出): {label}")
+                # サ終扱い → プルダウンから除外
+                removed.append(label)
+                eos.append({'value': value, 'label': label,
+                            'since': eos_prev.get(value, {}).get('since', today.strftime('%Y-%m-%d')),
+                            'reason': r['reason']})
+                print(f"[eos]  除外(連続{miss_state[value]}日): {label} — {r['reason']}")
             else:
-                playing.append({'value': value, 'label': label + ' ⚠'})
-                print(f"[info] 未検出{miss_state[value]}日目(猶予中): {label}")
-        else:  # 通信失敗 → 前回状態を維持して掲載継続
-            playing.append({'value': value, 'label': label})
+                # 猶予中は「終了予定」として残し、UI側で注意表示する
+                playing.append({'value': value, 'label': label, 'rank': rank,
+                                'sunsetting': True, 'reason': r['reason']})
+                print(f"[warn] 未検出{miss_state[value]}日目(猶予中): {label} — {r['reason']}")
+        else:
+            # 通信失敗 → 前回状態を維持して掲載継続（未検出カウントは進めない）
+            playing.append({'value': value, 'label': label, 'rank': rank})
 
-    # ── ② ランキング上位（新作の自動追加・サ終の自動消滅） ──
+    # 一度サ終判定した後に復活した場合は eos から自然に落ちる（毎回作り直しているため）
+
+    # ── ③ ランキング上位（新作の自動追加・サ終の自動消滅） ──
     seed_norms = {norm(v) for v, _, _ in SEED} | {norm(l) for _, l, _ in SEED}
+    eos_norms = {norm(e['label']) for e in eos} | {norm(e['value']) for e in eos}
     trending, seen = [], set()
-    for name in fetch_ranking():
+    for e in grossing + free:
+        name = e['name']
         n = norm(name)
         if not n or n in seen:
             continue
         if any(n.startswith(s) or s.startswith(n) for s in seed_norms if len(s) >= 2):
             continue  # プレイ中と重複
+        if any(n.startswith(s) or s.startswith(n) for s in eos_norms if len(s) >= 2):
+            continue  # サ終判定済み
         if any(k.lower() in name.lower() for k in EXCLUDE_KEYWORDS):
             continue  # 非ガチャ
         seen.add(n)
-        trending.append({'value': name, 'label': name})
+        trending.append({'value': name, 'label': name,
+                         'rank': lookup_rank(by_name, by_id, e['id'], [name])})
 
+    ranked = sum(1 for g in playing if g.get('rank'))
     out = {
-        'updated': datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9))).strftime('%Y-%m-%d %H:%M JST'),
+        'updated': today.strftime('%Y-%m-%d %H:%M JST'),
+        'rankingSource': 'App Store JP セールスランキング（ゲーム・上位200）',
+        'rankingSize': len(grossing),
         'playing': playing,
         'trending': trending[:200],
         'removed': removed,
+        'eos': eos,
+        'appIds': app_ids,
         'missState': miss_state,
+        'checks': checks,
     }
+    if os.environ.get('GAMES_DRY_RUN') == '1':
+        print(json.dumps({k: out[k] for k in ('updated', 'removed', 'eos', 'checks')},
+                         ensure_ascii=False, indent=1))
+        return
     json.dump(out, open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
-    print(f"[done] playing={len(playing)} trending={len(out['trending'])} removed={len(removed)}")
+    print(f"[done] playing={len(playing)}（セルラン付き {ranked}件） "
+          f"trending={len(out['trending'])} 除外={len(removed)}")
+    if removed:
+        print('[done] 除外したタイトル: ' + ', '.join(removed))
+
 
 if __name__ == '__main__':
     main()
