@@ -480,14 +480,20 @@ def inspect_ranking_pages():
             print('  ' + row[:400].replace('\n', ' '))
             print(f'  --- tr[{i}] cells ---')
             print('  ' + repr([c.strip() for c in strip_tags(row).split(chr(10)) if c.strip()][:8]))
-        # 上位タイトルの周辺を見る（行の組み方が tr/li でない場合の手がかり）
-        for kw in ('モンスターストライク', 'ドッカンバトル', 'パズル'):
-            i = html.find(kw)
-            if i >= 0:
-                print(f'  --- "{kw}" 周辺 ---')
-                print('  ' + html[max(0, i - 500):i + 200].replace('\n', ' '))
-                break
-
+        # 行の組み方が tr/li でない場合の手がかりを出す
+        n_app = len(re.findall(r'\./\?APP/', html))
+        print(f'  "./?APP/" リンク数: {n_app}')
+        i = html.find('link_page_passage')
+        if i < 0:
+            i = html.find('./?APP/')
+        if i >= 0:
+            print('  --- 1件目のアプリリンク周辺（前1200/後1800文字）---')
+            print('  ' + html[max(0, i - 1200):i + 1800].replace('\n', ' '))
+        # alt="アプリ名" の直前を見て、順位がどこに置かれているか調べる
+        for m in list(re.finditer(r'alt="([^"]{2,40})"', html))[:3]:
+            st = max(0, m.start() - 700)
+            print(f'  --- alt="{m.group(1)}" の直前700文字 ---')
+            print('  ' + html[st:m.start()].replace('\n', ' '))
 
 def load_prev():
     if os.path.exists(OUT):
