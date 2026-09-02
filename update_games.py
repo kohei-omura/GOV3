@@ -310,9 +310,20 @@ def parse_gamei(html, limit):
     return uniq
 
 
-def is_game_entry(entry):
-    """Game-i の1件がゲームかどうか。カテゴリ優先、無ければキーワードで判定。"""
+def is_game_entry(entry, trust_category=True):
+    """Game-i の1件がゲームかどうか。
+
+    Game-i は App Store の主カテゴリ（gi-meta）を併記しており、ゲームは "Games"、
+    それ以外は "Productivity" / "Books" などが入る。カテゴリがあるならそれを信じる
+    のが最も確実なので、既知の非ゲームに限らず「ゲームと書かれていないもの」は
+    すべて除外する。カテゴリが取れないときだけキーワード判定に落とす。
+
+    trust_category=False は保険。カテゴリの表記が想定と違って大半が落ちてしまった
+    場合に、呼び出し側がキーワード判定でやり直すために使う。
+    """
     cat = (entry.get('category') or '').strip().lower()
+    if cat and trust_category:
+        return 'game' in cat or 'ゲーム' in cat
     if cat:
         if 'game' in cat or 'ゲーム' in cat:
             return True
@@ -336,18 +347,25 @@ def fetch_gamei(min_rank):
         print('[warn] Game-i: gi-ranking-item を検出できず汎用パーサにフォールバック', file=sys.stderr)
     if not validate_ranks(entries, need_top=10, min_count=80, source='Game-i'):
         return []
-    kept, dropped = [], []
-    for e in entries:
-        if e['rank'] < min_rank:
-            continue
-        if is_game_entry(e):
-            kept.append(e)
-        else:
-            dropped.append(f"{e['rank']}位 {e['name']}({e.get('category') or 'カテゴリ不明'})")
+    target = [e for e in entries if e['rank'] >= min_rank]
+
+    def split(trust):
+        keep, drop = [], []
+        for e in target:
+            (keep if is_game_entry(e, trust) else drop).append(e)
+        return keep, drop
+
+    kept, dropped_e = split(True)
+    # カテゴリの表記が想定と違って大半が落ちた場合はキーワード判定でやり直す
+    if target and len(kept) < len(target) * 0.3:
+        print(f"[warn] Game-i: カテゴリ判定で{len(kept)}/{len(target)}件しか残らないため "
+              f"キーワード判定に切り替え", file=sys.stderr)
+        kept, dropped_e = split(False)
+    dropped = [f"{e['rank']}位 {e['name']}({e.get('category') or 'カテゴリ不明'})" for e in dropped_e]
     cats = {}
     for e in entries:
         cats[e.get('category') or '(なし)'] = cats.get(e.get('category') or '(なし)', 0) + 1
-    top_cats = sorted(cats.items(), key=lambda kv: -kv[1])[:8]
+    top_cats = sorted(cats.items(), key=lambda kv: -kv[1])[:10]
     print(f"[rank] Game-i: カテゴリ内訳 {top_cats}")
     if dropped:
         print(f"[rank] Game-i: ゲーム以外を{len(dropped)}件除外 "
@@ -667,8 +685,11 @@ def main():
         if any(k.lower() in name.lower() for k in EXCLUDE_KEYWORDS):
             continue  # 非ガチャ
         seen.add(n)
-        trending.append({'value': name, 'label': name,
-                         'rank': lookup_rank(by_name, by_id, e['id'], [name])})
+        item = {'value': name, 'label': name,
+                'rank': lookup_rank(by_name, by_id, e.get('id'), [name])}
+        if e.get('category'):
+            item['category'] = e['category']
+        trending.append(item)
 
     ranked = sum(1 for g in playing if g.get('rank'))
     out = {

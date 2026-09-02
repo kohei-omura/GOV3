@@ -171,6 +171,10 @@ check(ug.is_game_entry(_gi[2]) and ug.is_game_entry(_gi[4]),
       'カテゴリがGamesのものは残す')
 check(ug.is_game_entry({'rank': 1, 'name': '原神', 'category': 'Games / Role Playing'}),
       'ゲームのサブカテゴリ表記でも残す')
+check(not ug.is_game_entry({'rank': 1, 'name': 'GoodNovel(グッドノベル)', 'category': 'Books'}),
+      'カテゴリがあるなら未知の名前でも非ゲームとして落とす')
+check(not ug.is_game_entry({'rank': 1, 'name': 'netkeiba', 'category': 'Sports'}),
+      'Sports など紛らわしいカテゴリも落とす')
 check(ug.is_game_entry({'rank': 1, 'name': '原神', 'category': 'ゲーム'}), '日本語のカテゴリ表記も通る')
 check(not ug.is_game_entry({'rank': 1, 'name': 'LINE', 'category': ''})
       and ug.is_game_entry({'rank': 1, 'name': '原神', 'category': ''}),
