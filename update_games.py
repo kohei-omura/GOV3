@@ -42,7 +42,7 @@ SEED = [
     ("コンパス","＃コンパス 戦闘摂理解析システム","#コンパス 戦闘摂理解析システム"),
     ("AFKアリーナ","AFKアリーナ","AFKアリーナ"),
     ("Alterna","Alterna","Alterna ゲーム"),
-    ("Black Desert Mobile","黒い砂漠モバイル","黒い砂漠モバイル"),
+    ("Black Desert Mobile","New 黒い砂漠 MOBILE","New 黒い砂漠 MOBILE"),
     ("Call of Duty","Call of Duty: Mobile","Call of Duty Mobile"),
     ("DQウォーク","ドラゴンクエストウォーク","ドラゴンクエストウォーク"),
     ("Echocalypse","Echocalypse -緋紅の神約-","エコカリプス"),
@@ -53,7 +53,7 @@ SEED = [
     ("NIKKE","勝利の女神：NIKKE","勝利の女神 NIKKE"),
     ("Pokémon Trading Card Game Pocket","Pokémon TCG Pocket","ポケポケ Pokémon Trading Card Game Pocket"),
     ("Pokémon GO","Pokémon GO","Pokémon GO"),
-    ("PokémonMaster","ポケモンマスターズ EX","ポケモンマスターズ EX"),
+    ("PokémonMaster","ポケモンマスターズ EX","Pokémon Masters EX"),
     ("PSO2es","PSO2es","ファンタシースターオンライン2 es"),
     ("PUBG","PUBG MOBILE","PUBG MOBILE"),
     ("アサルトリリィ","アサルトリリィ Last Bullet","アサルトリリィ Last Bullet"),
@@ -63,14 +63,14 @@ SEED = [
     ("ウマ娘","ウマ娘 プリティーダービー","ウマ娘 プリティーダービー"),
     ("おねがい社長！","おねがい社長！","おねがい社長"),
     ("カゲマス","陰の実力者になりたくて！マスターオブガーデン","陰の実力者になりたくて マスターオブガーデン"),
-    ("グラクロ","七つの大罪 グランドクロス","七つの大罪 グランドクロス"),
+    ("グラクロ","七つの大罪 光と闇の交戦 : グラクロ","七つの大罪 光と闇の交戦 グラクロ"),
     ("グラブル","グランブルーファンタジー","グランブルーファンタジー"),
     ("けもフレ3","けものフレンズ3","けものフレンズ3"),
     ("ゼンレスゾーンゼロ","ゼンレスゾーンゼロ","ゼンレスゾーンゼロ"),
     ("チェンクロ","チェインクロニクル","チェインクロニクル"),
     ("ツムツム","LINE：ディズニー ツムツム","ディズニー ツムツム"),
     ("ディスガイアRPG","魔界戦記ディスガイアRPG","魔界戦記ディスガイアRPG"),
-    ("ドルウェブ","ドルウェブ","ドルウェブ"),
+    ("ドルウェブ","ドルフィンウェーブ","ドルフィンウェーブ"),
     ("ぷよクエ","ぷよぷよ!!クエスト","ぷよぷよクエスト"),
     ("プリコネR","プリンセスコネクト！Re:Dive","プリンセスコネクト Re:Dive"),
     ("ブルーアーカイブ","ブルーアーカイブ","ブルーアーカイブ"),
@@ -79,7 +79,7 @@ SEED = [
     ("まおりゅう","転スラ 魔王と竜の建国譚","転生したらスライムだった件 魔王と竜の建国譚"),
     ("まどドラ","マギアエクセドラ","まどか マギカ Magia Exedra"),
     ("ゆるドラ","ゆるドラシル","ゆるドラシル"),
-    ("ロススト","ロススト","ロススト"),
+    ("ロススト","コードギアス 反逆のルルーシュ　ロストストーリーズ","コードギアス 反逆のルルーシュ ロストストーリーズ"),
     ("陰陽師本格幻想","陰陽師 本格幻想RPG","陰陽師 本格幻想RPG"),
     ("俺だけレベルアップな件：Arise","俺だけレベルアップな件:ARISE","俺だけレベルアップな件 ARISE"),
     ("原神","原神","原神"),
@@ -458,6 +458,37 @@ def check_title(value, label, term, app_id):
             'reason': f'検索結果に本タイトルが無い（{got}）'}
 
 
+def inspect_ranking_pages():
+    """ランキングページの構造をログに出す（パーサが0件になったときの調査用）。
+    GAMES_INSPECT=1 で実行する。取得も解析もせず、素の HTML の形だけを見る。"""
+    for label, url in (('AppMedia', APPMEDIA_URL), ('Game-i', GAMEI_URL)):
+        print('=' * 70)
+        print(f'[inspect] {label}: {url}')
+        try:
+            html = _http_text(url)
+        except Exception as ex:
+            print(f'  取得失敗: {ex}')
+            continue
+        print(f'  長さ: {len(html)}文字')
+        for tag in ('table', 'tr', 'td', 'li', 'ol', 'ul', 'div', 'a'):
+            print(f'  <{tag}> の数: {len(re.findall("(?i)<" + tag + r"[ >]", html))}')
+        rows = re.findall(r'(?is)<tr[^>]*>(.*?)</tr>', html)
+        print(f'  parse_rank_rows の抽出件数: {len(parse_rank_rows(html, 300))}')
+        print(f'  <tr> ブロック数: {len(rows)}')
+        for i, row in enumerate(rows[:4]):
+            print(f'  --- tr[{i}] raw ---')
+            print('  ' + row[:400].replace('\n', ' '))
+            print(f'  --- tr[{i}] cells ---')
+            print('  ' + repr([c.strip() for c in strip_tags(row).split(chr(10)) if c.strip()][:8]))
+        # 上位タイトルの周辺を見る（行の組み方が tr/li でない場合の手がかり）
+        for kw in ('モンスターストライク', 'ドッカンバトル', 'パズル'):
+            i = html.find(kw)
+            if i >= 0:
+                print(f'  --- "{kw}" 周辺 ---')
+                print('  ' + html[max(0, i - 500):i + 200].replace('\n', ' '))
+                break
+
+
 def load_prev():
     if os.path.exists(OUT):
         try:
@@ -468,6 +499,9 @@ def load_prev():
 
 
 def main():
+    if os.environ.get('GAMES_INSPECT') == '1':
+        inspect_ranking_pages()
+        return
     today = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
     prev = load_prev()
     miss_state = dict(prev.get('missState', {}))    # {value: 連続未検出日数}

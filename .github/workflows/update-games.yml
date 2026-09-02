@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 21 * * *'   # 毎日 6:00 JST に実行
   workflow_dispatch:        # 手動実行も可能
+    inputs:
+      inspect:
+        description: 'ランキングページの構造だけを調べる（games.jsonは更新しない）'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -23,10 +28,16 @@ jobs:
       - name: Test updater logic
         run: python test_games.py
 
+      - name: Inspect ranking pages
+        if: ${{ inputs.inspect }}
+        run: GAMES_INSPECT=1 python update_games.py
+
       - name: Generate games.json
+        if: ${{ !inputs.inspect }}
         run: python update_games.py
 
       - name: Report removals
+        if: ${{ !inputs.inspect }}
         run: |
           python - <<'EOF'
           import json
@@ -43,6 +54,7 @@ jobs:
           EOF
 
       - name: Commit & push (with rebase retry)
+        if: ${{ !inputs.inspect }}
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
