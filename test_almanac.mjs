@@ -157,6 +157,13 @@ check(tenka.filter(x => /^(10|11|12)\//.test(x)).join(' ') === '10/2 10/17 10/29
   '天火日 2026年10〜12月が公開暦と一致',
   tenka.filter(x => /^(10|11|12)\//.test(x)).join(' '));
 
+// 重日は巳の日・亥の日すべて。復日は節月ごとの十干。
+// どちらも凶日ではなく「その日の吉凶を増幅する」暦注。
+const juu = collectKyou(2026, '重日');
+check(sep(juu) === '9/4 9/10 9/16 9/22 9/28', '重日 2026年9月（巳・亥の日）', sep(juu));
+check(juu.length === 61, '重日 2026年 = 61日（巳・亥の日すべて）', `実際 ${juu.length}日`);
+check(collectKyou(2026, '復日').includes('9/3'), '復日 2026-09-03（節月7・庚の日）');
+
 const fujo = collectKyou(2026, '不成就日');
 check(fujo.length === 49, '不成就日 2026年 = 49日', `実際 ${fujo.length}日`);
 check(sep(fujo) === '9/8 9/12 9/20 9/28', '不成就日 2026年9月 = 9/8・9/12・9/20・9/28', sep(fujo));

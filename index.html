@@ -512,9 +512,10 @@ const SS=(function(){
 //   そのまま再利用される。暦やスコアの計算を直したときにここを上げないと、
 //   直す前の結果がその日いっぱい出続けてしまう。
 //   （地火日の誤りを直したのに画面から消えなかったのが実際の事故）
-//   ロジックを触ったら必ずこの文字列を更新すること。
+//   暦・スコアの計算を触ったときだけでなく、保存する結果に項目を足した
+//   ときも必ず更新すること（古い結果には新しい項目が無く、表示が欠ける）。
 // ══════════════════════════════════════════════════
-var CALC_REV='2026-09-03-jikanichi';
+var CALC_REV='2026-09-03-amp-badge';
 (function purgeStaleCalcCache(){
   try{
     if(SS.get('gachaOracle_calcRev')===CALC_REV)return;
@@ -2226,6 +2227,11 @@ function generateLuckyTimes({month,score,targetName,gachaTitle,gachaDeadline,gac
       kichiNames:dKichi2.names.filter(function(x){return x!=='大安';}),
       kichiSupreme:dKichi2.supreme,
       kyouNames:dKyou2.names.filter(function(x){return x!=='重日'&&x!=='復日';}),
+      // 重日・復日は凶日ではなく「その日の吉凶を増幅する」暦注。
+      // スコアには倍率として効いているのに候補日のバッジからは落としていたので、
+      // 9/4（巳の日＝重日）のように増幅されているのに理由が見えない状態だった。
+      // ヘッダーと同じく別枠の紫バッジで出す。
+      ampNames:dKyou2.names.filter(function(x){return x==='重日'||x==='復日';}),
       kyouSevere:dKyou2.severe, rekichuVerdict:dRekichu2.verdict,
       _calDate:new Date(date.getFullYear(),date.getMonth(),date.getDate())};
   }
@@ -3016,6 +3022,12 @@ function displayResult(result){
               +(hard?'color:#FCA5A5;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45)'
                     :'color:#FBBF24;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28)')
               +`">${meta.icon} ${esc(meta.label)}</span>`;
+          }).join('')}
+          ${(t.ampNames||[]).map(nm=>{
+            const meta=(typeof KYOU!=='undefined'&&KYOU.META[nm])||{icon:'♾',yomi:'',label:nm,desc:''};
+            return `<span title="${esc(meta.yomi)}／${esc(meta.desc)}" style="padding:2px 10px;border-radius:20px;font-size:.7rem;`
+              +`color:#C4B5FD;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.32)">`
+              +`${meta.icon} ${esc(meta.label)}</span>`;
           }).join('')}
           ${t.kichiSupreme?'<span style="padding:2px 10px;border-radius:20px;font-size:.7rem;color:#0B0616;background:linear-gradient(90deg,#EDD070,#C9A84C);font-weight:bold">⚡最強開運日</span>':''}
           ${t.kyouSevere?'<span style="padding:2px 10px;border-radius:20px;font-size:.7rem;color:#0B0616;background:linear-gradient(90deg,#FCA5A5,#EF4444);font-weight:bold">⛔暦注 大凶日</span>':''}
