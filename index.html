@@ -11,8 +11,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GACHA ORACLE">
-<link rel="apple-touch-icon" href="./apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="./assets/icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600;700&family=Noto+Serif+JP:wght@300;400;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -5321,7 +5321,7 @@ function renderMonthlyRanking(){
 // 暦データ(calendar.json)を起動時に読み込む（six曜・月齢の正確化）
 (function(){
   if(typeof fetch!=='function'){ try{renderMonthlyRanking();}catch(e){} return; }
-  fetch('./calendar.json',{cache:'no-cache'})
+  fetch('./data/calendar.json',{cache:'no-cache'})
     .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
     .then(function(d){
       if(d&&d.days){CAL_DATA=d;
@@ -5554,7 +5554,7 @@ function refreshGameSelect(){
 }
 (function(){
   if(typeof fetch!=='function'){ try{renderPlayingList();}catch(e){} return; }
-  fetch('./games.json',{cache:'no-cache'})
+  fetch('./data/games.json',{cache:'no-cache'})
     .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json();})
     .then(function(d){
       if(!d||!Array.isArray(d.playing)||d.playing.length===0)return;

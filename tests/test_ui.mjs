@@ -12,14 +12,14 @@
         （Date が文字列に化けて date.getFullYear が落ちた）
      ④ 鑑定キャッシュのキーに生年月日などが入っていること
 
-   実行:  node test_ui.mjs
+   実行:  node tests/test_ui.mjs
    ═══════════════════════════════════════════════════════════════ */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import vm from 'node:vm';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');   // リポジトリ直下
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
 
 let failures = 0;
@@ -72,7 +72,7 @@ const document = ctx.document;
 
 // ── ① プレイ中タイトルの手動追加・削除 ────────────────────────
 console.log('① プレイ中タイトルの手動追加・削除');
-ctx.GAMES_JSON = JSON.parse(readFileSync(join(ROOT, 'games.json'), 'utf8'));
+ctx.GAMES_JSON = JSON.parse(readFileSync(join(ROOT, 'data', 'games.json'), 'utf8'));
 ctx.SALES_RANK = {};
 (ctx.GAMES_JSON.playing || []).forEach(g => { if (g.rank) ctx.SALES_RANK[g.value] = g.rank; });
 const names = () => ctx.effectivePlaying().map(g => g.value);

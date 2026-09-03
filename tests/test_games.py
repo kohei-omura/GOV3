@@ -8,7 +8,7 @@
 無関係なアプリで常に生存判定になっていたこと。ここではその照合ロジックと、
 セルラン付与・除外までの一連の流れをモックで検証する。
 
-実行:  python3 test_games.py
+実行:  python3 tests/test_games.py
 終了コード 0 = 全件パス / 1 = 失敗あり
 """
 import importlib.util
@@ -17,8 +17,9 @@ import os
 import sys
 import tempfile
 
-HERE = os.path.dirname(os.path.abspath(__file__))
-spec = importlib.util.spec_from_file_location('ug', os.path.join(HERE, 'update_games.py'))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+spec = importlib.util.spec_from_file_location(
+    'ug', os.path.join(ROOT, 'scripts', 'update_games.py'))
 ug = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(ug)
 

@@ -3,17 +3,17 @@
    - アプリシェルをキャッシュしてオフライン動作
    - 更新時は CACHE_VERSION を上げると自動入れ替え
    ═══════════════════════════════════════════════ */
-const CACHE_VERSION = 'gacha-oracle-v11';
+const CACHE_VERSION = 'gacha-oracle-v12';
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.json',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-512-maskable.png',
-  './apple-touch-icon.png',
-  './games.json',
-  './calendar.json'
+  './assets/icon-192.png',
+  './assets/icon-512.png',
+  './assets/icon-512-maskable.png',
+  './assets/apple-touch-icon.png',
+  './data/games.json',
+  './data/calendar.json'
 ];
 
 self.addEventListener('install', (e) => {
