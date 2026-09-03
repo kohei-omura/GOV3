@@ -26,31 +26,30 @@ jobs:
       # 生存判定・セルラン付与のロジックをネットワーク無しで検証してから走らせる
       # （照合を壊すとサ終タイトルが消えない／稼働中タイトルが消えるので先に落とす）
       - name: Test updater logic
-        run: python test_games.py
+        run: python tests/test_games.py
 
       - name: Inspect ranking pages
         if: ${{ inputs.inspect }}
-        run: GAMES_INSPECT=1 python update_games.py
+        run: GAMES_INSPECT=1 python scripts/update_games.py
 
       - name: Generate games.json
         if: ${{ !inputs.inspect }}
-        run: python update_games.py
+        run: python scripts/update_games.py
 
-      - name: Report removals
+      # 自動削除はしない方針なので、消えたものではなく
+      # 「要確認として印を付けたもの」を通知する。
+      - name: Report suspects
         if: ${{ !inputs.inspect }}
         run: |
           python - <<'EOF'
           import json
-          d = json.load(open('games.json', encoding='utf-8'))
-          eos = d.get('eos', [])
+          d = json.load(open('data/games.json', encoding='utf-8'))
           print(f"プレイ中 {len(d['playing'])}本 / 人気 {len(d.get('trending', []))}本")
           ranked = sum(1 for g in d['playing'] if g.get('rank'))
           print(f"セルラン掲載 {ranked}本")
-          for e in eos:
-              print(f"::notice::サ終として除外: {e['label']}（{e.get('since','')}） — {e.get('reason','')}")
-          sunset = [g['label'] for g in d['playing'] if g.get('sunsetting')]
-          for lb in sunset:
-              print(f"::warning::未検出（猶予中）: {lb}")
+          for g in d['playing']:
+              if g.get('sunsetting'):
+                  print(f"::warning::要確認（App Storeで未検出）: {g['label']} — {g.get('reason','')}")
           EOF
 
       - name: Commit & push (with rebase retry)
@@ -58,7 +57,7 @@ jobs:
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add games.json
+          git add data/games.json
           if git diff --cached --quiet; then
             echo 'No changes in games.json'
             exit 0

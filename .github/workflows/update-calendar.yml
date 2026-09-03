@@ -33,13 +33,13 @@ jobs:
         id: gen
         env:
           FORCE_FULL: ${{ inputs.force_full && '1' || '0' }}
-        run: python update_calendar.py
+        run: python scripts/update_calendar.py
 
       - name: Commit & push
         run: |
           git config user.name  'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add calendar.json
+          git add data/calendar.json
           if git diff --cached --quiet; then
             echo 'No changes'; exit 0
           fi
@@ -56,7 +56,7 @@ jobs:
         with:
           node-version: '20'
       - name: Verify almanac engine against calendar.json
-        run: node test_almanac.mjs
+        run: node tests/test_almanac.mjs
 
       # データは必ずコミットしたうえで、カバレッジ不足なら「後から」失敗させて通知する。
       # （検証を生成ステップ内で失敗させると、取得できた分までコミットされず損になるため）

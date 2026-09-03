@@ -32,7 +32,8 @@ import urllib.request, urllib.parse, re, json, datetime, sys, os, time, calendar
 CAL_URL = ("https://www.ajnet.ne.jp/diary_f/"
            "?ohGmI01LrhInI9dh0n9433nHyCnnmTYJSZrkYzAGNqVw3XS8nNRJcIybHViQAayndyWtJjF7IP7aGnHOX3ExN0cE1Yt9BrRoGavGNE1RjYQuPqnkjmFC1kQFVP9NInI9")
 UA   = {'User-Agent': 'Mozilla/5.0 (GachaOracle CalendarUpdater/2.0)'}
-OUT  = 'calendar.json'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT  = os.path.join(ROOT, 'data', 'calendar.json')
 
 DAYS_AHEAD     = 400   # 今日から先に確保する日数（365日を安全マージン付きで満たす）
 DAYS_REQUIRED  = 365   # これを下回ったら Actions を失敗させて通知する

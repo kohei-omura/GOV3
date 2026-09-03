@@ -37,7 +37,8 @@ import json, re, time, unicodedata, urllib.request, urllib.parse, datetime, os, 
 
 GRACE_DAYS = 3          # 連続で見つからなかったら除外するまでの日数
 SEARCH_SLEEP = 3.0      # iTunes Search APIのレート制限対策(約20回/分)
-OUT = 'games.json'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, 'data', 'games.json')
 
 # ── プレイ中タイトル（value=アプリ内で使うID/GAME_DBキーと一致させる, label=表示名, term=検索語 ──
 SEED = [

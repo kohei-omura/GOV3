@@ -10,7 +10,7 @@
      ② 公開暦で確定している閏月の年が一致すること
      ③ 2026年の 天赦日 / 鬼宿日 / 一粒万倍日 が公開暦と一致すること
 
-   実行:  node test_almanac.mjs
+   実行:  node tests/test_almanac.mjs
    終了コード 0 = 全件パス / 1 = 不一致あり
    ═══════════════════════════════════════════════════════════════ */
 import { readFileSync } from 'node:fs';
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import vm from 'node:vm';
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');   // リポジトリ直下
 
 // ── index.html から暦エンジン部分だけを切り出す ──
 const html = readFileSync(join(ROOT, 'index.html'), 'utf8');
@@ -45,7 +45,7 @@ const check = (ok, label, detail) => {
 
 // ── ① calendar.json との突き合わせ ────────────────────────────
 console.log('① calendar.json（実測暦）との一致');
-const cal = JSON.parse(readFileSync(join(ROOT, 'calendar.json'), 'utf8'));
+const cal = JSON.parse(readFileSync(join(ROOT, 'data', 'calendar.json'), 'utf8'));
 const keys = Object.keys(cal.days).sort();
 const bad = { rokuyo: [], lunar: [], moon: [] };
 for (const k of keys) {
