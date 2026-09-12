@@ -219,6 +219,21 @@ console.log('⑥ 引きの記録と見送りログ');
     _twoSidedP(0) > 0.99 && ctx._twoSidedP(1.96) < 0.06 && ctx._twoSidedP(1.96) > 0.04,
     '両側p値が正しく出る');
 
+  // ガチャ仕様の登録：内蔵プリセットは14本しかなく、それ以外は全部
+  // 「仕様不明」で比較から落ちてしまっていた（実際に17件中15件が捨てられた）
+  check(ctx.specForGame('ブルーアーカイブ') != null, 'プリセットのあるゲームは仕様が引ける');
+  check(ctx.specForGame('Evertale') == null, '未登録のゲームは仕様が無い');
+  ctx.saveGachaSpec('Evertale', { rate: 1.5, pity: 0 });
+  const ev = ctx.specForGame('Evertale');
+  check(ev != null && ev.rate === 1.5, '自分で登録した仕様が引ける');
+  check(ctx.expectTarget({ game: 'Evertale', pulls: 40 }) > 0.4,
+    '登録後は過去の記録も遡って期待値が出る');
+  // プリセットのあるゲームは、提供割合を上書きしても方式（すり抜け等）は保つ
+  ctx.saveGachaSpec('原神', { rate: 1.0, pity: 90 });
+  const gen = ctx.specForGame('原神');
+  check(gen.rate === 1.0 && gen.share === 0.5 && gen.soft === 74,
+    '提供割合を上書きしても、すり抜け・ソフト天井の方式はプリセットを使う');
+
   // 見送りログ
   check(typeof ctx.saveSkip === 'function' && typeof ctx.skips === 'function', '見送りログの関数がある');
   check(ctx.pityCostOf('ブルーアーカイブ') > 0 && ctx.pityCostOf('架空のゲーム') === 0,
