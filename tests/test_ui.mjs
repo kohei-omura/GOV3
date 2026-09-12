@@ -179,5 +179,56 @@ check(/\$\{\(t\.ampNames\|\|\[\]\)\.map/.test(html),
     '重日・復日は単独では減点しない（増幅のみ）');
 }
 
+// ── ⑥ 引きの記録（期待値との比較）と見送りログ ────────────────
+console.log('⑥ 引きの記録と見送りログ');
+{
+  const BLUE = { rate: 0.7, pity: 200, soft: 0, step: 0, share: 1, nextGuar: false };
+  const P = n => ctx.targetReachProb(BLUE, n);
+  const near = (a, b) => Math.abs(a - b) < 0.005;
+
+  check(near(P(10), 0.068) && near(P(30), 0.190) && near(P(100), 0.505),
+    `連数ごとの到達確率が正しい（10連 ${(P(10) * 100).toFixed(1)}% / 30連 ${(P(30) * 100).toFixed(1)}%）`);
+  check(P(200) > 0.9999, '天井まで回せば到達確率は100%');
+
+  const rec = (pulls, res, hot) => ({ game: 'ブルーアーカイブ', pulls, res, hot, prm: BLUE, exp: P(pulls) });
+
+  // 天井まで回した記録は、当たっても外れても評価に使わない。
+  // ここを混ぜると「連数で押し切った」分が的中として積み上がってしまう。
+  check(ctx.isInformative(rec(200, 'target')) === false, '天井まで回した記録は評価に使わない');
+  check(ctx.isInformative(rec(30, 'target')) === true, '30連の記録は評価に使う');
+  const pity = ctx.luckOf([rec(200, 'target'), rec(200, 'lose')]);
+  check(pity.n === 0 && pity.flat === 2 && pity.diff === 0,
+    '天井まで回した記録は加点も減点もしない', JSON.stringify(pity));
+
+  // 少ない連数で当てたときだけ大きく効く
+  const fast = ctx.luckOf([rec(30, 'target')]);
+  const miss = ctx.luckOf([rec(30, 'lose')]);
+  check(near(fast.diff, 0.81), `30連で目玉なら +0.81回分（実際 ${fast.diff.toFixed(2)}）`);
+  check(near(miss.diff, -0.19), `30連で外れなら −0.19回分（実際 ${miss.diff.toFixed(2)}）`);
+
+  // SSRのみ・爆死はどちらも「目玉に届かなかった」
+  check(ctx.isTargetHit(rec(30, 'ssr')) === false && ctx.isTargetHit(rec(30, 'target')) === true,
+    '目玉GETだけを当たりとして数える');
+
+  // 仕様が分からないゲームは比較から外す
+  check(ctx.expectTarget({ game: '架空のゲーム', pulls: 30 }) == null,
+    'ガチャ仕様が分からない記録は期待値を出さない');
+
+  // p値：差が無ければ有意にならない
+  check(ctx.
+    _twoSidedP(0) > 0.99 && ctx._twoSidedP(1.96) < 0.06 && ctx._twoSidedP(1.96) > 0.04,
+    '両側p値が正しく出る');
+
+  // 見送りログ
+  check(typeof ctx.saveSkip === 'function' && typeof ctx.skips === 'function', '見送りログの関数がある');
+  check(ctx.pityCostOf('ブルーアーカイブ') > 0 && ctx.pityCostOf('架空のゲーム') === 0,
+    '天井までの概算額が出る（プリセットがある場合のみ）');
+
+  // 断定しない表示になっていること
+  check(!/オラクル的中率/.test(html), '「オラクル的中率」の看板を出していない');
+  check(/偶然の範囲内です/.test(html), '有意でないときは偶然の範囲と明示する');
+  check(/ガチャの結果はゲーム側の乱数で決まります/.test(html), '結果が乱数で決まることを明記している');
+}
+
 console.log(failures === 0 ? '\n✅ 全テストパス' : `\n❌ ${failures}件の不一致`);
 process.exit(failures === 0 ? 0 : 1);
