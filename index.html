@@ -518,7 +518,7 @@ const SS=(function(){
 //   暦・スコアの計算を触ったときだけでなく、保存する結果に項目を足した
 //   ときも必ず更新すること（古い結果には新しい項目が無く、表示が欠ける）。
 // ══════════════════════════════════════════════════
-var CALC_REV='2026-09-13-expected-value';
+var CALC_REV='2026-09-13-gacha-spec';
 (function purgeStaleCalcCache(){
   try{
     if(SS.get('gachaOracle_calcRev')===CALC_REV)return;
@@ -4166,16 +4166,53 @@ function syncGameSelect() {
    自動的に評価から外れる。10連で当てれば +0.93 と正しく効く。
    ════════════════════════════════════════════════════════════ */
 
-/* その記録のガチャ仕様。記録時に保存した値 → ゲームのプリセット の順に探す */
+/* ゲームごとのガチャ仕様。ここで入力した値は次回以降そのゲームに使い回す。
+   内蔵プリセットは14タイトルしか無く、それ以外は全部「仕様不明」で
+   比較から落ちてしまうため、利用者が自分で登録できるようにしている。 */
+var GSPEC_KEY = 'gov_gachaspec';
+function gachaSpecs() {
+  var o = _lsGet(GSPEC_KEY, {});
+  return (o && typeof o === 'object' && !Array.isArray(o)) ? o : {};
+}
+function saveGachaSpec(game, spec) {
+  if (!game || !spec || !(spec.rate > 0)) return;
+  var o = gachaSpecs();
+  o[game] = { rate: +spec.rate, pity: +spec.pity || 0 };
+  _lsSet(GSPEC_KEY, o);
+}
+
+/* そのゲームのガチャ仕様を、確からしい順に探す。
+     ① 自分で登録した値（記録フォーム）
+     ② マイゲーム帳に入れた提供割合・天井
+     ③ 内蔵プリセット
+   ソフト天井・すり抜けはゲーム固有の方式なので、プリセットがあれば常にそれを使う。 */
+function specForGame(game) {
+  if (!game) return null;
+  var pre = GACHA_PRESETS[game] || null;
+  var own = gachaSpecs()[game] || null;
+  if (!own || !(own.rate > 0)) {
+    var mg = null;
+    try {
+      mg = myGames().filter(function (g) { return g && g.name === game; })[0] || null;
+    } catch (e) {}
+    if (mg && mg.rate > 0) own = { rate: +mg.rate, pity: +mg.pity || 0 };
+  }
+  var rate = (own && own.rate > 0) ? +own.rate : (pre ? pre.rate : 0);
+  if (!(rate > 0)) return null;
+  var pity = (own && own.rate > 0) ? (+own.pity || 0) : (pre ? pre.pity : 0);
+  return {
+    rate: rate, pity: pity,
+    soft: pre ? pre.soft : 0, step: pre ? pre.step : 0,
+    share: pre ? pre.share : 1, nextGuar: pre ? !!pre.nextGuar : false
+  };
+}
+
+/* その記録のガチャ仕様。記録時に保存した値 → ゲームの仕様 の順に探す。
+   後から仕様を登録すると、過去の記録も遡って比較に使えるようになる。 */
 function pullParams(rec) {
   var p = rec && rec.prm;
-  if (!p || !(p.rate > 0)) {
-    var pre = GACHA_PRESETS[rec && rec.game];
-    if (!pre) return null;
-    p = { rate: pre.rate, pity: pre.pity, soft: pre.soft, step: pre.step,
-          share: pre.share, nextGuar: pre.nextGuar };
-  }
-  return (p.rate > 0) ? p : null;
+  if (p && p.rate > 0) return p;
+  return specForGame(rec && rec.game);
 }
 
 /* n連までに目玉へ到達する確率（すり抜け・ソフト天井・天井を織り込む） */
@@ -4434,6 +4471,9 @@ function openPullFormTop() {
     '<label style="font-size:.7rem;color:var(--muted)">結果<select id="pf-res" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
     '<option value="target">🌈 目玉GET</option><option value="ssr">✨ SSRのみ</option><option value="lose">😇 爆死</option></select></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">何連目で当たった（任意）<input id="pf-hitat" type="number" inputmode="numeric" placeholder="例: 37" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">目玉の提供割合（％）<input id="pf-rate" type="number" step="0.01" inputmode="decimal" placeholder="例: 0.7" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">天井（連・無ければ0）<input id="pf-pity" type="number" inputmode="numeric" placeholder="例: 200" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<div id="pf-spec-note" style="grid-column:span 2;font-size:.64rem;color:var(--muted);line-height:1.6"></div>' +
     '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '</div>' +
     '<label style="font-size:.7rem;color:var(--muted);display:block;margin-top:8px">引いた日時' +
@@ -4452,11 +4492,15 @@ function openPullFormTop() {
     document.getElementById('pf-when').value =
       n0.getFullYear() + '-' + pad(n0.getMonth() + 1) + '-' + pad(n0.getDate()) +
       'T' + pad(n0.getHours()) + ':' + pad(n0.getMinutes());
-    document.getElementById('pf-game').addEventListener('change', function(){ refreshPlanList(); refreshPullJudge(); });
+    document.getElementById('pf-game').addEventListener('change', function(){ refreshPlanList(); refreshPullJudge(); refreshSpecFields(true); });
     document.getElementById('pf-when').addEventListener('change', refreshPullJudge);
     document.getElementById('pf-plan').addEventListener('change', refreshPullJudge);
+    ['pf-pulls','pf-rate','pf-pity'].forEach(function(id){
+      var e=document.getElementById(id); if(e) e.addEventListener('input', function(){ refreshSpecFields(false); });
+    });
     refreshPlanList();
     refreshPullJudge();
+    refreshSpecFields(true);
   } catch (e) {}
   try { document.getElementById('pull-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
 }
@@ -4477,6 +4521,49 @@ function refreshPlanList() {
       var when = (d.getMonth() + 1) + '/' + d.getDate() + ' ' + ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
       return '<option value="' + esc(p.id) + '">' + esc(hotPlanTitle(p)) + '（' + when + '鑑定）</option>';
     }).join('');
+}
+
+/* ガチャ仕様の欄を、そのゲームの既知の値で埋めて案内を出す。
+   同時に「その連数で目玉が出る確率」をその場に出し、
+   何と比べて記録しているのかが分かるようにする。 */
+function refreshSpecFields(force) {
+  var gEl = document.getElementById('pf-game');
+  var rEl = document.getElementById('pf-rate'), pEl = document.getElementById('pf-pity');
+  var note = document.getElementById('pf-spec-note');
+  if (!rEl || !pEl) return;
+  var game = gEl ? String(gEl.value || '').trim() : '';
+  var known = specForGame(game);
+  if (known && (force || !String(rEl.value).trim())) {
+    rEl.value = known.rate;
+    pEl.value = known.pity || 0;
+  }
+  if (!note) return;
+  var rate = parseFloat(rEl.value), pity = parseInt(pEl.value, 10);
+  if (!(rate > 0)) {
+    note.innerHTML = game
+      ? '⚠️ <b>' + esc(game) + '</b> のガチャ仕様が未登録です。提供割合を入れると、'
+        + 'この記録も過去の記録も「期待値との比較」に使えるようになります（一度入れれば次回から自動で入ります）。'
+      : 'ゲームを選ぶと、分かっている提供割合・天井を自動で入れます。';
+    note.style.color = game ? '#FBBF24' : 'var(--muted)';
+    return;
+  }
+  var n = parseInt((document.getElementById('pf-pulls') || {}).value, 10) || 0;
+  var sp = { rate: rate, pity: pity > 0 ? pity : 0,
+             soft: known ? known.soft : 0, step: known ? known.step : 0,
+             share: known ? known.share : 1, nextGuar: known ? known.nextGuar : false };
+  var bits = ['提供割合 ' + rate + '%', sp.pity ? ('天井 ' + sp.pity + '連') : '天井なし'];
+  if (sp.soft) bits.push('ソフト天井 ' + sp.soft + '連目から');
+  if (sp.share < 1) bits.push('すり抜け ' + Math.round((1 - sp.share) * 100) + '%');
+  var txt = esc(bits.join(' ／ '));
+  if (n > 0) {
+    var e = targetReachProb(sp, n);
+    if (e != null) {
+      txt += '<br>この仕様なら <b>' + n + '連で目玉が出る確率は約 ' + (e * 100).toFixed(1) + '%</b>'
+           + (e > 0.999 ? '（必ず当たるので、当たっても外れても比較には使いません）' : '');
+    }
+  }
+  note.innerHTML = txt;
+  note.style.color = 'var(--muted)';
 }
 
 /* 選んだ鑑定・日時で推奨枠を照合して表示 */
@@ -4506,6 +4593,9 @@ function openPullForm() {
     '<label style="font-size:.7rem;color:var(--muted)">結果<select id="pf-res" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
     '<option value="target">🌈 目玉GET</option><option value="ssr">✨ SSRのみ</option><option value="lose">😇 爆死</option></select></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">何連目で当たった（任意）<input id="pf-hitat" type="number" inputmode="numeric" placeholder="例: 37" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">目玉の提供割合（％）<input id="pf-rate" type="number" step="0.01" inputmode="decimal" placeholder="例: 0.7" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">天井（連・無ければ0）<input id="pf-pity" type="number" inputmode="numeric" placeholder="例: 200" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<div id="pf-spec-note" style="grid-column:span 2;font-size:.64rem;color:var(--muted);line-height:1.6"></div>' +
     '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '</div>' +
     '<div style="font-size:.68rem;color:' + (w ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
@@ -4518,6 +4608,12 @@ function openPullForm() {
   if (!host) return;
   closePullForm();
   host.insertAdjacentHTML('beforeend', html);
+  try {
+    ['pf-game','pf-pulls','pf-rate','pf-pity'].forEach(function(id){
+      var e=document.getElementById(id); if(e) e.addEventListener('input', function(){ refreshSpecFields(id==='pf-game'); });
+    });
+    refreshSpecFields(true);
+  } catch (e) {}
   try { document.getElementById('pull-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
 }
 function closePullForm() { var e = document.getElementById('pull-form'); if (e) e.remove(); }
@@ -4545,6 +4641,10 @@ function savePull() {
   // 何連目で当たったかが分かれば、引きの早さも測れる（任意）
   var at = parseInt(g('pf-hitat'), 10);
   if (at > 0 && at <= n) rec.hitAt = at;
+  // 入力されたガチャ仕様は、そのゲームの設定として覚えておく。
+  // 一度入れれば次回から自動で入り、過去の記録も遡って比較に使えるようになる。
+  var _rate = parseFloat(g('pf-rate')), _pity = parseInt(g('pf-pity'), 10);
+  if (_rate > 0) saveGachaSpec(name, { rate: _rate, pity: _pity > 0 ? _pity : 0 });
   // ガチャ仕様と「その連数で目玉に届く確率」を記録時に確定させる。
   // 後からプリセットを直しても過去の評価が動かないようにするため。
   var _pp = pullParams({ game: name });
@@ -4678,7 +4778,8 @@ function renderStats() {
       '<div style="font-size:1.1rem;font-weight:700;color:' + (hi ? '#EDD070' : 'var(--muted)') + '">' +
       (L.n ? sgn(L.diff) + '<span style="font-size:.7rem;font-weight:400">回分</span>' : '—') + '</div>' +
       '<div style="font-size:.6rem;color:var(--muted)">' +
-      (L.n ? '目玉 ' + L.obs + '回／期待 ' + L.exp.toFixed(1) + '回（n=' + L.n + '）' : '記録なし') +
+      (L.n ? '目玉 ' + L.obs + '回／期待 ' + L.exp.toFixed(1) + '回（n=' + L.n + '）'
+           : (L.flat ? '天井まで回した ' + L.flat + '件のみ' : '比較できる記録なし')) +
       '</div></div>';
   };
 
@@ -4709,7 +4810,8 @@ function renderStats() {
     '<b>その連数で普通に期待できる結果と比べてどうだったか</b>を残す欄です。<br>' +
     '例）天井200連まで回して目玉が出るのは確率100%なので ±0。10連で当てれば大きな＋になります。' +
     (flatN ? '<br>※ 天井まで回した ' + flatN + '件は、結果がどちらでも情報がないため比較に使っていません。' : '') +
-    (noSpec ? '<br>※ ガチャ仕様が分からない ' + noSpec + '件は比較から除いています。' : '') +
+    (noSpec ? '<br><span style="color:#FBBF24">※ ガチャ仕様が未登録の ' + noSpec + '件は比較に使えていません。'
+      + '「🎰 記録」の提供割合・天井を一度入れると、そのゲームの過去の記録もまとめて比較に入ります。</span>' : '') +
     '</div>';
 
   // ゲーム別
