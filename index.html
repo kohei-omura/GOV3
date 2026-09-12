@@ -249,13 +249,16 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   </div>
 </header>
 <div id="launch-rank" style="margin-bottom:14px"></div>
-<div id="quick-actions" style="display:flex;gap:8px;margin-bottom:14px">
+<div id="quick-actions" style="display:flex;gap:6px;margin-bottom:14px">
   <button type="button" onclick="openPullFormTop()" style="flex:1;padding:11px 8px;border-radius:12px;
     background:rgba(237,208,112,.07);border:1px solid rgba(237,208,112,.25);color:#EDD070;
-    font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">🎰 引いた結果を記録</button>
+    font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🎰 記録</button>
+  <button type="button" onclick="openSkipForm()" style="flex:1;padding:11px 8px;border-radius:12px;
+    background:rgba(125,211,252,.06);border:1px solid rgba(125,211,252,.22);color:#7DD3FC;
+    font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">🕊 見送る</button>
   <button type="button" onclick="showStats()" style="flex:1;padding:11px 8px;border-radius:12px;
     background:rgba(74,222,128,.06);border:1px solid rgba(74,222,128,.2);color:#4ADE80;
-    font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit">📊 実績を見る</button>
+    font-size:.72rem;font-weight:700;cursor:pointer;font-family:inherit">📊 実績</button>
 </div>
 <div id="quick-form"></div>
 
@@ -477,7 +480,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
     <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
     <button type="button" onclick="hideStats()" style="background:none;border:1px solid rgba(255,255,255,.16);border-radius:7px;color:var(--muted);font-size:.66rem;padding:4px 10px;cursor:pointer">閉じる</button>
   </div>
-  <div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">オラクルの精度をあなた自身のデータで検証できます</div>
+  <div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">引いた記録・見送った記録・課金の推移</div>
   <div id="stats-body"></div>
 </div>
 
@@ -515,7 +518,7 @@ const SS=(function(){
 //   暦・スコアの計算を触ったときだけでなく、保存する結果に項目を足した
 //   ときも必ず更新すること（古い結果には新しい項目が無く、表示が欠ける）。
 // ══════════════════════════════════════════════════
-var CALC_REV='2026-09-03-amp-badge';
+var CALC_REV='2026-09-13-expected-value';
 (function purgeStaleCalcCache(){
   try{
     if(SS.get('gachaOracle_calcRev')===CALC_REV)return;
@@ -4148,8 +4151,91 @@ function syncGameSelect() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   ③ ガチャ実績記録＆オラクル的中率（前向き検証）
+   ③ ガチャ実績記録＆「期待値との比較」（前向き検証）
+   ────────────────────────────────────────────────────────────
+   当たり／外れの0か1だけを数えると、記録として成立しない。
+   同じ「目玉GET」でも、
+     10連で当てた  … その仕様なら 6.8% しか起きない出来事
+     200連で当てた … 天井に届くので 100%（必ず起きる）
+   であり、後者を1勝として数えれば的中率はいくらでも上がる。
+   そこで「当たったか」ではなく「期待よりどれだけ良かったか」を測る。
+
+     運の良さ = 実測(0 or 1) − その連数で目玉に届く確率
+
+   200連なら期待1.00・実測1なので ±0 となり、連数で押し切った分は
+   自動的に評価から外れる。10連で当てれば +0.93 と正しく効く。
    ════════════════════════════════════════════════════════════ */
+
+/* その記録のガチャ仕様。記録時に保存した値 → ゲームのプリセット の順に探す */
+function pullParams(rec) {
+  var p = rec && rec.prm;
+  if (!p || !(p.rate > 0)) {
+    var pre = GACHA_PRESETS[rec && rec.game];
+    if (!pre) return null;
+    p = { rate: pre.rate, pity: pre.pity, soft: pre.soft, step: pre.step,
+          share: pre.share, nextGuar: pre.nextGuar };
+  }
+  return (p.rate > 0) ? p : null;
+}
+
+/* n連までに目玉へ到達する確率（すり抜け・ソフト天井・天井を織り込む） */
+var _reachCache = {};
+function targetReachProb(p, n) {
+  if (!p || !(p.rate > 0) || !(n > 0)) return null;
+  var key = [p.rate, p.pity, p.soft, p.step, p.share, p.nextGuar ? 1 : 0, n].join('|');
+  if (key in _reachCache) return _reachCache[key];
+  var soft = (p.soft > 0 && (!p.pity || p.soft < p.pity)) ? p.soft : 0;
+  var pmf = _gachaTargetPmf({
+    p: p.rate / 100, pity: p.pity || 0, soft: soft,
+    step: soft > 0 ? (p.step || 0) / 100 : 0, offset: 0,
+    share: (typeof p.share === 'number' && p.share > 0) ? p.share : 1,
+    nextGuar: !!p.nextGuar, guaranteedNow: false
+  }, n);
+  var sum = 0;
+  for (var i = 1; i < pmf.length && i <= n; i++) sum += pmf[i];
+  return (_reachCache[key] = Math.max(0, Math.min(1, sum)));
+}
+
+/* 記録1件の期待確率。記録時に確定した値があればそれを使う（仕様変更に引きずられない） */
+function expectTarget(rec) {
+  if (rec && typeof rec.exp === 'number' && rec.exp >= 0 && rec.exp <= 1) return rec.exp;
+  return targetReachProb(pullParams(rec), +(rec && rec.pulls) || 0);
+}
+function isTargetHit(rec) { return !!rec && rec.res === 'target'; }
+
+/* 正規分布の両側p値（Abramowitz & Stegun 26.2.17） */
+function _twoSidedP(z) {
+  z = Math.abs(z);
+  if (!isFinite(z)) return 1;
+  var t = 1 / (1 + 0.2316419 * z);
+  var d = 0.3989422804014327 * Math.exp(-z * z / 2);
+  var tail = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 +
+             t * (-1.821255978 + t * 1.330274429))));
+  return Math.max(0, Math.min(1, 2 * tail));
+}
+
+/* その記録が引きの良し悪しを語れるか。
+   期待確率が1.00（天井まで回した）や0.00の記録は、結果がどちらでも情報量がない。
+   これを混ぜると「天井まで回して当てた」が加点され、逆に仕様と噛み合わない記録が
+   大きな減点として効いてしまう。どちらにも使わず数だけ数える。 */
+function isInformative(rec) {
+  var p = expectTarget(rec);
+  return p != null && p > 0.001 && p < 0.999;
+}
+
+/* 記録群の集計。diff が「期待より何回分多く当てたか」 */
+function luckOf(arr) {
+  var exp = 0, varr = 0, obs = 0, n = 0, flat = 0;
+  arr.forEach(function (r) {
+    var p = expectTarget(r);
+    if (p == null) return;
+    if (!(p > 0.001 && p < 0.999)) { flat++; return; }
+    n++; exp += p; varr += p * (1 - p); obs += isTargetHit(r) ? 1 : 0;
+  });
+  return { n: n, obs: obs, exp: exp, varr: varr, diff: obs - exp, flat: flat };
+}
+
+
 function _hotListNow() {
   try {
     if (_lastHotTimes && _lastHotTimes.length) return _lastHotTimes;
@@ -4312,7 +4398,7 @@ function hotPlanSlots(game) {
 /* 記録フォーム用：判定と案内文 */
 function hotJudgeLabel(game, when, planId) {
   var plans = hotPlansFor(game);
-  if (!plans.length) return { j: null, txt: 'このゲームはまだ鑑定していません（的中率の集計から除外されます）', col: 'var(--muted)' };
+  if (!plans.length) return { j: null, txt: 'このゲームはまだ鑑定していません（帯内・帯外の比較から除外されます）', col: 'var(--muted)' };
   var j = hotWindowJudge(game, when, planId);
   if (j === true) return { j: true, txt: '🔥 鑑定が示した推奨枠の中です', col: '#EDD070' };
   if (j === false) return { j: false, txt: '⏱ 同じ日の推奨枠はありますが、その時間からは外れています', col: 'var(--muted)' };
@@ -4328,6 +4414,7 @@ function openPullFormTop() {
   var host = document.getElementById('quick-form');
   if (!host) { openPullForm(); return; }
   if (document.getElementById('pull-form')) { closePullForm(); return; }
+  closeSkipForm();
   var names = [];
   try { names = allGameNames(); } catch (e) {}
   var last = '';
@@ -4338,7 +4425,7 @@ function openPullFormTop() {
   host.innerHTML =
     '<div id="pull-form" class="glass" style="margin-bottom:14px">' +
     '<div style="font-weight:700;font-size:.88rem;margin-bottom:4px">🎰 引いた結果を記録</div>' +
-    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">オラクルの精度をあなた自身のデータで検証できます</div>' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">連数あたりの期待値と比べて記録します（天井で押し切った分は評価に入りません）</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
     '<label style="font-size:.7rem;color:var(--muted);grid-column:span 2">ゲーム' +
     '<select id="pf-game" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
@@ -4346,7 +4433,8 @@ function openPullFormTop() {
     '<label style="font-size:.7rem;color:var(--muted)">引いた連数<input id="pf-pulls" type="number" inputmode="numeric" placeholder="10" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">結果<select id="pf-res" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
     '<option value="target">🌈 目玉GET</option><option value="ssr">✨ SSRのみ</option><option value="lose">😇 爆死</option></select></label>' +
-    '<label style="font-size:.7rem;color:var(--muted);grid-column:span 2">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">何連目で当たった（任意）<input id="pf-hitat" type="number" inputmode="numeric" placeholder="例: 37" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '</div>' +
     '<label style="font-size:.7rem;color:var(--muted);display:block;margin-top:8px">引いた日時' +
     '<input id="pf-when" type="datetime-local" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
@@ -4411,12 +4499,13 @@ function openPullForm() {
   var html =
     '<div id="pull-form" class="glass" style="margin-top:12px">' +
     '<div style="font-weight:700;font-size:.88rem;margin-bottom:4px">🎰 引いた結果を記録</div>' +
-    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">オラクルの精度をあなた自身のデータで検証できます</div>' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">連数あたりの期待値と比べて記録します（天井で押し切った分は評価に入りません）</div>' +
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
     '<label style="font-size:.7rem;color:var(--muted)">ゲーム<input id="pf-game" value="' + esc(g) + '" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">引いた連数<input id="pf-pulls" type="number" inputmode="numeric" placeholder="10" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">結果<select id="pf-res" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">' +
     '<option value="target">🌈 目玉GET</option><option value="ssr">✨ SSRのみ</option><option value="lose">😇 爆死</option></select></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">何連目で当たった（任意）<input id="pf-hitat" type="number" inputmode="numeric" placeholder="例: 37" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '</div>' +
     '<div style="font-size:.68rem;color:' + (w ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
@@ -4449,15 +4538,105 @@ function savePull() {
     res: g('pf-res') || 'lose',
     yen: parseInt(g('pf-yen'), 10) || 0,
     // 占った時点で保存した激アツ帯と突き合わせる。
-    // その日そのゲームを占っていなければ null（判定不能）＝的中率の母数から外す
+    // その日そのゲームを占っていなければ null（判定不能）＝集計の母数から外す
     planId: (document.getElementById('pf-plan') || {}).value || '',
     hot: hotWindowJudge(name, now, (document.getElementById('pf-plan') || {}).value || '')
   };
+  // 何連目で当たったかが分かれば、引きの早さも測れる（任意）
+  var at = parseInt(g('pf-hitat'), 10);
+  if (at > 0 && at <= n) rec.hitAt = at;
+  // ガチャ仕様と「その連数で目玉に届く確率」を記録時に確定させる。
+  // 後からプリセットを直しても過去の評価が動かないようにするため。
+  var _pp = pullParams({ game: name });
+  if (_pp) {
+    rec.prm = _pp;
+    var _e = targetReachProb(_pp, n);
+    if (_e != null) rec.exp = _e;
+  }
   var list = pulls();
   list.unshift(rec);
   savePulls(list);
   closePullForm();
-  _toast('記録しました（' + (rec.hot === null ? '判定不能：この日は未鑑定' : (rec.hot ? '激アツ帯内' : '帯外')) + '）');
+  var where = rec.hot === null ? '判定不能：この日は未鑑定' : (rec.hot ? '激アツ帯内' : '帯外');
+  var note = '';
+  if (typeof rec.exp === 'number') {
+    var d = (isTargetHit(rec) ? 1 : 0) - rec.exp;
+    note = '／' + n + '連で目玉が出る確率は ' + Math.round(rec.exp * 100) + '%'
+         + (Math.abs(d) < 0.05 ? '（想定どおり）' : (d > 0 ? '（期待より good）' : '（期待より渋め）'));
+  }
+  _toast('記録しました（' + where + note + '）');
+  try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
+}
+
+/* ════════════════════════════════════════════════════════════
+   見送りログ
+   ────────────────────────────────────────────────────────────
+   占いの当たり外れと違い、「引かなかった」は確実に得をする。
+   ガチャを回さなかった日を残して、浮いた額を積み上げる。
+   ════════════════════════════════════════════════════════════ */
+var SKIPS_KEY = 'gov_skips';
+var SKIPS_MAX = 300;
+function skips()      { var a = _lsGet(SKIPS_KEY, []); return Array.isArray(a) ? a : []; }
+function saveSkips(a) { return _lsSet(SKIPS_KEY, (a || []).slice(0, SKIPS_MAX)); }
+
+/* そのゲームを天井まで回したときの概算額（見送り額の初期値に使う） */
+function pityCostOf(game) {
+  var pre = GACHA_PRESETS[game];
+  if (!pre || !pre.pity || !pre.stone) return 0;
+  // 石1個あたりおよそ1.5円（各社の課金レートの中間）で概算する
+  return Math.round(pre.pity * pre.stone * 1.5 / 1000) * 1000;
+}
+
+function openSkipForm() {
+  var host = document.getElementById('quick-form');
+  if (!host) return;
+  if (document.getElementById('skip-form')) { closeSkipForm(); return; }
+  closePullForm();
+  var names = [];
+  try { names = allGameNames(); } catch (e) {}
+  var last = '';
+  try { last = (_lastResult && _lastResult.gameTitle) || ''; } catch (e) {}
+  var opts = names.map(function (n) {
+    return '<option value="' + esc(n) + '"' + (n === last ? ' selected' : '') + '>' + esc(n) + '</option>';
+  }).join('');
+  var inp = 'width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);'
+          + 'border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem';
+  host.innerHTML =
+    '<div id="skip-form" class="glass" style="margin-bottom:14px">' +
+    '<div style="font-weight:700;font-size:.88rem;margin-bottom:4px">🕊 引かずに見送る</div>' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:10px">' +
+    '引かなかった分は確実に手元に残ります。積み上げて見えるようにします。</div>' +
+    '<label style="font-size:.7rem;color:var(--muted);display:block">ゲーム' +
+    '<select id="sk-game" style="' + inp + '"><option value="">選択してください</option>' + opts + '</select></label>' +
+    '<label style="font-size:.7rem;color:var(--muted);display:block;margin-top:8px">見送った額（円・任意）' +
+    '<input id="sk-yen" type="number" inputmode="numeric" placeholder="回していたら使っていた額" style="' + inp + '"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted);display:block;margin-top:8px">理由・ひとこと（任意）' +
+    '<input id="sk-memo" placeholder="例）次の限定まで温存" style="' + inp + '"></label>' +
+    '<div id="sk-hint" style="font-size:.66rem;color:var(--muted);margin-top:8px"></div>' +
+    '<div style="display:flex;gap:8px;margin-top:10px">' +
+    '<button type="button" class="rst-btn" style="flex:1" onclick="saveSkip()">見送りを記録</button>' +
+    '<button type="button" class="rst-btn" style="flex:1;background:rgba(255,255,255,.04)" onclick="closeSkipForm()">閉じる</button>' +
+    '</div></div>';
+  var sync = function () {
+    var g = (document.getElementById('sk-game') || {}).value || '';
+    var c = pityCostOf(g), h = document.getElementById('sk-hint');
+    if (h) h.textContent = c ? ('参考：' + g + 'を天井まで回すとおよそ ' + c.toLocaleString() + '円です') : '';
+  };
+  try { document.getElementById('sk-game').addEventListener('change', sync); sync(); } catch (e) {}
+  try { document.getElementById('skip-form').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+}
+function closeSkipForm() { var e = document.getElementById('skip-form'); if (e) e.remove(); }
+
+function saveSkip() {
+  var v = function (id) { var e = document.getElementById(id); return e ? String(e.value || '').trim() : ''; };
+  var name = v('sk-game');
+  if (!name) { _toast('ゲームを選んでください'); return; }
+  var list = skips();
+  list.unshift({ t: Date.now(), game: name, yen: parseInt(v('sk-yen'), 10) || 0, memo: v('sk-memo') });
+  saveSkips(list);
+  closeSkipForm();
+  var tot = list.reduce(function (a, r) { return a + (+r.yen || 0); }, 0);
+  _toast('見送りを記録しました（通算 ' + list.length + '回' + (tot ? ' ／ ' + tot.toLocaleString() + '円' : '') + '）');
   try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
 }
 
@@ -4482,27 +4661,56 @@ function renderStats() {
   var unk = list.filter(function (r) { return r.hot == null; });
   var pct = function (a) { return a.length ? Math.round(a.filter(hit).length / a.length * 100) : 0; };
 
-  var accuracy;
-  if (inH.length < 5 || outH.length < 5) {
-    var short = (inH.length < 5) ? inH.length : outH.length;
-    accuracy = '<div style="font-size:.8rem;color:var(--muted)">記録蓄積中（n=' + short + '/5）<br>' +
-      '<span style="font-size:.68rem">激アツ帯内 ' + inH.length + '件 ／ 帯外 ' + outH.length + '件。どちらも5件たまると的中率を出します。</span></div>';
+  // ── 期待値との比較 ──
+  //   「当たったか」ではなく「期待よりどれだけ良かったか」を見る。
+  //   天井まで回した記録は期待1.00なので差が0になり、評価に効かない。
+  var scored = list.filter(function (r) { return expectTarget(r) != null; });
+  var noSpec = list.length - scored.length;
+  var flatN = scored.filter(function (r) { return !isInformative(r); }).length;
+  var LA = luckOf(scored.filter(function (r) { return r.hot === true; }));
+  var LB = luckOf(scored.filter(function (r) { return r.hot === false; }));
+  var sgn = function (x) { return (x >= 0 ? '+' : '−') + Math.abs(x).toFixed(1); };
+  var tile = function (ttl, L, hi) {
+    return '<div style="flex:1;min-width:0;padding:10px;border-radius:10px;background:' +
+      (hi ? 'rgba(237,208,112,.08)' : 'rgba(255,255,255,.03)') + ';border:1px solid ' +
+      (hi ? 'rgba(237,208,112,.25)' : 'rgba(255,255,255,.1)') + '">' +
+      '<div style="font-size:.64rem;color:var(--muted)">' + ttl + '</div>' +
+      '<div style="font-size:1.1rem;font-weight:700;color:' + (hi ? '#EDD070' : 'var(--muted)') + '">' +
+      (L.n ? sgn(L.diff) + '<span style="font-size:.7rem;font-weight:400">回分</span>' : '—') + '</div>' +
+      '<div style="font-size:.6rem;color:var(--muted)">' +
+      (L.n ? '目玉 ' + L.obs + '回／期待 ' + L.exp.toFixed(1) + '回（n=' + L.n + '）' : '記録なし') +
+      '</div></div>';
+  };
+
+  var verdict;
+  var MIN_N = 5;
+  if (LA.n < MIN_N || LB.n < MIN_N) {
+    verdict = '<div style="font-size:.7rem;color:var(--muted);margin-top:8px">' +
+      '帯内 ' + LA.n + '件 ／ 帯外 ' + LB.n + '件。どちらも' + MIN_N + '件たまると比較を出します。</div>';
+  } else if (LA.varr <= 0 || LB.varr <= 0) {
+    verdict = '<div style="font-size:.7rem;color:var(--muted);margin-top:8px">' +
+      'すべて天井まで回した記録のため、引きの良し悪しは判定できません。</div>';
   } else {
-    var a = pct(inH), b = pct(outH);
-    var good = a >= b;
-    accuracy = '<div style="display:flex;gap:10px">' +
-      '<div style="flex:1;padding:10px;border-radius:10px;background:rgba(237,208,112,.08);border:1px solid rgba(237,208,112,.25)">' +
-      '<div style="font-size:.64rem;color:var(--muted)">🔥 激アツ帯内</div>' +
-      '<div style="font-size:1.2rem;font-weight:700;color:#EDD070">' + a + '%</div>' +
-      '<div style="font-size:.62rem;color:var(--muted)">n=' + inH.length + '件</div></div>' +
-      '<div style="flex:1;padding:10px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1)">' +
-      '<div style="font-size:.64rem;color:var(--muted)">⏱ 帯外</div>' +
-      '<div style="font-size:1.2rem;font-weight:700;color:var(--muted)">' + b + '%</div>' +
-      '<div style="font-size:.62rem;color:var(--muted)">n=' + outH.length + '件</div></div></div>' +
-      '<div style="font-size:.7rem;color:' + (good ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
-      (good ? 'オラクルの激アツ帯は、いまのところ有利に働いています（差 +' + (a - b) + 'pt）'
-            : 'いまのところ帯外のほうが良い結果です（差 ' + (a - b) + 'pt）。記録が増えると精度が上がります') + '</div>';
+    var d = LA.diff / LA.n - LB.diff / LB.n;
+    var se = Math.sqrt(LA.varr / (LA.n * LA.n) + LB.varr / (LB.n * LB.n));
+    var pv = _twoSidedP(se > 0 ? d / se : 0);
+    var sig = pv < 0.05;
+    verdict = '<div style="font-size:.7rem;color:' + (sig ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
+      '1記録あたりの差 ' + sgn(d) + '回分（p=' + pv.toFixed(2) + '）。' +
+      (sig ? '偶然とは考えにくい差が出ています。'
+           : '<b>偶然の範囲内です。</b>いまの記録数では帯内・帯外に差は認められません。') + '</div>';
   }
+
+  var accuracy =
+    '<div style="display:flex;gap:10px">' + tile('🔥 激アツ帯内', LA, true) + tile('⏱ 帯外', LB, false) + '</div>' +
+    verdict +
+    '<div style="font-size:.62rem;color:var(--muted);margin-top:8px;line-height:1.6">' +
+    'ガチャの結果はゲーム側の乱数で決まります。ここは「占いが当たったか」ではなく、' +
+    '<b>その連数で普通に期待できる結果と比べてどうだったか</b>を残す欄です。<br>' +
+    '例）天井200連まで回して目玉が出るのは確率100%なので ±0。10連で当てれば大きな＋になります。' +
+    (flatN ? '<br>※ 天井まで回した ' + flatN + '件は、結果がどちらでも情報がないため比較に使っていません。' : '') +
+    (noSpec ? '<br>※ ガチャ仕様が分からない ' + noSpec + '件は比較から除いています。' : '') +
+    '</div>';
 
   // ゲーム別
   var byG = {};
@@ -4544,8 +4752,31 @@ function renderStats() {
       '</div>';
   }
 
+  // 見送りログ
+  var sk = skips();
+  var skYen = sk.reduce(function (a, r) { return a + (+r.yen || 0); }, 0);
+  var skM = sk.filter(function (r) { var d = new Date(r.t); return (d.getFullYear() + '-' + d.getMonth()) === ym; });
+  var skMYen = skM.reduce(function (a, r) { return a + (+r.yen || 0); }, 0);
+  var skBlock =
+    '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">🕊 見送った記録</div>' +
+    (sk.length
+      ? '<div style="padding:10px;border-radius:10px;background:rgba(125,211,252,.06);border:1px solid rgba(125,211,252,.2)">' +
+        '<div style="font-size:.78rem">通算 <b>' + sk.length + '回</b>' +
+        (skYen ? ' ／ 使わずに済んだ額 <b style="color:#7DD3FC">' + skYen.toLocaleString() + '円</b>' : '') + '</div>' +
+        (skM.length ? '<div style="font-size:.66rem;color:var(--muted);margin-top:3px">今月 ' + skM.length + '回' +
+          (skMYen ? ' ／ ' + skMYen.toLocaleString() + '円' : '') + '</div>' : '') +
+        '<div style="font-size:.62rem;color:var(--muted);margin-top:6px">' +
+        sk.slice(0, 3).map(function (r) {
+          var d = new Date(r.t);
+          return (d.getMonth() + 1) + '/' + d.getDate() + '　' + esc(r.game) +
+                 (r.yen ? '　' + (+r.yen).toLocaleString() + '円' : '') + (r.memo ? '　' + esc(r.memo) : '');
+        }).join('<br>') + '</div></div>'
+      : '<div style="font-size:.7rem;color:var(--muted)">まだありません。「🕊 見送る」で残せます。' +
+        '当たり外れと違い、引かなかった分は確実に手元に残ります。</div>');
+
   box.innerHTML = meter +
-    '<div style="font-size:.8rem;font-weight:700;margin-bottom:6px">🎯 オラクル的中率</div>' + accuracy +
+    '<div style="font-size:.8rem;font-weight:700;margin-bottom:6px">📊 引きの記録（期待値との比較）</div>' + accuracy +
+    skBlock +
     '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">🎮 ゲーム別</div>' +
     '<table style="width:100%;font-size:.74rem;border-collapse:collapse">' +
     '<thead><tr style="color:var(--muted);font-size:.64rem">' +
@@ -4555,7 +4786,7 @@ function renderStats() {
     '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">📅 今月</div>' +
     '<div style="font-size:.78rem">課金合計 <b>' + mYen.toLocaleString() + '円</b> ／ 引いた回数 <b>' + mList.length + '回</b></div>' +
     '<div style="font-size:.62rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）' +
-    (unk.length ? '<br>※ 判定不能 ' + unk.length + '件（その日にそのゲームを占っていないため、的中率の集計から除いています）' : '') + '</div>';
+    (unk.length ? '<br>※ 判定不能 ' + unk.length + '件（その日にそのゲームを占っていないため、帯内・帯外の比較から除いています）' : '') + '</div>';
 }
 
 /* ════════════════════════════════════════════════════════════
