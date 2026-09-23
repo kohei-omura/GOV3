@@ -245,5 +245,68 @@ console.log('⑥ 引きの記録と見送りログ');
   check(/ガチャの結果はゲーム側の乱数で決まります/.test(html), '結果が乱数で決まることを明記している');
 }
 
+// ── ⑦ 全体監査で見つけた欠陥 ──────────────────────────────
+console.log('⑦ 全体監査で見つけた欠陥');
+{
+  // 「今日引くべきゲーム」の対象：以前は内蔵DBの並びで先頭50本を選んでおり、
+  // 手動で追加したタイトルが入らず、プレイ中から外したタイトルが入っていた。
+  ctx.resetPlayingOverrides();
+  const first = ctx.effectivePlaying()[0].value;
+  document.getElementById('play-add-name').value = '手動の新作';
+  ctx.addPlayingTitle();
+  ctx.removePlayingTitle(first);
+  const cand = ctx.rankCandidates();
+  check(cand[0] === '手動の新作', '手動で追加したタイトルがランキング候補の先頭に来る');
+  check(!cand.includes(first), `プレイ中から外したタイトル（${first}）はランキング候補に入らない`);
+  const playing = ctx.effectivePlaying().map(g => g.value);
+  check(playing.every(v => cand.includes(v)), `プレイ中の全タイトルが候補に入る（${playing.length}本）`);
+  check(cand.length <= ctx.RANK_LIMIT, `候補数が上限（${ctx.RANK_LIMIT}本）に収まる`);
+  ctx.resetPlayingOverrides();
+
+  // 存在しない GAMES_DATA を見ていた
+  check(!/typeof GAMES_DATA|GAMES_DATA\s*[.&)]/.test(html), '存在しない変数 GAMES_DATA を参照していない');
+  check(ctx.allGameNames().includes(ctx.effectivePlaying()[0].value), '全ゲーム名に games.json のタイトルが入る');
+
+  // ランキングのキャッシュは「時間帯」ごと（過ぎた激アツ時刻を出し続けない）
+  const key = ctx._rankKey(['a'], {});
+  check(key.split('|')[4] === String(new Date().getHours()), 'ランキングのキャッシュが時間帯ごとに分かれる');
+  check(key.startsWith(ctx.CALC_REV + '|'), 'ランキングのキャッシュが計算リビジョンで切り替わる');
+
+  // 日付をまたぐ推奨枠
+  const plan = { slots: [{ date: '2026-09-04', start: '22:00', end: '00:00' }] };
+  check(ctx.judgeByPlan(plan, new Date(2026, 8, 4, 23, 15)) === true,
+    '22:00〜00:00 の枠で 23:15 に引くと帯内（以前は帯外と誤判定）');
+  check(ctx.judgeByPlan(plan, new Date(2026, 8, 4, 21, 59)) === false, '枠の前は帯外');
+  check(ctx.judgeByPlan({ slots: [{ date: '2026-09-04', start: '23:50', end: '00:20' }] },
+    new Date(2026, 8, 5, 0, 10)) === true, '前日の枠が日付をまたいで今日にかかる場合も帯内');
+  check(ctx.judgeByPlan(plan, new Date(2026, 8, 6, 12, 0)) === null, '枠の無い日は判定不能');
+
+  // 天井ナビ：天井を一律300連としていた
+  check(ctx.gameConf('原神').pity === 90 && ctx.gameConf('ブルーアーカイブ').pity === 200,
+    '天井は公式仕様から取る（原神90連・ブルアカ200連）');
+  check(ctx.gameConf('どこにも無いゲーム').pity === null, '仕様の分からないゲームの天井は「不明」');
+  const cdf = ctx.targetCdfFrom(ctx.specForGame('ブルーアーカイブ'), 0, false);
+  check(Math.abs(cdf[30] - 0.19) < 0.005 && cdf[200] > 0.9999, '天井ナビの到達確率が記録側の計算と一致する');
+  const cdfG = ctx.targetCdfFrom(ctx.specForGame('原神'), 0, false);
+  const n50 = ctx._pullsFor(cdfG, 0.5), n90 = ctx._pullsFor(cdfG, 0.9);
+  check(n50 >= 70 && n50 <= 90 && n90 > 90 && n90 <= 180,
+    `原神（すり抜けあり）の半々ライン ${n50}連・9割ライン ${n90}連が妥当な範囲`);
+  const cdfNow = ctx.targetCdfFrom(ctx.specForGame('ブルーアーカイブ'), 150, false);
+  check(cdfNow[50] > 0.9999, '天井カウントを進めると、残り連数で天井に届く');
+
+  // 課金目安：石1個=1円で換算していた（FGO などで実際の100分の1）
+  check(!/石1個=1円換算/.test(html), '「石1個=1円」の換算をしていない');
+  check(ctx.yenPerPull() === 300, '1連の円の既定は300円（10連3,000円）');
+  check(ctx.pityCostOf('原神') === 90 * 300, '見送りの概算も天井ナビと同じ基準');
+  check(ctx.pityCostOf('どこにも無いゲーム') === 0, '天井の分からないゲームは概算を出さない');
+
+  // スコア内訳：狙いキャラ名をエスケープせずに描いていた（入力がHTMLとして実行された）
+  check(html.includes('${esc(sbk.labels[r.k]||\'\')}'), 'スコア内訳のラベルをエスケープして描いている');
+  check(/margin-left:6px">\$\{esc\(desc\)\}/.test(html), 'スコア内訳の説明文をエスケープして描いている');
+
+  // カウントダウン：日付をまたいでも前日の時刻を使わない
+  check(/_lastHotDay!==today/.test(html.replace(/\s/g, '')), 'カウントダウンが鑑定した日付を確認している');
+}
+
 console.log(failures === 0 ? '\n✅ 全テストパス' : `\n❌ ${failures}件の不一致`);
 process.exit(failures === 0 ? 0 : 1);
