@@ -531,7 +531,6 @@ def check_title(value, label, term, app_id):
     """タイトル1件の生存判定。
     戻り値: {'alive': True/False/None, 'appId':.., 'name':.., 'reason':..}
       alive=None は通信失敗（未検出カウントを進めない）"""
-    names = [value, label, term]
 
     # ① trackId を知っていれば完全一致で照会する（あいまい検索を経由しない）
     if app_id:

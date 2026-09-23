@@ -24,8 +24,8 @@ jobs:
   update:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
 
@@ -52,9 +52,9 @@ jobs:
 
       # 実測暦と、index.html 内蔵の天文暦エンジンが食い違っていないか検証する。
       # （取得元の構造変化でデータが壊れた場合も、エンジンを壊した場合もここで気付ける）
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Verify almanac engine against calendar.json
         run: node tests/test_almanac.mjs
 

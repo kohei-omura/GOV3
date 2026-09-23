@@ -42,6 +42,7 @@ python3 tests/test_games.py
 |---|---|---|
 | `update-games.yml` | 毎日 6:00 JST | `data/games.json` |
 | `update-calendar.yml` | 毎週月曜 5:00 JST | `data/calendar.json` |
+| `test.yml` | アプリ・スクリプト・テストを変えた push ごと | （3つのテストを実行） |
 
 ## 変更するときの注意
 

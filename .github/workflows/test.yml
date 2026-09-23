@@ -1,0 +1,43 @@
+name: Tests
+
+# アプリ本体・スクリプト・テストを変えたら必ず回す。
+# 以前は自動更新ワークフローの中でしかテストが動かず、index.html を壊す変更が
+# そのまま GitHub Pages に公開されうる状態だった。
+# （データの自動コミットだけのときは回さない）
+on:
+  push:
+    paths:
+      - 'index.html'
+      - 'sw.js'
+      - 'manifest.json'
+      - 'scripts/**'
+      - 'tests/**'
+      - '.github/workflows/**'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Syntax check
+        run: |
+          node --check sw.js
+          python -m json.tool manifest.json > /dev/null
+          python -m py_compile scripts/*.py tests/*.py
+      - name: 暦エンジン（公開暦・実測暦との突き合わせ）
+        run: node tests/test_almanac.mjs
+      - name: 画面まわり（記録・ランキング・天井ナビなど）
+        run: node tests/test_ui.mjs
+      - name: ゲーム一覧の更新ロジック
+        run: python tests/test_games.py

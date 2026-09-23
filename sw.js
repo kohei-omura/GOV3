@@ -3,7 +3,7 @@
    - アプリシェルをキャッシュしてオフライン動作
    - 更新時は CACHE_VERSION を上げると自動入れ替え
    ═══════════════════════════════════════════════ */
-const CACHE_VERSION = 'gacha-oracle-v14';
+const CACHE_VERSION = 'gacha-oracle-v15';
 const APP_SHELL = [
   './',
   './index.html',
@@ -43,8 +43,16 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_VERSION).then((c) => c.put('./index.html', copy));
+          // 正常に取れたアプリ本体だけを保存する。
+          // 以前は応答を無条件に index.html として保存していたため、
+          // 打ち間違えたURLの404ページやサーバーエラーを開くと、
+          // それがオフライン時のアプリ本体として残ってしまった。
+          const path = new URL(req.url).pathname;
+          const isShell = path.endsWith('/') || path.endsWith('/index.html');
+          if (res && res.ok && res.type === 'basic' && isShell) {
+            const copy = res.clone();
+            caches.open(CACHE_VERSION).then((c) => c.put('./index.html', copy));
+          }
           return res;
         })
         .catch(() => caches.match('./index.html'))

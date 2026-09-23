@@ -531,11 +531,20 @@ var CALC_REV='2026-09-13-gacha-spec';
 // グローバル結果保持（ダウンロード用）
 let _lastResult=null,_lastHotTimes=null;
 // 高性能化A/B 用の状態（var＝TDZ回避・初回使用より前に宣言）
-var _hotCountdownTimer=null,_lastHotCtx=null,_calViewY=null,_calViewM=null;
+var _hotCountdownTimer=null,_lastHotCtx=null,_calViewY=null,_calViewM=null,_lastHotDay='';
 function _parseHM(s){var p=String(s||'').split(':');return{h:+p[0]||0,m:+p[1]||0};}
 // A: 次の激アツ時刻（当日分がすべて過ぎたら翌日の第1候補）
 function nextHotTime(){
   var now=new Date();
+  var today=now.getFullYear()+'-'+(now.getMonth()+1)+'-'+now.getDate();
+  // 鑑定した日と今日が違う（開いたまま日付をまたいだ）なら、前日の時刻を
+  // 今日の時刻として数えてしまうので、今日の分をその場で出し直す。
+  if(_lastHotDay&&_lastHotDay!==today&&_lastHotCtx){
+    try{
+      _lastHotTimes=calcTodayHotTimes(_lastHotCtx.score,_lastHotCtx.gameTitle,now,_lastHotCtx.params)||[];
+      _lastHotDay=today;
+    }catch(e){_lastHotTimes=[];}
+  }
   if(_lastHotTimes&&_lastHotTimes.length){
     for(var i=0;i<_lastHotTimes.length;i++){var t=_lastHotTimes[i],hm=_parseHM(t.start);
       var d=new Date(now.getFullYear(),now.getMonth(),now.getDate(),hm.h,hm.m,0);
@@ -560,6 +569,8 @@ function renderHotCountdown(){
   el.innerHTML='⏳ 次の激アツまで あと'+(h>0?h+'時間':'')+m+'分 <b style="color:var(--danger)">（'+td+nx.range+'）</b>';
 }
 function startHotCountdown(){if(_hotCountdownTimer)clearInterval(_hotCountdownTimer);renderHotCountdown();_hotCountdownTimer=setInterval(renderHotCountdown,60000);}
+// バックグラウンド中はタイマーが止まるので、戻ってきた瞬間に出し直す
+document.addEventListener('visibilitychange',function(){if(!document.hidden){try{renderHotCountdown();}catch(e){}}});
 // B: 吉日ランキングの月送り（暦エンジンで全期間を算出できるため範囲制限なし）
 function _calNav(delta){
   if(_calViewY==null){var t=new Date();_calViewY=t.getFullYear();_calViewM=t.getMonth();}
@@ -1144,7 +1155,7 @@ try{(function(){
   //    （従来は setInterval と requestAnimationFrame を常時回し続けており、
   //      PWAをバックグラウンドに置くだけでバッテリーを消費していた）
   const reduce=(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
-  let W,H,stars=[],shoots=[],rafId=0,shootTimer=0,lastShoot=0,running=false;
+  let W,H,stars=[],shoots=[],rafId=0,lastShoot=0,running=false;
   const DPR=Math.min(window.devicePixelRatio||1,2);
   function resize(){
     W=window.innerWidth;H=window.innerHeight;
@@ -1160,22 +1171,39 @@ try{(function(){
   // 星の数は画面サイズに比例（小さな端末で無駄に描かない）
   const STAR_N=Math.max(90,Math.min(220,Math.round(W*H/9000)));
   for(let i=0;i<STAR_N;i++) stars.push({x:Math.random(),y:Math.random(),r:Math.random()*1.3+.2,a:Math.random(),da:(Math.random()-.5)*.006});
+  // 星は明るさを8段階にまとめ、段階ごとに1回だけ塗る。
+  // 以前は星1つごとに beginPath→fill し、色文字列も毎回作っていたため、
+  // 200個超の星で毎フレーム200回以上の描画命令が走っていた（スマホで最も重い処理だった）。
+  const BUCKETS=8, TAU=Math.PI*2;
+  const BUCKET_FILL=Array.from({length:BUCKETS},(_,i)=>'rgba(255,255,255,'+(0.08+0.92*(i+0.5)/BUCKETS).toFixed(3)+')');
   function drawStars(){
-    for(let i=0;i<stars.length;i++){
-      const s=stars[i];
-      ctx.beginPath();ctx.arc(s.x*W,s.y*H,s.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(255,255,255,'+Math.max(.08,s.a)+')';ctx.fill();
+    for(let b=0;b<BUCKETS;b++){
+      ctx.beginPath();
+      let any=false;
+      for(let i=0;i<stars.length;i++){
+        const s=stars[i];
+        const a=s.a<.08?.08:(s.a>1?1:s.a);
+        if(Math.min(BUCKETS-1,Math.floor((a-.08)/.92*BUCKETS))!==b)continue;
+        const x=s.x*W,y=s.y*H;
+        ctx.moveTo(x+s.r,y);ctx.arc(x,y,s.r,0,TAU);any=true;
+      }
+      if(any){ctx.fillStyle=BUCKET_FILL[b];ctx.fill();}
     }
   }
   function addShoot(){shoots.push({x:Math.random()*W,y:Math.random()*H*.4,angle:-25+Math.random()*20,len:0,maxLen:80+Math.random()*120,speed:6+Math.random()*6,alpha:1});}
+  let lastFrame=0;
+  const FRAME_MS=1000/30;
   function frame(ts){
+    if(ts-lastFrame<FRAME_MS){rafId=requestAnimationFrame(frame);return;}
+    const step=Math.min(3,(ts-lastFrame)/(1000/60)||1);   // 60fps基準の進み量（間引いても速さは変えない）
+    lastFrame=ts;
     ctx.clearRect(0,0,W,H);
-    for(let i=0;i<stars.length;i++){const s=stars[i];s.a+=s.da;if(s.a<.08||s.a>1)s.da*=-1;}
+    for(let i=0;i<stars.length;i++){const s=stars[i];s.a+=s.da*step;if(s.a<.08||s.a>1)s.da*=-1;}
     drawStars();
     if(ts-lastShoot>3500){lastShoot=ts;addShoot();}
     for(let i=shoots.length-1;i>=0;i--){
       const s=shoots[i];
-      s.len+=s.speed;s.alpha=Math.max(0,1-s.len/s.maxLen);
+      s.len+=s.speed*step;s.alpha=Math.max(0,1-s.len/s.maxLen);
       if(s.alpha<=0){shoots.splice(i,1);continue;}
       ctx.save();ctx.translate(s.x,s.y);ctx.rotate(s.angle*Math.PI/180);
       const g=ctx.createLinearGradient(0,0,s.len,0);
@@ -2884,6 +2912,7 @@ function displayResult(result){
   const _inp=result.inputs||{};
   const todayHotTimes=calcTodayHotTimes(score,gameTitle,new Date(),{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu});
   _lastResult=result;_lastHotTimes=todayHotTimes;
+  try{var _hd=new Date();_lastHotDay=_hd.getFullYear()+'-'+(_hd.getMonth()+1)+'-'+_hd.getDate();}catch(e){}
   // v3.1 占った時点の激アツ帯を保存（記録時の照合に使う）
   try{ saveHotPlan(gameTitle, result, todayHotTimes); }catch(e){}
   _lastHotCtx={score:score,gameTitle:gameTitle,params:{kyusei:result.kyusei,dayKyusei:result.dayKyusei,eto:_inp.eto||null,bloodType:_inp.bloodType||null,zodiac:_inp.zodiac||null,lifePath:result.lifePath?{num:result.lifePath}:null,shichu:result.shichu}};
@@ -3060,7 +3089,7 @@ function displayResult(result){
               const row=(icon,label,pts,desc)=>`
                 <div style="display:grid;grid-template-columns:18px 1fr 40px;align-items:baseline;gap:4px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
                   <span>${icon}</span>
-                  <span style="color:rgba(255,255,255,.6)">${label}<span style="color:rgba(255,255,255,.3);font-size:.63rem;margin-left:6px">${desc}</span></span>
+                  <span style="color:rgba(255,255,255,.6)">${label}<span style="color:rgba(255,255,255,.3);font-size:.63rem;margin-left:6px">${esc(desc)}</span></span>
                   <span style="text-align:right;font-weight:bold;color:${nc(pts)}">${pl(pts)}</span>
                 </div>`;
               return '<div style="color:var(--gold);font-weight:bold;margin-bottom:8px;font-size:.74rem">📊 スコア内訳（どう計算して '+t.score+'pt になるか）</div>'
@@ -3094,7 +3123,7 @@ function displayResult(result){
                   const subHtml=subRows.map(r=>`
                     <div style="display:grid;grid-template-columns:16px 1fr 36px;gap:3px;padding:3px 0 3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.66rem">
                       <span>${r.icon}</span>
-                      <span style="color:rgba(255,255,255,.5)">${r.label}<span style="color:rgba(255,255,255,.28);font-size:.6rem;margin-left:5px">${sbk.labels[r.k]||''}</span></span>
+                      <span style="color:rgba(255,255,255,.5)">${r.label}<span style="color:rgba(255,255,255,.28);font-size:.6rem;margin-left:5px">${esc(sbk.labels[r.k]||'')}</span></span>
                       <span style="text-align:right;color:${nc2(sbk[r.k])};font-weight:bold">${pl2(sbk[r.k])}</span>
                     </div>`).join('');
                   return `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
@@ -3598,7 +3627,7 @@ var PULLS_KEY   = 'gov_pulls';     // ガチャ実績（上限300件）
 var BUDGET_KEY  = 'gov_budget';    // 今月の課金予算（円）
 var STONE_KEY   = 'gov_stones_';   // 所持石（ゲームごと）
 var MYGAMES_MAX = 100, PULLS_MAX = 300;
-var RANK_LIMIT  = 50;              // 一括計算の上限（②の負荷対策）
+var RANK_LIMIT  = 80;              // 一括計算の上限。プレイ中の一覧が収まる値（結果は時間帯ごとに保存）
 
 function _lsGet(k, def) {
   try { var v = localStorage.getItem(k); return v == null ? def : JSON.parse(v); }
@@ -3615,13 +3644,25 @@ function savePulls(a)   { return _lsSet(PULLS_KEY, (a || []).slice(0, PULLS_MAX)
 function budget()       { var v = _lsGet(BUDGET_KEY, null); return (v && +v > 0) ? +v : null; }
 
 /* マイゲームの設定を取り出す（無ければ既定値） */
+/* ゲームの設定。天井・提供割合は specForGame（記録フォームで登録 → マイゲーム帳 →
+   公式仕様のプリセット）から取る。以前はマイゲーム帳に無ければ天井を一律300連と
+   していたため、原神（90連）やブルアカ（200連）でも天井ナビが300連で計算していた。 */
 function gameConf(name) {
   var m = myGames().filter(function (g) { return g.name === name; })[0];
+  var pre = GACHA_PRESETS[name] || null;
+  var sp = null;
+  try { sp = specForGame(name); } catch (e) {}
+  var own = null;
+  try { own = gachaSpecs()[name]; } catch (e) {}
+  var src = (own && own.rate > 0) ? '記録フォームで登録した仕様'
+          : (m && +m.rate > 0) ? 'マイゲーム帳の設定'
+          : pre ? '公式仕様のプリセット' : '';
   return {
     name: name,
-    pity:  (m && +m.pity  > 0) ? +m.pity  : 300,   // 天井連数（既定300）
-    stone: (m && +m.stone > 0) ? +m.stone : null,  // 1連の石数
-    rate:  (m && +m.rate  > 0) ? +m.rate  : 0.7,   // ピックアップ率%（既定0.7）
+    pity:  sp ? (+sp.pity || 0) : null,             // 0＝天井なし／null＝不明
+    stone: (m && +m.stone > 0) ? +m.stone : ((pre && pre.stone > 0) ? pre.stone : null),
+    rate:  sp ? sp.rate : null,
+    spec:  sp, src: src,
     memo:  (m && m.memo) ? m.memo : '',
     genre: (m && m.genre) ? m.genre : '',
     elem:  (m && m.elem) ? m.elem : '',
@@ -3644,7 +3685,7 @@ function hideGame(n) {
   var a = hiddenGames();
   if (a.indexOf(n) < 0) a.push(n);
   _lsSet(HIDDEN_KEY, a);
-  _rankCache = { key: '', rows: null };
+  _rankCache = { key: '', rows: null }; try { localStorage.removeItem(RANK_STORE_KEY); } catch (e) {}
   try { renderHiddenList(); syncGameSelect(); renderMyGames(); }catch(e){}
   try { if (document.getElementById('launch-rank')) showLaunchRanking(); }catch(e){}
   _toast('「' + n + '」を一覧から外しました');
@@ -3652,7 +3693,7 @@ function hideGame(n) {
 function unhideGame(n) {
   var a = hiddenGames().filter(function (x) { return x !== n; });
   _lsSet(HIDDEN_KEY, a);
-  _rankCache = { key: '', rows: null };
+  _rankCache = { key: '', rows: null }; try { localStorage.removeItem(RANK_STORE_KEY); } catch (e) {}
   try { renderHiddenList(); syncGameSelect(); }catch(e){}
   try { if (document.getElementById('launch-rank')) showLaunchRanking(); }catch(e){}
   _toast('「' + n + '」を戻しました');
@@ -3687,13 +3728,14 @@ function allGameNames() {
     if (!n || seen[n]) return;
     seen[n] = 1; out.push(n);
   };
+  // プレイ中（自動更新＋手動の追加・削除を反映済み）→ マイゲーム帳 → 人気 の順。
+  // 以前は存在しない GAMES_DATA を見ていたため、games.json 由来の名前は
+  // プルダウン経由でしか拾えていなかった。
+  try { effectivePlaying().forEach(function (g) { push(g.value); }); } catch (e) {}
   myGames().forEach(function (g) { push(g.name); });
   try {
-    if (typeof GAMES_DATA !== 'undefined' && GAMES_DATA) {
-      var gd = GAMES_DATA.games || GAMES_DATA;
-      if (Array.isArray(gd)) gd.forEach(function (g) { push(g && (g.name || g.title) || g); });
-      else Object.keys(gd).forEach(push);
-    }
+    if (GAMES_JSON && Array.isArray(GAMES_JSON.trending))
+      GAMES_JSON.trending.forEach(function (g) { push(g && g.value); });
   } catch (e) {}
   try { Object.keys(GAME_DB).forEach(push); } catch (e) {}
   // プルダウンにあるものも拾う
@@ -3804,16 +3846,57 @@ function gameElemAffinity(gameName, res) {
   return { pt: pt, ge: ge, de: de, why: ge + 'のゲーム × 本日' + de + '：' + (ELEM_LABEL[String(pt)] || '') };
 }
 
+/* 「今日引くべきゲーム」の候補。
+   以前は全ゲーム名（内蔵DBの並び順）の先頭50本を評価していたため、
+   プレイ中なのに候補から漏れるタイトルが出たり、プレイ中から外した
+   タイトルが内蔵DB経由でランキングに出たりしていた。
+   自分が遊んでいるゲーム（プレイ中＋マイゲーム帳）だけを対象にする。 */
+function rankCandidates() {
+  var out = [], seen = {};
+  var push = function (n) {
+    n = String(n || '').trim();
+    if (!n || seen[n] || isHidden(n)) return;
+    seen[n] = 1; out.push(n);
+  };
+  // 自分で足したものを最優先にする。自動の一覧は末尾に手動分が付く並びなので、
+  // そのまま上限で切ると、わざわざ追加したタイトルから先に落ちてしまう。
+  var ep = [];
+  try { ep = effectivePlaying(); } catch (e) {}
+  ep.filter(function (g) { return g.src === 'user'; }).forEach(function (g) { push(g.value); });
+  try { myGames().forEach(function (g) { push(g.name); }); } catch (e) {}
+  ep.filter(function (g) { return g.src !== 'user'; }).forEach(function (g) { push(g.value); });
+  if (!out.length) allGameNames().forEach(push);   // games.json が読めない（オフライン初回など）
+  return out;
+}
+
+/* ランキングの保存キャッシュ。同じ日・同じ時間帯・同じ条件なら再計算しない。
+   「時間帯」を含めるのは、激アツ時刻が「これから先の時刻」から選ばれるため。
+   日付だけで保存していた頃は、朝開いたアプリを夜に戻すと、もう過ぎた時刻
+   （22時台に「🔥16:00」など）が出続けていた。 */
+var RANK_STORE_KEY = 'gov_rank_cache';
+function _rankKey(names, base) {
+  var now = new Date();
+  var h = 0, s = names.join('\u0001');
+  for (var i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+  return [CALC_REV, now.getFullYear(), now.getMonth() + 1, now.getDate(), now.getHours(),
+          names.length, h, base.birthdate, base.zodiac, base.bloodType, base.eto, base.targetName].join('|');
+}
+
 function computeGameRanking() {
   var now = new Date();
-  var dayKey = now.getFullYear() + '-' + (now.getMonth() + 1) + '-' + now.getDate();
   var base = _profileParams();
-  var names = allGameNames();
+  var names = rankCandidates();
   var limited = names.length > RANK_LIMIT;
   if (limited) names = names.slice(0, RANK_LIMIT);
-  var key = dayKey + '|' + names.length + '|' + base.birthdate + '|' + base.zodiac +
-            '|' + base.bloodType + '|' + base.eto + '|' + base.targetName;
+  var key = _rankKey(names, base);
   if (_rankCache.key === key && _rankCache.rows) return { rows: _rankCache.rows, limited: limited };
+  try {
+    var stored = _lsGet(RANK_STORE_KEY, null);
+    if (stored && stored.key === key && Array.isArray(stored.rows)) {
+      _rankCache = { key: key, rows: stored.rows };
+      return { rows: stored.rows, limited: limited };
+    }
+  } catch (e) {}
 
   // 現在の鑑定キャッシュを退避
   var keepR = null, keepK = null;
@@ -3897,6 +3980,11 @@ function computeGameRanking() {
     return a.name.localeCompare(b.name);
   });
   _rankCache = { key: key, rows: rows };
+  try {
+    _lsSet(RANK_STORE_KEY, { key: key, rows: rows.map(function (r) {
+      var o = {}; for (var k in r) if (k !== 'hotRaw') o[k] = r[k]; return o;
+    }) });
+  } catch (e) {}
   return { rows: rows, limited: limited };
 }
 
@@ -4086,7 +4174,7 @@ function addMyGame() {
   clearMyGameForm();
   renderMyGames();
   syncGameSelect();
-  _rankCache = { key: '', rows: null };
+  _rankCache = { key: '', rows: null }; try { localStorage.removeItem(RANK_STORE_KEY); } catch (e) {}
   _toast(idx >= 0 ? '更新しました' : '追加しました');
 }
 
@@ -4107,7 +4195,7 @@ function delMyGame(i) {
   list.splice(i, 1);
   saveMyGames(list);
   renderMyGames(); syncGameSelect();
-  _rankCache = { key: '', rows: null };
+  _rankCache = { key: '', rows: null }; try { localStorage.removeItem(RANK_STORE_KEY); } catch (e) {}
   _toast('削除しました');
 }
 
@@ -4389,14 +4477,24 @@ function saveHotPlan(game, result, todayHot) {
 function judgeByPlan(plan, when) {
   if (!plan || !plan.slots) return null;
   var dk = _dkey(when), mm = when.getHours() * 60 + when.getMinutes(), sameDay = false;
+  var prevKey = _dkey(new Date(when.getFullYear(), when.getMonth(), when.getDate() - 1));
   for (var i = 0; i < plan.slots.length; i++) {
     var sl = plan.slots[i];
-    if (sl.date !== dk) continue;
-    sameDay = true;
     var s0 = _hm(sl.start), e0 = _hm(sl.end);
     if (s0 == null) continue;
-    if (e0 == null || e0 <= s0) e0 = s0 + 30;
-    if (mm >= s0 && mm < e0) return true;
+    // 終わりが始まり以前なら日付をまたぐ枠（22:00〜00:00 など）。
+    // 以前はここを「開始から30分」に切り詰めていたため、22:00〜00:00 の枠で
+    // 23時台に引いても帯外と判定されていた。
+    if (e0 == null) e0 = s0 + 30;
+    else if (e0 <= s0) e0 += 1440;
+    if (sl.date === dk) {
+      sameDay = true;
+      if (mm >= s0 && mm < e0) return true;
+    } else if (sl.date === prevKey && e0 > 1440) {
+      // 前日の枠が日付をまたいで今日にかかっている
+      sameDay = true;
+      if (mm + 1440 >= s0 && mm + 1440 < e0) return true;
+    }
   }
   return sameDay ? false : null;
 }
@@ -4679,12 +4777,12 @@ var SKIPS_MAX = 300;
 function skips()      { var a = _lsGet(SKIPS_KEY, []); return Array.isArray(a) ? a : []; }
 function saveSkips(a) { return _lsSet(SKIPS_KEY, (a || []).slice(0, SKIPS_MAX)); }
 
-/* そのゲームを天井まで回したときの概算額（見送り額の初期値に使う） */
+/* そのゲームを天井まで回したときの概算額（見送り額の目安に出す）。
+   天井ナビと同じ「1連の円」で換算し、画面ごとに額が食い違わないようにする。 */
 function pityCostOf(game) {
-  var pre = GACHA_PRESETS[game];
-  if (!pre || !pre.pity || !pre.stone) return 0;
-  // 石1個あたりおよそ1.5円（各社の課金レートの中間）で概算する
-  return Math.round(pre.pity * pre.stone * 1.5 / 1000) * 1000;
+  var c = gameConf(game);
+  if (!c.pity) return 0;                           // 天井なし・不明なら出さない
+  return c.pity * yenPerPull();
 }
 
 function openSkipForm() {
@@ -4756,10 +4854,7 @@ function renderStats() {
     return;
   }
   var hit = function (r) { return r.res === 'target' || r.res === 'ssr'; };
-  var inH = list.filter(function (r) { return r.hot === true; });
-  var outH = list.filter(function (r) { return r.hot === false; });
   var unk = list.filter(function (r) { return r.hot == null; });
-  var pct = function (a) { return a.length ? Math.round(a.filter(hit).length / a.length * 100) : 0; };
 
   // ── 期待値との比較 ──
   //   「当たったか」ではなく「期待よりどれだけ良かったか」を見る。
@@ -4898,17 +4993,57 @@ function renderStats() {
      不足石     = 不足連数 × 1連の石数
      必要課金   = 不足石 ÷ 1円あたりの石（= 石数/連 を単純換算）
    ════════════════════════════════════════════════════════════ */
+/* 1連あたりの価格（円）。ゲームごとの石の値段はまちまちなので、
+   国内ソシャゲで標準的な「10連≒3,000円」を既定にし、利用者が直せるようにする。
+   以前は「石1個＝1円」で換算していたため、たとえば聖晶石1個が100円前後の
+   FGO では課金目安が実際の100分の1で出ていた。 */
+var YEN_PER_PULL_KEY = 'gov_yen_per_pull';
+var YEN_PER_PULL_DEFAULT = 300;
+function yenPerPull() {
+  var v = +_lsGet(YEN_PER_PULL_KEY, YEN_PER_PULL_DEFAULT);
+  return v > 0 ? v : YEN_PER_PULL_DEFAULT;
+}
+
+/* 今の天井カウントから、あと何連で目玉に届くかの累積確率（cdf[n] = n連以内に届く確率） */
+function targetCdfFrom(spec, cur, guaranteedNow) {
+  if (!spec || !(spec.rate > 0)) return null;
+  var pity = +spec.pity || 0;
+  var off = pity > 0 ? Math.max(0, Math.min(cur || 0, pity - 1)) : 0;
+  var soft = (spec.soft > 0 && (!pity || spec.soft < pity)) ? spec.soft : 0;
+  var maxN = pity > 0 ? pity * ((spec.share < 1) ? 3 : 1) : 1000;
+  var pmf = _gachaTargetPmf({
+    p: spec.rate / 100, pity: pity, soft: soft, step: soft > 0 ? (spec.step || 0) / 100 : 0,
+    offset: off, share: (spec.share > 0 ? spec.share : 1), nextGuar: !!spec.nextGuar,
+    guaranteedNow: !!guaranteedNow
+  }, maxN);
+  var cdf = new Float64Array(pmf.length), acc = 0;
+  for (var i = 1; i < pmf.length; i++) { acc += pmf[i]; cdf[i] = Math.min(1, acc); }
+  return cdf;
+}
+function _pullsFor(cdf, q) {
+  if (!cdf) return null;
+  for (var i = 1; i < cdf.length; i++) if (cdf[i] >= q) return i;
+  return null;
+}
+
 function renderPityNaviHTML(gameTitle) {
   var c = gameConf(gameTitle);
   var stones = _lsGet(STONE_KEY + gameTitle, '');
+  var inp = 'width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);'
+          + 'border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem';
+  var specTxt = c.pity == null
+    ? '天井・提供割合が未登録です（「🎰 記録」かマイゲーム帳で登録すると、ここにも反映されます）'
+    : (c.pity ? '天井' + c.pity + '連' : '天井なし') + '／提供割合 ' + c.rate + '%（' + c.src + '）';
   return '<div class="glass" style="margin-top:12px">' +
     '<div style="font-weight:700;font-size:.88rem;margin-bottom:8px">🗼 天井ナビ</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
-    '<label style="font-size:.7rem;color:var(--muted)">所持石<input id="pn-stone" type="number" inputmode="numeric" value="' + (stones === '' ? '' : esc(stones)) + '" placeholder="3000" oninput="updatePityNavi()" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
-    '<label style="font-size:.7rem;color:var(--muted)">1連の石数<input id="pn-per" type="number" inputmode="numeric" value="' + (c.stone || '') + '" placeholder="150" oninput="updatePityNavi()" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">' +
+    '<label style="font-size:.7rem;color:var(--muted)">所持石<input id="pn-stone" type="number" inputmode="numeric" value="' + (stones === '' ? '' : esc(stones)) + '" placeholder="3000" oninput="updatePityNavi()" style="' + inp + '"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">1連の石数<input id="pn-per" type="number" inputmode="numeric" value="' + (c.stone || '') + '" placeholder="150" oninput="updatePityNavi()" style="' + inp + '"></label>' +
+    '<label style="font-size:.7rem;color:var(--muted)">1連の円<input id="pn-yen" type="number" inputmode="numeric" value="' + yenPerPull() + '" placeholder="300" oninput="updatePityNavi()" style="' + inp + '"></label>' +
     '</div>' +
     '<div id="pn-out" style="margin-top:10px;font-size:.82rem;line-height:1.9"></div>' +
-    '<div style="font-size:.62rem;color:var(--muted);margin-top:6px">天井' + c.pity + '連' + (c.isMine ? '（マイゲーム帳の設定）' : '（既定値）') + '</div>' +
+    '<div style="font-size:.62rem;color:var(--muted);margin-top:6px">' + esc(specTxt) + '<br>' +
+    '現在の天井カウントは、上の「現在の累計引き数」を使います。「1連の円」は10連3,000円なら300です。</div>' +
     '</div>';
 }
 
@@ -4917,20 +5052,43 @@ function updatePityNavi() {
   if (!out) return;
   var game = (_lastResult && _lastResult.gameTitle) || '';
   var c = gameConf(game);
-  var stone = parseInt((document.getElementById('pn-stone') || {}).value, 10) || 0;
-  var per = parseInt((document.getElementById('pn-per') || {}).value, 10) || 0;
+  var num = function (id) { return parseInt((document.getElementById(id) || {}).value, 10) || 0; };
+  var stone = num('pn-stone'), per = num('pn-per'), yen = num('pn-yen');
   try { _lsSet(STONE_KEY + game, stone || ''); } catch (e) {}
+  if (yen > 0) { try { _lsSet(YEN_PER_PULL_KEY, yen); } catch (e) {} } else yen = yenPerPull();
   if (!per) { out.innerHTML = '<span style="color:var(--muted)">1連の石数を入れると計算します</span>'; return; }
-  var can = Math.floor(stone / per);                       // 回せる連数
-  var cur = parseInt((document.getElementById('currentPulls') || {}).value, 10) || 0;
-  var need = Math.max(0, c.pity - cur - can);              // 天井まで残り
-  var lack = need * per;                                   // 不足石
-  out.innerHTML =
-    '回せる連数 <b style="color:#38BDF8">' + can + '連</b><br>' +
-    (need > 0
-      ? '天井まで <b style="color:#EDD070">あと' + need + '連</b>（石' + lack.toLocaleString() + '個不足）<br>' +
-        '天井到達に必要な課金目安 <b>' + lack.toLocaleString() + '円</b><span style="font-size:.66rem;color:var(--muted)">（石1個=1円換算）</span>'
-      : '<b style="color:#4ADE80">所持石で天井に到達できます</b>');
+  var can = Math.floor(stone / per);                         // 今の石で回せる連数
+  var cur = num('currentPulls');
+  var yenOf = function (n) { return (n * yen).toLocaleString() + '円'; };
+  var lines = ['回せる連数 <b style="color:#38BDF8">' + can + '連</b>'];
+
+  if (c.pity == null) {
+    lines.push('<span style="color:var(--muted)">天井が未登録のため、天井までの計算はできません</span>');
+  } else if (c.pity === 0) {
+    lines.push('<span style="color:var(--muted)">このガチャに天井はありません</span>');
+  } else {
+    var need = Math.max(0, c.pity - cur - can);
+    lines.push(need > 0
+      ? '天井まで <b style="color:#EDD070">あと' + need + '連</b>（石' + (need * per).toLocaleString() + '個／約' + yenOf(need) + '）'
+      : '<b style="color:#4ADE80">今の石で天井に届きます</b>');
+  }
+
+  // 天井の手前で当たる可能性まで含めた、目玉に届く確率
+  var guar = !!(document.getElementById('pickupGuaranteed') || {}).checked;
+  var cdf = targetCdfFrom(c.spec, cur, guar);
+  if (cdf) {
+    var pNow = can > 0 ? cdf[Math.min(can, cdf.length - 1)] : 0;
+    lines.push('今の石で目玉が出る確率 <b style="color:' + (pNow >= 0.5 ? '#4ADE80' : '#EDD070') + '">' +
+               (pNow * 100).toFixed(pNow < 0.1 ? 1 : 0) + '%</b>');
+    [[0.5, '半々'], [0.9, '9割']].forEach(function (q) {
+      var n = _pullsFor(cdf, q[0]);
+      if (n == null) return;
+      var more = Math.max(0, n - can);
+      lines.push(q[1] + 'で届くのは <b>' + n + '連</b>' +
+                 (more > 0 ? '（あと' + more + '連・約' + yenOf(more) + '）' : '（今の石で足ります）'));
+    });
+  }
+  out.innerHTML = lines.join('<br>');
 }
 
 /* ════════════════════════════════════════════════════════════
@@ -5161,21 +5319,50 @@ function skipCapsule() {
 /* v3 追加機能の起動処理 */
 
 /* v3.1 起動時：カプセル演出 → 今日引くべきゲーム TOP5 */
+/* 起動時：カプセル演出 → 今日引くべきゲーム TOP5
+   games.json（プレイ中の一覧）が届く前に集計すると、内蔵の一覧で一度計算して
+   すぐ捨てることになる（起動時に数十本の鑑定を2回やっていた）。
+   一覧が届くのを少しだけ待ってから1回で集計する。 */
+var _launchRankHour = -1;
+function _drawLaunchRanking(withCapsule) {
+  var host = document.getElementById('launch-rank');
+  if (!host) return;
+  var html = '';
+  try { html = renderGameRankingHTML({ top: true }); } catch (e) { html = ''; }
+  host.innerHTML = html || '';
+  _launchRankHour = new Date().getHours();
+  if (!withCapsule) return;
+  try {
+    var res = computeGameRanking();
+    var top = res.rows && res.rows[0];
+    if (top) playCapsule(rankGrade(top.score).g);
+  } catch (e) {}
+}
 function showLaunchRanking() {
   var host = document.getElementById('launch-rank');
   if (!host) return;
   host.innerHTML = '<div class="glass" style="text-align:center;color:var(--muted);font-size:.78rem;padding:18px">🔮 今日の運気を集計しています…</div>';
-  setTimeout(function () {
-    var html = '';
-    try { html = renderGameRankingHTML({ top: true }); } catch (e) { html = ''; }
-    host.innerHTML = html || '';
-    try {
-      var res = computeGameRanking();
-      var top = res.rows && res.rows[0];
-      if (top) playCapsule(rankGrade(top.score).g);
-    } catch (e) {}
-  }, 30);
+  var done = false;
+  var go = function () {
+    if (done) return; done = true;
+    // 集計は重いので、描画の合間に回す
+    (window.requestIdleCallback || function (f) { return setTimeout(f, 30); })(function () {
+      _drawLaunchRanking(true);
+    }, { timeout: 600 });
+  };
+  if (GAMES_JSON) go();
+  else {
+    window.__onGamesJson = go;
+    setTimeout(go, 1500);       // オフライン等で届かなくても待ちすぎない
+  }
 }
+/* アプリに戻ってきたとき、時間帯が変わっていれば激アツ時刻を出し直す */
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden || _launchRankHour < 0) return;
+  if (new Date().getHours() !== _launchRankHour) {
+    try { _drawLaunchRanking(false); } catch (e) {}
+  }
+});
 
 function _gov3Init(){
   try{ renderMyGames(); }catch(e){}
@@ -5876,13 +6063,13 @@ function refreshGameSelect(){
   }
   try{ renderPlayingList(); }catch(e){}
   try{ syncGameSelect(); }catch(e){}
-  // 起動時ランキングを既に描画済みなら、セルラン付きで描き直す
+  // 起動時ランキング：一覧の到着を待っていればそこで1回だけ集計する。
+  // 待ち切れずに内蔵の一覧で描いた後なら、プレイ中の一覧で描き直す。
   try{
-    var _lr=document.getElementById('launch-rank');
-    if(_lr&&_lr.innerHTML&&typeof renderGameRankingHTML==='function'){
-      var _h=renderGameRankingHTML({top:true});
-      if(_h)_lr.innerHTML=_h;
-    }
+    var _go=window.__onGamesJson; window.__onGamesJson=null;
+    if(_launchRankHour>=0) _drawLaunchRanking(false);   // 既に描画済み → プレイ中の一覧で描き直す
+    else if(typeof _go==='function') _go();             // 待っている起動処理を進める
+    // どちらでもなければ、描画待ちのアイドル処理が GAMES_JSON を使って描く
   }catch(e){}
 }
 (function(){
