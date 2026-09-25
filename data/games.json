@@ -1,7 +1,7 @@
 {
- "updated": "2026-09-25 08:44 JST",
- "rankSources": "1〜100位 AppMedia / 103位以降 Game-i",
- "rankingSize": 155,
+ "updated": "2026-09-26 08:46 JST",
+ "rankSources": "1〜100位 AppMedia / 101位以降 Game-i",
+ "rankingSize": 161,
  "playing": [
   {
    "value": "コンパス",
@@ -26,12 +26,12 @@
   {
    "value": "Call of Duty",
    "label": "Call of Duty: Mobile",
-   "rank": 194
+   "rank": 23
   },
   {
    "value": "DQウォーク",
    "label": "ドラゴンクエストウォーク",
-   "rank": 28
+   "rank": 30
   },
   {
    "value": "Echocalypse",
@@ -46,7 +46,7 @@
   {
    "value": "Fate/GO",
    "label": "Fate/Grand Order",
-   "rank": 37
+   "rank": 38
   },
   {
    "value": "LINE MF",
@@ -56,27 +56,27 @@
   {
    "value": "Master Duel",
    "label": "遊戯王 マスターデュエル",
-   "rank": 157
+   "rank": 154
   },
   {
    "value": "NIKKE",
    "label": "勝利の女神：NIKKE",
-   "rank": 21
+   "rank": 27
   },
   {
    "value": "Pokémon Trading Card Game Pocket",
    "label": "Pokémon TCG Pocket",
-   "rank": 45
+   "rank": 47
   },
   {
    "value": "Pokémon GO",
    "label": "Pokémon GO",
-   "rank": 8
+   "rank": 14
   },
   {
    "value": "PokémonMaster",
    "label": "ポケモンマスターズ EX",
-   "rank": 156
+   "rank": 37
   },
   {
    "value": "PSO2es",
@@ -86,7 +86,7 @@
   {
    "value": "PUBG",
    "label": "PUBG MOBILE",
-   "rank": null
+   "rank": 171
   },
   {
    "value": "アサルトリリィ",
@@ -96,7 +96,7 @@
   {
    "value": "アズールレーン",
    "label": "アズールレーン",
-   "rank": 122
+   "rank": 127
   },
   {
    "value": "アリスギア",
@@ -108,13 +108,13 @@
    "label": "うたわれるもの ロストフラグ",
    "rank": null,
    "sunsetting": true,
-   "missDays": 28,
+   "missDays": 29,
    "reason": "検索結果に本タイトルが無い（スマホで読むうたわれるもの vol.03, O Xマスター ○×ゲーム）"
   },
   {
    "value": "ウマ娘",
    "label": "ウマ娘 プリティーダービー",
-   "rank": 9
+   "rank": 11
   },
   {
    "value": "おねがい社長！",
@@ -124,17 +124,17 @@
   {
    "value": "カゲマス",
    "label": "陰の実力者になりたくて！マスターオブガーデン",
-   "rank": 53
+   "rank": 122
   },
   {
    "value": "グラクロ",
    "label": "七つの大罪 光と闇の交戦 : グラクロ",
-   "rank": 24
+   "rank": 43
   },
   {
    "value": "グラブル",
    "label": "グランブルーファンタジー",
-   "rank": null
+   "rank": 110
   },
   {
    "value": "けもフレ3",
@@ -154,7 +154,7 @@
   {
    "value": "ツムツム",
    "label": "LINE：ディズニー ツムツム",
-   "rank": 59
+   "rank": 58
   },
   {
    "value": "ディスガイアRPG",
@@ -179,7 +179,7 @@
   {
    "value": "ブルーアーカイブ",
    "label": "ブルーアーカイブ",
-   "rank": 55
+   "rank": 139
   },
   {
    "value": "ブレソル",
@@ -189,7 +189,7 @@
   {
    "value": "ヘブバン",
    "label": "ヘブンバーンズレッド",
-   "rank": null
+   "rank": 180
   },
   {
    "value": "まおりゅう",
@@ -224,12 +224,12 @@
   {
    "value": "原神",
    "label": "原神",
-   "rank": 5
+   "rank": 10
   },
   {
    "value": "荒野行動",
    "label": "荒野行動",
-   "rank": 16
+   "rank": 7
   },
   {
    "value": "走れ！女神",
@@ -244,7 +244,7 @@
   {
    "value": "崩壊：スターレイル",
    "label": "崩壊：スターレイル",
-   "rank": 33
+   "rank": 28
   },
   {
    "value": "崩壊3rd",
@@ -259,20 +259,20 @@
   {
    "value": "鳴潮",
    "label": "鳴潮",
-   "rank": 188
+   "rank": null
   },
   {
    "value": "STAR DIVE",
    "label": "モンギル：STAR DIVE",
    "rank": null,
    "sunsetting": true,
-   "missDays": 28,
+   "missDays": 29,
    "reason": "ストアに終了告知（サービス終了）"
   },
   {
    "value": "Gジェネ ET",
    "label": "SDガンダム ジージェネレーション エターナル",
-   "rank": 158
+   "rank": 188
   },
   {
    "value": "七つの大罪：Origin",
@@ -282,29 +282,34 @@
   {
    "value": "アークナイツ：エンドフィールド",
    "label": "アークナイツ：エンドフィールド",
-   "rank": 174
+   "rank": 183
   }
  ],
  "trending": [
   {
-   "value": "eFootball™",
-   "label": "eFootball™",
+   "value": "パズル＆ドラゴンズ",
+   "label": "パズル＆ドラゴンズ",
    "rank": 1
   },
   {
-   "value": "幻想水滸伝 STAR LEAP",
-   "label": "幻想水滸伝 STAR LEAP",
+   "value": "プロ野球スピリッツＡ",
+   "label": "プロ野球スピリッツＡ",
    "rank": 2
+  },
+  {
+   "value": "eFootball™",
+   "label": "eFootball™",
+   "rank": 3
   },
   {
    "value": "ホワイトアウト・サバイバル",
    "label": "ホワイトアウト・サバイバル",
-   "rank": 3
+   "rank": 4
   },
   {
-   "value": "トリッカル・もちもちほっペ大作戦",
-   "label": "トリッカル・もちもちほっペ大作戦",
-   "rank": 4
+   "value": "幻想水滸伝 STAR LEAP",
+   "label": "幻想水滸伝 STAR LEAP",
+   "rank": 5
   },
   {
    "value": "ゴシップハーバー：マージ & ストーリー",
@@ -312,243 +317,233 @@
    "rank": 6
   },
   {
-   "value": "デュエル・マスターズ プレイス",
-   "label": "デュエル・マスターズ プレイス",
-   "rank": 7
-  },
-  {
-   "value": "パズル&サバイバル",
-   "label": "パズル&サバイバル",
-   "rank": 10
-  },
-  {
-   "value": "キングショット",
-   "label": "キングショット",
-   "rank": 11
+   "value": "トリッカル・もちもちほっペ大作戦",
+   "label": "トリッカル・もちもちほっペ大作戦",
+   "rank": 8
   },
   {
    "value": "トゥーンブラスト",
    "label": "トゥーンブラスト",
-   "rank": 12
-  },
-  {
-   "value": "ラストウォー：サバイバル",
-   "label": "ラストウォー：サバイバル",
-   "rank": 13
-  },
-  {
-   "value": "P5X ペルソナ５: The Phantom X",
-   "label": "P5X ペルソナ５: The Phantom X",
-   "rank": 14
-  },
-  {
-   "value": "ロイヤルマッチ（Royal Match)",
-   "label": "ロイヤルマッチ（Royal Match)",
-   "rank": 15
-  },
-  {
-   "value": "ONE PIECE バウンティラッシュ - アクションゲーム",
-   "label": "ONE PIECE バウンティラッシュ - アクションゲーム",
-   "rank": 17
-  },
-  {
-   "value": "ドラゴンボールZ ドッカンバトル",
-   "label": "ドラゴンボールZ ドッカンバトル",
-   "rank": 18
-  },
-  {
-   "value": "グルメ・ジャーニー",
-   "label": "グルメ・ジャーニー",
-   "rank": 19
-  },
-  {
-   "value": "刀剣乱舞ぱずぎり",
-   "label": "刀剣乱舞ぱずぎり",
-   "rank": 20
+   "rank": 9
   },
   {
    "value": "モンスターストライク",
    "label": "モンスターストライク",
+   "rank": 12
+  },
+  {
+   "value": "ロイヤルマッチ（Royal Match)",
+   "label": "ロイヤルマッチ（Royal Match)",
+   "rank": 13
+  },
+  {
+   "value": "デュエル・マスターズ プレイス",
+   "label": "デュエル・マスターズ プレイス",
+   "rank": 15
+  },
+  {
+   "value": "ドラゴンボールZ ドッカンバトル",
+   "label": "ドラゴンボールZ ドッカンバトル",
+   "rank": 16
+  },
+  {
+   "value": "キングショット",
+   "label": "キングショット",
+   "rank": 17
+  },
+  {
+   "value": "パズル&サバイバル",
+   "label": "パズル&サバイバル",
+   "rank": 18
+  },
+  {
+   "value": "ラストウォー：サバイバル",
+   "label": "ラストウォー：サバイバル",
+   "rank": 19
+  },
+  {
+   "value": "グルメ・ジャーニー",
+   "label": "グルメ・ジャーニー",
+   "rank": 20
+  },
+  {
+   "value": "ONE PIECE バウンティラッシュ - アクションゲーム",
+   "label": "ONE PIECE バウンティラッシュ - アクションゲーム",
+   "rank": 21
+  },
+  {
+   "value": "バンドリ！アワーノーツ",
+   "label": "バンドリ！アワーノーツ",
    "rank": 22
   },
   {
    "value": "ガーデンスケイプ (Gardenscapes)",
    "label": "ガーデンスケイプ (Gardenscapes)",
-   "rank": 23
-  },
-  {
-   "value": "モンスターサバイバル",
-   "label": "モンスターサバイバル",
-   "rank": 25
-  },
-  {
-   "value": "ラストZ：サバイバルシューティング",
-   "label": "ラストZ：サバイバルシューティング",
-   "rank": 26
-  },
-  {
-   "value": "モンスターハンターNow",
-   "label": "モンスターハンターNow",
-   "rank": 27
-  },
-  {
-   "value": "ホロライブドリームス",
-   "label": "ホロライブドリームス",
-   "rank": 30
-  },
-  {
-   "value": "LINE ポコポコ：3マッチパズルゲーム",
-   "label": "LINE ポコポコ：3マッチパズルゲーム",
-   "rank": 31
-  },
-  {
-   "value": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG",
-   "label": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG",
-   "rank": 32
-  },
-  {
-   "value": "プロ野球スピリッツＡ",
-   "label": "プロ野球スピリッツＡ",
-   "rank": 34
-  },
-  {
-   "value": "Pokémon Sleep",
-   "label": "Pokémon Sleep",
-   "rank": 35
-  },
-  {
-   "value": "ホームスケイプ (Homescapes)",
-   "label": "ホームスケイプ (Homescapes)",
-   "rank": 36
-  },
-  {
-   "value": "にゃんこ大戦争",
-   "label": "にゃんこ大戦争",
-   "rank": 38
-  },
-  {
-   "value": "バンドリ！アワーノーツ",
-   "label": "バンドリ！アワーノーツ",
-   "rank": 39
-  },
-  {
-   "value": "雀魂 -じゃんたま-",
-   "label": "雀魂 -じゃんたま-",
-   "rank": 40
-  },
-  {
-   "value": "恋と深空",
-   "label": "恋と深空",
-   "rank": 41
-  },
-  {
-   "value": "あんさんぶるスターズ！！Music",
-   "label": "あんさんぶるスターズ！！Music",
-   "rank": 42
-  },
-  {
-   "value": "ハリウッドマージ",
-   "label": "ハリウッドマージ",
-   "rank": 43
-  },
-  {
-   "value": "トップロード",
-   "label": "トップロード",
-   "rank": 44
-  },
-  {
-   "value": "パズル＆ドラゴンズ",
-   "label": "パズル＆ドラゴンズ",
-   "rank": 46
-  },
-  {
-   "value": "タウンシップ (Township)",
-   "label": "タウンシップ (Township)",
-   "rank": 47
-  },
-  {
-   "value": "eFootball™ウイコレ CHAMPION SQUADS",
-   "label": "eFootball™ウイコレ CHAMPION SQUADS",
-   "rank": 49
-  },
-  {
-   "value": "Identity V",
-   "label": "Identity V",
-   "rank": 50
-  },
-  {
-   "value": "信長の野望 出陣",
-   "label": "信長の野望 出陣",
-   "rank": 51
+   "rank": 24
   },
   {
    "value": "ディズニー ツイステッドワンダーランド",
    "label": "ディズニー ツイステッドワンダーランド",
-   "rank": 52
+   "rank": 25
   },
   {
-   "value": "ロイヤルキングダム (Royal Kingdom)",
-   "label": "ロイヤルキングダム (Royal Kingdom)",
-   "rank": 54
+   "value": "あんさんぶるスターズ！！Music",
+   "label": "あんさんぶるスターズ！！Music",
+   "rank": 26
   },
   {
-   "value": "学園アイドルマスター",
-   "label": "学園アイドルマスター",
-   "rank": 56
+   "value": "刀剣乱舞ぱずぎり",
+   "label": "刀剣乱舞ぱずぎり",
+   "rank": 29
   },
   {
-   "value": "キングダム 覇道『キングダム』の戦略ゲームが登場",
-   "label": "キングダム 覇道『キングダム』の戦略ゲームが登場",
-   "rank": 57
+   "value": "Pokémon Sleep",
+   "label": "Pokémon Sleep",
+   "rank": 31
   },
   {
-   "value": "メメントモリ",
-   "label": "メメントモリ",
-   "rank": 58
+   "value": "P5X ペルソナ５: The Phantom X",
+   "label": "P5X ペルソナ５: The Phantom X",
+   "rank": 32
   },
   {
-   "value": "eBaseball™: MLB PRO SPIRIT",
-   "label": "eBaseball™: MLB PRO SPIRIT",
-   "rank": 60
+   "value": "モンスターハンターNow",
+   "label": "モンスターハンターNow",
+   "rank": 34
   },
   {
-   "value": "ドラゴンボール レジェンズ",
-   "label": "ドラゴンボール レジェンズ",
-   "rank": 61
+   "value": "ホロライブドリームス",
+   "label": "ホロライブドリームス",
+   "rank": 35
   },
   {
-   "value": "キングダム 頂天",
-   "label": "キングダム 頂天",
-   "rank": 62
+   "value": "LINE ポコポコ：3マッチパズルゲーム",
+   "label": "LINE ポコポコ：3マッチパズルゲーム",
+   "rank": 36
   },
   {
-   "value": "櫻坂46・日向坂46 UNI'S ON AIR",
-   "label": "櫻坂46・日向坂46 UNI'S ON AIR",
-   "rank": 63
+   "value": "ジョジョの奇妙な冒険 オラオラオーバードライブ",
+   "label": "ジョジョの奇妙な冒険 オラオラオーバードライブ",
+   "rank": 39
   },
   {
-   "value": "フィッシュダム(Fishdom)",
-   "label": "フィッシュダム(Fishdom)",
-   "rank": 64
-  },
-  {
-   "value": "ブロスタ",
-   "label": "ブロスタ",
-   "rank": 65
-  },
-  {
-   "value": "ドリフトスピリッツ",
-   "label": "ドリフトスピリッツ",
-   "rank": 66
+   "value": "ラストZ：サバイバルシューティング",
+   "label": "ラストZ：サバイバルシューティング",
+   "rank": 40
   },
   {
    "value": "パラノイズ",
    "label": "パラノイズ",
-   "rank": 67
+   "rank": 41
+  },
+  {
+   "value": "ブロスタ",
+   "label": "ブロスタ",
+   "rank": 42
+  },
+  {
+   "value": "ホームスケイプ (Homescapes)",
+   "label": "ホームスケイプ (Homescapes)",
+   "rank": 44
+  },
+  {
+   "value": "にゃんこ大戦争",
+   "label": "にゃんこ大戦争",
+   "rank": 45
+  },
+  {
+   "value": "モンスターサバイバル",
+   "label": "モンスターサバイバル",
+   "rank": 46
+  },
+  {
+   "value": "ロイヤルキングダム (Royal Kingdom)",
+   "label": "ロイヤルキングダム (Royal Kingdom)",
+   "rank": 48
+  },
+  {
+   "value": "タウンシップ (Township)",
+   "label": "タウンシップ (Township)",
+   "rank": 49
+  },
+  {
+   "value": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG",
+   "label": "ドラゴンクエストスマッシュグロウ ドラクエローグライトRPG",
+   "rank": 51
+  },
+  {
+   "value": "ハリウッドマージ",
+   "label": "ハリウッドマージ",
+   "rank": 52
+  },
+  {
+   "value": "Identity V",
+   "label": "Identity V",
+   "rank": 53
+  },
+  {
+   "value": "トップロード",
+   "label": "トップロード",
+   "rank": 54
+  },
+  {
+   "value": "セルサバイバー - シューティングゲーム",
+   "label": "セルサバイバー - シューティングゲーム",
+   "rank": 55
+  },
+  {
+   "value": "雀魂 -じゃんたま-",
+   "label": "雀魂 -じゃんたま-",
+   "rank": 56
   },
   {
    "value": "シーサイド エスケープ：マージ & ストーリー",
    "label": "シーサイド エスケープ：マージ & ストーリー",
+   "rank": 57
+  },
+  {
+   "value": "フィッシュダム(Fishdom)",
+   "label": "フィッシュダム(Fishdom)",
+   "rank": 59
+  },
+  {
+   "value": "学園アイドルマスター",
+   "label": "学園アイドルマスター",
+   "rank": 60
+  },
+  {
+   "value": "モバイル·レジェンド: Bang Bang",
+   "label": "モバイル·レジェンド: Bang Bang",
+   "rank": 61
+  },
+  {
+   "value": "恋と深空",
+   "label": "恋と深空",
+   "rank": 62
+  },
+  {
+   "value": "eFootball™ウイコレ CHAMPION SQUADS",
+   "label": "eFootball™ウイコレ CHAMPION SQUADS",
+   "rank": 63
+  },
+  {
+   "value": "信長の野望 真戦",
+   "label": "信長の野望 真戦",
+   "rank": 64
+  },
+  {
+   "value": "放置少女 - 百花繚乱の萌姫たち",
+   "label": "放置少女 - 百花繚乱の萌姫たち",
+   "rank": 65
+  },
+  {
+   "value": "キングダム 頂天",
+   "label": "キングダム 頂天",
+   "rank": 67
+  },
+  {
+   "value": "メメントモリ",
+   "label": "メメントモリ",
    "rank": 68
   },
   {
@@ -557,211 +552,233 @@
    "rank": 69
   },
   {
-   "value": "キャンディークラッシュ",
-   "label": "キャンディークラッシュ",
+   "value": "プロジェクトセカイ カラフルステージ！ feat. 初音ミク",
+   "label": "プロジェクトセカイ カラフルステージ！ feat. 初音ミク",
    "rank": 70
   },
   {
-   "value": "波乱水世界",
-   "label": "波乱水世界",
+   "value": "ローグウィズデッド - 戦略放置RPG",
+   "label": "ローグウィズデッド - 戦略放置RPG",
    "rank": 71
   },
   {
-   "value": "ツリーオブセイヴァー：ネバーランド",
-   "label": "ツリーオブセイヴァー：ネバーランド",
+   "value": "信長の野望 出陣",
+   "label": "信長の野望 出陣",
    "rank": 72
   },
   {
-   "value": "ラストアサイラム：プレイグ",
-   "label": "ラストアサイラム：プレイグ",
+   "value": "キャンディークラッシュ",
+   "label": "キャンディークラッシュ",
    "rank": 73
   },
   {
-   "value": "Age of Origins---ゾンビ・末日戦記",
-   "label": "Age of Origins---ゾンビ・末日戦記",
+   "value": "ドラゴンボール レジェンズ",
+   "label": "ドラゴンボール レジェンズ",
    "rank": 75
-  },
-  {
-   "value": "実況パワフルプロ野球",
-   "label": "実況パワフルプロ野球",
-   "rank": 76
-  },
-  {
-   "value": "ロマンシング サガ リ・ユニバース/戦略RPG",
-   "label": "ロマンシング サガ リ・ユニバース/戦略RPG",
-   "rank": 77
-  },
-  {
-   "value": "放置少女 - 百花繚乱の萌姫たち",
-   "label": "放置少女 - 百花繚乱の萌姫たち",
-   "rank": 78
-  },
-  {
-   "value": "マージクッキング テーマレストラン",
-   "label": "マージクッキング テーマレストラン",
-   "rank": 79
   },
   {
    "value": "セガNET麻雀 MJ",
    "label": "セガNET麻雀 MJ",
-   "rank": 80
+   "rank": 76
   },
   {
-   "value": "キノコ伝説：勇者と魔法のランプ",
-   "label": "キノコ伝説：勇者と魔法のランプ",
-   "rank": 81
+   "value": "波乱水世界",
+   "label": "波乱水世界",
+   "rank": 77
+  },
+  {
+   "value": "ドリフトスピリッツ",
+   "label": "ドリフトスピリッツ",
+   "rank": 79
+  },
+  {
+   "value": "キングダム 覇道『キングダム』の戦略ゲームが登場",
+   "label": "キングダム 覇道『キングダム』の戦略ゲームが登場",
+   "rank": 80
   },
   {
    "value": "Lumi Master（るぅみマスター）",
    "label": "Lumi Master（るぅみマスター）",
+   "rank": 81
+  },
+  {
+   "value": "eBaseball™: MLB PRO SPIRIT",
+   "label": "eBaseball™: MLB PRO SPIRIT",
    "rank": 82
   },
   {
-   "value": "ミステリータウン：マージゲーム (Mystery Town)",
-   "label": "ミステリータウン：マージゲーム (Mystery Town)",
+   "value": "キノコ伝説：勇者と魔法のランプ",
+   "label": "キノコ伝説：勇者と魔法のランプ",
    "rank": 83
   },
   {
-   "value": "リバース：1999",
-   "label": "リバース：1999",
+   "value": "ラストアサイラム：プレイグ",
+   "label": "ラストアサイラム：プレイグ",
    "rank": 84
   },
   {
-   "value": "信長の野望 真戦",
-   "label": "信長の野望 真戦",
-   "rank": 85
+   "value": "ハートピアスローライフ",
+   "label": "ハートピアスローライフ",
+   "rank": 86
   },
   {
-   "value": "セルサバイバー - シューティングゲーム",
-   "label": "セルサバイバー - シューティングゲーム",
-   "rank": 86
+   "value": "Age of Origins---ゾンビ・末日戦記",
+   "label": "Age of Origins---ゾンビ・末日戦記",
+   "rank": 87
+  },
+  {
+   "value": "東京ディバンカー",
+   "label": "東京ディバンカー",
+   "rank": 88
   },
   {
    "value": "妖怪ウォッチ ぷにぷに",
    "label": "妖怪ウォッチ ぷにぷに",
-   "rank": 88
+   "rank": 89
   },
   {
-   "value": "ONE PIECE トレジャークルーズ",
-   "label": "ONE PIECE トレジャークルーズ",
+   "value": "ミステリータウン：マージゲーム (Mystery Town)",
+   "label": "ミステリータウン：マージゲーム (Mystery Town)",
+   "rank": 90
+  },
+  {
+   "value": "マージクッキング テーマレストラン",
+   "label": "マージクッキング テーマレストラン",
    "rank": 91
   },
   {
    "value": "Shadowverse: Worlds Beyond",
    "label": "Shadowverse: Worlds Beyond",
+   "rank": 92
+  },
+  {
+   "value": "櫻坂46・日向坂46 UNI'S ON AIR",
+   "label": "櫻坂46・日向坂46 UNI'S ON AIR",
    "rank": 93
-  },
-  {
-   "value": "ちいかわぽけっと",
-   "label": "ちいかわぽけっと",
-   "rank": 94
-  },
-  {
-   "value": "ペタペタペンギン団",
-   "label": "ペタペタペンギン団",
-   "rank": 95
-  },
-  {
-   "value": "刀剣乱舞ONLINE",
-   "label": "刀剣乱舞ONLINE",
-   "rank": 96
-  },
-  {
-   "value": "チート勇者～インベントリ攻略ゲー～RPG",
-   "label": "チート勇者～インベントリ攻略ゲー～RPG",
-   "rank": 97
-  },
-  {
-   "value": "Travel Town - マージアドベンチャー",
-   "label": "Travel Town - マージアドベンチャー",
-   "rank": 98
-  },
-  {
-   "value": "プロジェクトセカイ カラフルステージ！ feat. 初音ミク",
-   "label": "プロジェクトセカイ カラフルステージ！ feat. 初音ミク",
-   "rank": 99
-  },
-  {
-   "value": "パワプロアドベンチャーズ",
-   "label": "パワプロアドベンチャーズ",
-   "rank": 177,
-   "category": "Games"
   },
   {
    "value": "城とドラゴン",
    "label": "城とドラゴン",
-   "rank": 178,
-   "category": "Games"
+   "rank": 95
   },
   {
-   "value": "Wizardry Variants Daphne",
-   "label": "Wizardry Variants Daphne",
-   "rank": 179,
-   "category": "Games"
+   "value": "チート勇者～インベントリ攻略ゲー～RPG",
+   "label": "チート勇者～インベントリ攻略ゲー～RPG",
+   "rank": 96
   },
   {
-   "value": "Pokémon Champions",
-   "label": "Pokémon Champions",
-   "rank": 180,
-   "category": "Games"
+   "value": "ペタペタペンギン団",
+   "label": "ペタペタペンギン団",
+   "rank": 97
   },
   {
-   "value": "アイドリッシュセブン",
-   "label": "アイドリッシュセブン",
-   "rank": 182,
-   "category": "Games"
+   "value": "アニモ",
+   "label": "アニモ",
+   "rank": 98
+  },
+  {
+   "value": "駅メモ！ - ステーションメモリーズ！-",
+   "label": "駅メモ！ - ステーションメモリーズ！-",
+   "rank": 99
+  },
+  {
+   "value": "三國志 覇道",
+   "label": "三國志 覇道",
+   "rank": 100
   },
   {
    "value": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム",
    "label": "ゴールデンホイヤー スロット〜パチンコ·パチスロカジノゲーム",
-   "rank": 184,
+   "rank": 172,
    "category": "Games"
   },
   {
-   "value": "クラッシュ・ロワイヤル (Clash Royale)",
-   "label": "クラッシュ・ロワイヤル (Clash Royale)",
-   "rank": 187,
+   "value": "Travel Town - マージアドベンチャー",
+   "label": "Travel Town - マージアドベンチャー",
+   "rank": 173,
    "category": "Games"
   },
   {
-   "value": "X-Clash: サバイバル",
-   "label": "X-Clash: サバイバル",
-   "rank": 189,
+   "value": "ツリーオブセイヴァー：ネバーランド",
+   "label": "ツリーオブセイヴァー：ネバーランド",
+   "rank": 175,
    "category": "Games"
   },
   {
-   "value": "ブラウンダスト２ 胸いっぱいのRPG",
-   "label": "ブラウンダスト２ 胸いっぱいのRPG",
-   "rank": 191,
-   "category": "Games"
-  },
-  {
-   "value": "東方LostWord",
-   "label": "東方LostWord",
-   "rank": 195,
-   "category": "Games"
-  },
-  {
-   "value": "妖怪ウォッチ1 スマホ",
-   "label": "妖怪ウォッチ1 スマホ",
-   "rank": 197,
+   "value": "ロマンシング サガ リ・ユニバース/戦略RPG",
+   "label": "ロマンシング サガ リ・ユニバース/戦略RPG",
+   "rank": 176,
    "category": "Games"
   },
   {
    "value": "777Real(777リアル) パチンコ･パチスロアプリ",
    "label": "777Real(777リアル) パチンコ･パチスロアプリ",
-   "rank": 199,
+   "rank": 182,
    "category": "Games"
   },
   {
-   "value": "三國志 覇道",
-   "label": "三國志 覇道",
+   "value": "ドラゴンエッグ　仲間との出会い",
+   "label": "ドラゴンエッグ　仲間との出会い",
+   "rank": 184,
+   "category": "Games"
+  },
+  {
+   "value": "リバースブルー×リバースエンド",
+   "label": "リバースブルー×リバースエンド",
+   "rank": 187,
+   "category": "Games"
+  },
+  {
+   "value": "クラッシュ・ロワイヤル (Clash Royale)",
+   "label": "クラッシュ・ロワイヤル (Clash Royale)",
+   "rank": 190,
+   "category": "Games"
+  },
+  {
+   "value": "ONE PIECE トレジャークルーズ",
+   "label": "ONE PIECE トレジャークルーズ",
+   "rank": 192,
+   "category": "Games"
+  },
+  {
+   "value": "実況パワフルプロ野球",
+   "label": "実況パワフルプロ野球",
+   "rank": 193,
+   "category": "Games"
+  },
+  {
+   "value": "Pokémon Champions",
+   "label": "Pokémon Champions",
+   "rank": 194,
+   "category": "Games"
+  },
+  {
+   "value": "ちいかわぽけっと",
+   "label": "ちいかわぽけっと",
+   "rank": 195,
+   "category": "Games"
+  },
+  {
+   "value": "三國志 真戦",
+   "label": "三國志 真戦",
+   "rank": 196,
+   "category": "Games"
+  },
+  {
+   "value": "パワプロアドベンチャーズ",
+   "label": "パワプロアドベンチャーズ",
+   "rank": 198,
+   "category": "Games"
+  },
+  {
+   "value": "刀剣乱舞ONLINE",
+   "label": "刀剣乱舞ONLINE",
    "rank": 200,
    "category": "Games"
   },
   {
-   "value": "Meowdoku!",
-   "label": "Meowdoku!",
+   "value": "悪魔城ドラキュラ",
+   "label": "悪魔城ドラキュラ",
    "rank": null
   },
   {
@@ -770,8 +787,8 @@
    "rank": null
   },
   {
-   "value": "アニモ",
-   "label": "アニモ",
+   "value": "Meowdoku!",
+   "label": "Meowdoku!",
    "rank": null
   },
   {
@@ -805,23 +822,18 @@
    "rank": null
   },
   {
-   "value": "Block Out! - Color Sort Puzzle",
-   "label": "Block Out! - Color Sort Puzzle",
-   "rank": null
-  },
-  {
    "value": "Jewel Coloring",
    "label": "Jewel Coloring",
    "rank": null
   },
   {
-   "value": "ピクセルブレイブ：伝説の勇者たち",
-   "label": "ピクセルブレイブ：伝説の勇者たち",
+   "value": "Block Out! - Color Sort Puzzle",
+   "label": "Block Out! - Color Sort Puzzle",
    "rank": null
   },
   {
-   "value": "Bus Traffic Fever!",
-   "label": "Bus Traffic Fever!",
+   "value": "Rotate Rings",
+   "label": "Rotate Rings",
    "rank": null
   },
   {
@@ -830,13 +842,13 @@
    "rank": null
   },
   {
-   "value": "ぼくのプロ野球",
-   "label": "ぼくのプロ野球",
+   "value": "Bus Traffic Fever!",
+   "label": "Bus Traffic Fever!",
    "rank": null
   },
   {
-   "value": "意味怖ストーリー：バッドエンドを回避せよ！",
-   "label": "意味怖ストーリー：バッドエンドを回避せよ！",
+   "value": "ピクセルブレイブ：伝説の勇者たち",
+   "label": "ピクセルブレイブ：伝説の勇者たち",
    "rank": null
   },
   {
@@ -845,13 +857,23 @@
    "rank": null
   },
   {
+   "value": "フードスター（Foodstars）:マージ & クック",
+   "label": "フードスター（Foodstars）:マージ & クック",
+   "rank": null
+  },
+  {
+   "value": "意味怖ストーリー：バッドエンドを回避せよ！",
+   "label": "意味怖ストーリー：バッドエンドを回避せよ！",
+   "rank": null
+  },
+  {
    "value": "Royal Smash! - Physics Puzzle",
    "label": "Royal Smash! - Physics Puzzle",
    "rank": null
   },
   {
-   "value": "Sled Surfers - ファーズ - 坂冒険",
-   "label": "Sled Surfers - ファーズ - 坂冒険",
+   "value": "Z ルート：リデンプション",
+   "label": "Z ルート：リデンプション",
    "rank": null
   },
   {
@@ -860,13 +882,8 @@
    "rank": null
   },
   {
-   "value": "Sand Blocks: Drop Puzzle",
-   "label": "Sand Blocks: Drop Puzzle",
-   "rank": null
-  },
-  {
-   "value": "フードスター（Foodstars）:マージ & クック",
-   "label": "フードスター（Foodstars）:マージ & クック",
+   "value": "魔法ピアノタイル9 : ピアノゲーム、おんがくげーむ、音ゲー",
+   "label": "魔法ピアノタイル9 : ピアノゲーム、おんがくげーむ、音ゲー",
    "rank": null
   },
   {
@@ -880,38 +897,18 @@
    "rank": null
   },
   {
-   "value": "ワクワク電車ライフ - 街を発展！車掌ゲーム",
-   "label": "ワクワク電車ライフ - 街を発展！車掌ゲーム",
+   "value": "ぼくのプロ野球",
+   "label": "ぼくのプロ野球",
    "rank": null
   },
   {
-   "value": "Z ルート：リデンプション",
-   "label": "Z ルート：リデンプション",
+   "value": "Sled Surfers - ファーズ - 坂冒険",
+   "label": "Sled Surfers - ファーズ - 坂冒険",
    "rank": null
   },
   {
-   "value": "魔法ピアノタイル9 : ピアノゲーム、おんがくげーむ、音ゲー",
-   "label": "魔法ピアノタイル9 : ピアノゲーム、おんがくげーむ、音ゲー",
-   "rank": null
-  },
-  {
-   "value": "にゃんこ銃士：放置育成RPG",
-   "label": "にゃんこ銃士：放置育成RPG",
-   "rank": null
-  },
-  {
-   "value": "Jigsawcard Solitaire Puzzle",
-   "label": "Jigsawcard Solitaire Puzzle",
-   "rank": null
-  },
-  {
-   "value": "フォートナイト",
-   "label": "フォートナイト",
-   "rank": null
-  },
-  {
-   "value": "EDGE POKER (エッジポーカー)",
-   "label": "EDGE POKER (エッジポーカー)",
+   "value": "Sand Blocks: Drop Puzzle",
+   "label": "Sand Blocks: Drop Puzzle",
    "rank": null
   },
   {
@@ -920,28 +917,18 @@
    "rank": null
   },
   {
-   "value": "PokeBuddy | ポケバディ",
-   "label": "PokeBuddy | ポケバディ",
-   "rank": null
-  },
-  {
-   "value": "王室の料理: レストラン 経営 ゲーム",
-   "label": "王室の料理: レストラン 経営 ゲーム",
-   "rank": null
-  },
-  {
-   "value": "Search It - Hidden Objects",
-   "label": "Search It - Hidden Objects",
-   "rank": null
-  },
-  {
    "value": "Amaze GO! - 矢印 パズル",
    "label": "Amaze GO! - 矢印 パズル",
    "rank": null
   },
   {
-   "value": "Car Evolve",
-   "label": "Car Evolve",
+   "value": "フォートナイト",
+   "label": "フォートナイト",
+   "rank": null
+  },
+  {
+   "value": "ワクワク電車ライフ - 街を発展！車掌ゲーム",
+   "label": "ワクワク電車ライフ - 街を発展！車掌ゲーム",
    "rank": null
   },
   {
@@ -950,33 +937,18 @@
    "rank": null
   },
   {
-   "value": "Fluffy Drop",
-   "label": "Fluffy Drop",
+   "value": "にゃんこ銃士：放置育成RPG",
+   "label": "にゃんこ銃士：放置育成RPG",
    "rank": null
   },
   {
-   "value": "Rotate Rings",
-   "label": "Rotate Rings",
+   "value": "Car Evolve",
+   "label": "Car Evolve",
    "rank": null
   },
   {
-   "value": "LINE：ブロックジャム",
-   "label": "LINE：ブロックジャム",
-   "rank": null
-  },
-  {
-   "value": "マジックソート (Magic Sort!)",
-   "label": "マジックソート (Magic Sort!)",
-   "rank": null
-  },
-  {
-   "value": "麻雀ブラスト (Mahjong Blast)",
-   "label": "麻雀ブラスト (Mahjong Blast)",
-   "rank": null
-  },
-  {
-   "value": "ネジ3Dパズル：ピンを外すゲーム",
-   "label": "ネジ3Dパズル：ピンを外すゲーム",
+   "value": "EDGE POKER (エッジポーカー)",
+   "label": "EDGE POKER (エッジポーカー)",
    "rank": null
   },
   {
@@ -985,43 +957,8 @@
    "rank": null
   },
   {
-   "value": "脱出ゲーム Villa Riviera",
-   "label": "脱出ゲーム Villa Riviera",
-   "rank": null
-  },
-  {
-   "value": "Find The Cat 2 - Spot It!",
-   "label": "Find The Cat 2 - Spot It!",
-   "rank": null
-  },
-  {
-   "value": "Water Sort Puzzle : Challenge",
-   "label": "Water Sort Puzzle : Challenge",
-   "rank": null
-  },
-  {
-   "value": "コードギアス ナイトメア・サバイバー",
-   "label": "コードギアス ナイトメア・サバイバー",
-   "rank": null
-  },
-  {
-   "value": "3D Colorful Sort™ 魔法の水",
-   "label": "3D Colorful Sort™ 魔法の水",
-   "rank": null
-  },
-  {
-   "value": "魔法のタイルズ 3™: 音ゲー ピアノタイル",
-   "label": "魔法のタイルズ 3™: 音ゲー ピアノタイル",
-   "rank": null
-  },
-  {
-   "value": "Castle Busters",
-   "label": "Castle Busters",
-   "rank": null
-  },
-  {
-   "value": "トリミン3！-暇つぶしに最適な脱出ゲーム",
-   "label": "トリミン3！-暇つぶしに最適な脱出ゲーム",
+   "value": "[777Real]パチスロペルソナ５",
+   "label": "[777Real]パチスロペルソナ５",
    "rank": null
   },
   {
@@ -1030,28 +967,48 @@
    "rank": null
   },
   {
+   "value": "EA SPORTS FC™ サッカー Mobile 27",
+   "label": "EA SPORTS FC™ サッカー Mobile 27",
+   "rank": null
+  },
+  {
+   "value": "Search It - Hidden Objects",
+   "label": "Search It - Hidden Objects",
+   "rank": null
+  },
+  {
+   "value": "Jigsawcard Solitaire Puzzle",
+   "label": "Jigsawcard Solitaire Puzzle",
+   "rank": null
+  },
+  {
+   "value": "Water Sort Puzzle : Challenge",
+   "label": "Water Sort Puzzle : Challenge",
+   "rank": null
+  },
+  {
+   "value": "王室の料理: レストラン 経営 ゲーム",
+   "label": "王室の料理: レストラン 経営 ゲーム",
+   "rank": null
+  },
+  {
+   "value": "脱出ゲーム Villa Riviera",
+   "label": "脱出ゲーム Villa Riviera",
+   "rank": null
+  },
+  {
+   "value": "麻雀ブラスト (Mahjong Blast)",
+   "label": "麻雀ブラスト (Mahjong Blast)",
+   "rank": null
+  },
+  {
    "value": "Marble Sort!",
    "label": "Marble Sort!",
    "rank": null
   },
   {
-   "value": "PKKP 二人用クッキングゲーム",
-   "label": "PKKP 二人用クッキングゲーム",
-   "rank": null
-  },
-  {
-   "value": "弱虫ペダル レゾナンス・ぺダイズム",
-   "label": "弱虫ペダル レゾナンス・ぺダイズム",
-   "rank": null
-  },
-  {
-   "value": "耳だけ捜査線 - 暇つぶし論理パズルゲーム",
-   "label": "耳だけ捜査線 - 暇つぶし論理パズルゲーム",
-   "rank": null
-  },
-  {
-   "value": "Hit＆Blowオンライン（ヒットアンドブロー）",
-   "label": "Hit＆Blowオンライン（ヒットアンドブロー）",
+   "value": "ネジ3Dパズル：ピンを外すゲーム",
+   "label": "ネジ3Dパズル：ピンを外すゲーム",
    "rank": null
   },
   {
@@ -1060,18 +1017,68 @@
    "rank": null
   },
   {
+   "value": "Fluffy Drop",
+   "label": "Fluffy Drop",
+   "rank": null
+  },
+  {
+   "value": "トリミン3！-暇つぶしに最適な脱出ゲーム",
+   "label": "トリミン3！-暇つぶしに最適な脱出ゲーム",
+   "rank": null
+  },
+  {
+   "value": "3D Colorful Sort™ 魔法の水",
+   "label": "3D Colorful Sort™ 魔法の水",
+   "rank": null
+  },
+  {
+   "value": "マジックソート (Magic Sort!)",
+   "label": "マジックソート (Magic Sort!)",
+   "rank": null
+  },
+  {
+   "value": "SUPERSTAR EBiDAN",
+   "label": "SUPERSTAR EBiDAN",
+   "rank": null
+  },
+  {
+   "value": "Hit＆Blowオンライン（ヒットアンドブロー）",
+   "label": "Hit＆Blowオンライン（ヒットアンドブロー）",
+   "rank": null
+  },
+  {
+   "value": "脱出ゲーム：帰り道のコンビニ",
+   "label": "脱出ゲーム：帰り道のコンビニ",
+   "rank": null
+  },
+  {
+   "value": "魔法のタイルズ 3™: 音ゲー ピアノタイル",
+   "label": "魔法のタイルズ 3™: 音ゲー ピアノタイル",
+   "rank": null
+  },
+  {
    "value": "みんなで早押しクイズ",
    "label": "みんなで早押しクイズ",
    "rank": null
   },
   {
-   "value": "Arrow Pro 3D",
-   "label": "Arrow Pro 3D",
+   "value": "Cutie Sort - かわいい色分けゲーム",
+   "label": "Cutie Sort - かわいい色分けゲーム",
    "rank": null
   },
   {
-   "value": "ねじねじパズル",
-   "label": "ねじねじパズル",
+   "value": "耳だけ捜査線 - 暇つぶし論理パズルゲーム",
+   "label": "耳だけ捜査線 - 暇つぶし論理パズルゲーム",
+   "rank": null
+  },
+  {
+   "value": "コードギアス ナイトメア・サバイバー",
+   "label": "コードギアス ナイトメア・サバイバー",
+   "rank": null
+  },
+  {
+   "value": "Castle Busters",
+   "label": "Castle Busters",
    "rank": null
   },
   {
@@ -1080,18 +1087,23 @@
    "rank": null
   },
   {
+   "value": "Find The Cat 2 - Spot It!",
+   "label": "Find The Cat 2 - Spot It!",
+   "rank": null
+  },
+  {
    "value": "オブジェクトを探す：隠されたパズル",
    "label": "オブジェクトを探す：隠されたパズル",
    "rank": null
   },
   {
-   "value": "Cookingo: Perfect Meal",
-   "label": "Cookingo: Perfect Meal",
+   "value": "Arrow Pro 3D",
+   "label": "Arrow Pro 3D",
    "rank": null
   },
   {
-   "value": "脱出ゲーム：帰り道のコンビニ",
-   "label": "脱出ゲーム：帰り道のコンビニ",
+   "value": "Car Jam - バスストップ ジャムゲーム",
+   "label": "Car Jam - バスストップ ジャムゲーム",
    "rank": null
   }
  ],
@@ -1100,14 +1112,14 @@
    "value": "うたわれLF",
    "label": "うたわれるもの ロストフラグ",
    "since": "2026-09-02",
-   "days": 28,
+   "days": 29,
    "reason": "検索結果に本タイトルが無い（スマホで読むうたわれるもの vol.03, O Xマスター ○×ゲーム）"
   },
   {
    "value": "STAR DIVE",
    "label": "モンギル：STAR DIVE",
    "since": "2026-09-02",
-   "days": 28,
+   "days": 29,
    "reason": "ストアに終了告知（サービス終了）"
   }
  ],
@@ -1188,7 +1200,7 @@
   "アサルトリリィ": 0,
   "アズールレーン": 0,
   "アリスギア": 0,
-  "うたわれLF": 28,
+  "うたわれLF": 29,
   "ウマ娘": 0,
   "おねがい社長！": 0,
   "カゲマス": 0,
@@ -1218,7 +1230,7 @@
   "崩壊3rd": 0,
   "無期迷途": 0,
   "鳴潮": 0,
-  "STAR DIVE": 28,
+  "STAR DIVE": 29,
   "Gジェネ ET": 0,
   "七つの大罪：Origin": 0,
   "アークナイツ：エンドフィールド": 0,
@@ -1252,13 +1264,13 @@
   {
    "value": "Call of Duty",
    "alive": true,
-   "rank": 194,
+   "rank": 23,
    "reason": ""
   },
   {
    "value": "DQウォーク",
    "alive": true,
-   "rank": 28,
+   "rank": 30,
    "reason": ""
   },
   {
@@ -1276,7 +1288,7 @@
   {
    "value": "Fate/GO",
    "alive": true,
-   "rank": 37,
+   "rank": 38,
    "reason": ""
   },
   {
@@ -1288,31 +1300,31 @@
   {
    "value": "Master Duel",
    "alive": true,
-   "rank": 157,
+   "rank": 154,
    "reason": ""
   },
   {
    "value": "NIKKE",
    "alive": true,
-   "rank": 21,
+   "rank": 27,
    "reason": ""
   },
   {
    "value": "Pokémon Trading Card Game Pocket",
    "alive": true,
-   "rank": 45,
+   "rank": 47,
    "reason": ""
   },
   {
    "value": "Pokémon GO",
    "alive": true,
-   "rank": 8,
+   "rank": 14,
    "reason": ""
   },
   {
    "value": "PokémonMaster",
    "alive": true,
-   "rank": 156,
+   "rank": 37,
    "reason": ""
   },
   {
@@ -1324,7 +1336,7 @@
   {
    "value": "PUBG",
    "alive": true,
-   "rank": null,
+   "rank": 171,
    "reason": ""
   },
   {
@@ -1336,7 +1348,7 @@
   {
    "value": "アズールレーン",
    "alive": true,
-   "rank": 122,
+   "rank": 127,
    "reason": ""
   },
   {
@@ -1354,7 +1366,7 @@
   {
    "value": "ウマ娘",
    "alive": true,
-   "rank": 9,
+   "rank": 11,
    "reason": ""
   },
   {
@@ -1366,19 +1378,19 @@
   {
    "value": "カゲマス",
    "alive": true,
-   "rank": 53,
+   "rank": 122,
    "reason": ""
   },
   {
    "value": "グラクロ",
    "alive": true,
-   "rank": 24,
+   "rank": 43,
    "reason": ""
   },
   {
    "value": "グラブル",
    "alive": true,
-   "rank": null,
+   "rank": 110,
    "reason": ""
   },
   {
@@ -1402,7 +1414,7 @@
   {
    "value": "ツムツム",
    "alive": true,
-   "rank": 59,
+   "rank": 58,
    "reason": ""
   },
   {
@@ -1432,7 +1444,7 @@
   {
    "value": "ブルーアーカイブ",
    "alive": true,
-   "rank": 55,
+   "rank": 139,
    "reason": ""
   },
   {
@@ -1444,7 +1456,7 @@
   {
    "value": "ヘブバン",
    "alive": true,
-   "rank": null,
+   "rank": 180,
    "reason": ""
   },
   {
@@ -1486,13 +1498,13 @@
   {
    "value": "原神",
    "alive": true,
-   "rank": 5,
+   "rank": 10,
    "reason": ""
   },
   {
    "value": "荒野行動",
    "alive": true,
-   "rank": 16,
+   "rank": 7,
    "reason": ""
   },
   {
@@ -1510,7 +1522,7 @@
   {
    "value": "崩壊：スターレイル",
    "alive": true,
-   "rank": 33,
+   "rank": 28,
    "reason": ""
   },
   {
@@ -1528,7 +1540,7 @@
   {
    "value": "鳴潮",
    "alive": true,
-   "rank": 188,
+   "rank": null,
    "reason": ""
   },
   {
@@ -1540,7 +1552,7 @@
   {
    "value": "Gジェネ ET",
    "alive": true,
-   "rank": 158,
+   "rank": 188,
    "reason": ""
   },
   {
@@ -1552,7 +1564,7 @@
   {
    "value": "アークナイツ：エンドフィールド",
    "alive": true,
-   "rank": 174,
+   "rank": 183,
    "reason": ""
   }
  ]
