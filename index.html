@@ -526,7 +526,7 @@ const SS=(function(){
 //   暦・スコアの計算を触ったときだけでなく、保存する結果に項目を足した
 //   ときも必ず更新すること（古い結果には新しい項目が無く、表示が欠ける）。
 // ══════════════════════════════════════════════════
-var CALC_REV='2026-09-13-gacha-spec';
+var CALC_REV='2026-11-15-rank-order';
 (function purgeStaleCalcCache(){
   try{
     if(SS.get('gachaOracle_calcRev')===CALC_REV)return;
@@ -3979,10 +3979,13 @@ function computeGameRanking() {
     r._pw = pw; r._pn = pn;
   });
   rows.sort(function (a, b) {
+    // 画面に出している点数を第一にする。以前は「点数＋五行相性」で並べて点数だけを
+    // 表示していたため、56点のゲームが57点のゲームより上に来るなど、
+    // 見た目と順位が逆転していた。五行相性は同点のときの決め手として使う。
+    if (b.score !== a.score) return b.score - a.score;
     var ra = (a.rankScore != null) ? a.rankScore : a.score;
     var rb = (b.rankScore != null) ? b.rankScore : b.score;
-    if (rb !== ra) return rb - ra;                 // 五行相性を織り込んだ並び
-    if (b.score !== a.score) return b.score - a.score;
+    if (rb !== ra) return rb - ra;
     if (b._pw !== a._pw) return b._pw - a._pw;
     if (b._pn !== a._pn) return b._pn - a._pn;
     return a.name.localeCompare(b.name);
@@ -4041,9 +4044,17 @@ function renderGameRankingHTML(opts) {
       'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;' +
       'color:var(--ink,#EDE6F5);cursor:pointer;text-align:left;font-family:inherit">' +
       '<span style="font-size:1rem;color:' + gr.c + ';flex:none">' + medal + '</span>' +
-      '<span style="flex:1;min-width:0;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r.name) + '</span>' +
-      salesRankBadge(salesRankOf(r.name), { small: true }) +
-      (r.hot ? '<span style="flex:none;font-size:.66rem;color:var(--muted)">🔥' + esc(r.hot) + '</span>' : '') +
+      // 名前は1行目に広く取り、セルランと激アツ時刻は2行目に回す。
+      // 1行に全部並べていた頃は、スマホ幅で名前が「LI…」の2文字まで潰れていた。
+      '<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">' +
+        '<span style="font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r.name) + '</span>' +
+        ((salesRankOf(r.name) || r.hot)
+          ? '<span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+              salesRankBadge(salesRankOf(r.name), { small: true }) +
+              (r.hot ? '<span style="font-size:.68rem;color:var(--muted)">🔥' + esc(r.hot) + '</span>' : '') +
+            '</span>'
+          : '') +
+      '</span>' +
       '<span style="flex:none;font-size:.78rem;color:' + gr.c + ';font-weight:700">' + r.score + '</span>' +
       '<span style="flex:none;width:1.5em;text-align:center;font-size:.74rem;color:' + gr.c + ';' +
       'border:1px solid ' + gr.c + ';border-radius:5px;padding:1px 0">' + gr.g + '</span>' +

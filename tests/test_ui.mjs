@@ -308,6 +308,17 @@ console.log('⑦ 全体監査で見つけた欠陥');
   check(/_lastHotDay!==today/.test(html.replace(/\s/g, '')), 'カウントダウンが鑑定した日付を確認している');
 }
 
+// ── ⑦b 今日引くべきゲーム：表示している点数の順に並ぶ ──────────
+console.log('⑦b ランキングの並び');
+{
+  const rows = ctx.computeGameRanking().rows;
+  const bad = rows.findIndex((x, i) => i > 0 && rows[i - 1].score < x.score);
+  check(rows.length > 0 && bad < 0,
+    `表示する点数の高い順に並ぶ（以前は五行相性込みで並べ、56点が57点より上に来ていた）`,
+    bad >= 0 ? `${rows[bad - 1].name} ${rows[bad - 1].score} < ${rows[bad].name} ${rows[bad].score}` : '');
+  check(/flex-direction:column;gap:3px/.test(html), 'ゲーム名とセルランを2行に分けて名前を潰さない');
+}
+
 // ── ⑧ 見た目の土台（スマホで読める・押せる・はみ出さない）────────
 console.log('⑧ 見た目の土台');
 {
