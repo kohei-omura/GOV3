@@ -308,5 +308,22 @@ console.log('⑦ 全体監査で見つけた欠陥');
   check(/_lastHotDay!==today/.test(html.replace(/\s/g, '')), 'カウントダウンが鑑定した日付を確認している');
 }
 
+// ── ⑧ 見た目の土台（スマホで読める・押せる・はみ出さない）────────
+console.log('⑧ 見た目の土台');
+{
+  const sizes = [...html.matchAll(/font-size:\s*(\.\d+)rem/g), ...html.matchAll(/'(\.\d+)rem'/g)].map(m => +('0' + m[1]));
+  const small = sizes.filter(v => v < 0.66);
+  check(small.length === 0, `文字サイズの下限 .66rem（約10.6px）を守っている`, `小さい指定: ${small.join(',')}`);
+  const L = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) / 255)
+    .map(v => v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4)); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
+  const muted = (html.match(/--muted:(#[0-9A-Fa-f]{6})/) || [])[1];
+  const ratio = (L(muted) + .05) / (L('#1A1430') + .05);
+  check(ratio >= 4.5, `補足文字の色がカード背景に対して 4.5:1 以上（${ratio.toFixed(2)}:1）`);
+  check(/\.rst-btn\[style\*="flex:none"\]\{width:auto\}/.test(html), '横並びの .rst-btn が幅100%で画面外へ出ない');
+  check(/button\{min-height:32px/.test(html), 'ボタンの高さが32px以上（削除ボタンの押し間違い対策）');
+  check(/body\{font-variant-numeric:tabular-nums\}/.test(html), '数字の桁がそろう（tabular-nums）');
+  check(/prefers-reduced-motion/.test(html), '動きを減らす設定に対応している');
+}
+
 console.log(failures === 0 ? '\n✅ 全テストパス' : `\n❌ ${failures}件の不一致`);
 process.exit(failures === 0 ? 0 : 1);
