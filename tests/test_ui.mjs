@@ -43,7 +43,8 @@ function boot(initialStore = {}) {
   const els = {};
   const store = Object.assign({}, initialStore);
   const ls = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); },
-               removeItem: k => { delete store[k]; }, get length() { return Object.keys(store).length; } };
+               removeItem: k => { delete store[k]; }, key: i => Object.keys(store)[i] ?? null,
+               get length() { return Object.keys(store).length; } };
   const document = { getElementById(id) { return els[id] || (els[id] = mkEl()); },
     querySelector() { return null; }, querySelectorAll() { return []; }, createElement() { return mkEl(); },
     addEventListener() {}, body: mkEl(), documentElement: mkEl() };
@@ -317,6 +318,65 @@ console.log('⑦b ランキングの並び');
     `表示する点数の高い順に並ぶ（以前は五行相性込みで並べ、56点が57点より上に来ていた）`,
     bad >= 0 ? `${rows[bad - 1].name} ${rows[bad - 1].score} < ${rows[bad].name} ${rows[bad].score}` : '');
   check(/flex-direction:column;gap:3px/.test(html), 'ゲーム名とセルランを2行に分けて名前を潰さない');
+}
+
+// ── ⑨ 記録のバックアップ ────────────────────────────────────
+console.log('⑨ 記録のバックアップ');
+{
+  const now = Date.now(), D = 86400000;
+  const pullsA = [{ t: now - D, game: '原神', pulls: 30, res: 'target', yen: 0, hot: true },
+                  { t: now - 2 * D, game: 'Evertale', pulls: 40, res: 'lose', yen: 3000, hot: false }];
+  const src = boot({
+    gov_pulls: JSON.stringify(pullsA),
+    gov_skips: JSON.stringify([{ t: now - D, game: '原神', yen: 9000, memo: '温存' }]),
+    gov_gachaspec: JSON.stringify({ Evertale: { rate: 1.5, pity: 0 } }),
+    gov_budget: '10000', gov_stones_原神: '3200',
+    gachaOracle_playAdded: JSON.stringify([{ value: '手動の新作', label: '手動の新作' }]),
+    gachaOracle_result: '{"キャッシュ":1}', gachaOracle_calcRev: 'x', gov_rank_cache: '{}'
+  });
+  const bk = src.buildBackup();
+  check(bk.app === 'GACHA ORACLE' && bk.counts.pulls === 2 && bk.counts.skips === 1, '記録・見送りの件数入りで書き出せる');
+  check('gov_stones_原神' in bk.data && 'gov_gachaspec' in bk.data && 'gachaOracle_playAdded' in bk.data,
+    '所持石・ガチャ仕様・プレイ中の編集も含まれる');
+  check(!('gachaOracle_result' in bk.data) && !('gachaOracle_calcRev' in bk.data) && !('gov_rank_cache' in bk.data),
+    '鑑定のキャッシュなど作り直せるものは含めない');
+
+  // 新しい端末に読み込む → 中身が一致する
+  const fresh = boot({});
+  const json = JSON.parse(JSON.stringify(bk));                 // ファイルを経由した状態を再現
+  fresh.mergeBackup(json, false);
+  const st = fresh.__store;
+  check(st.gov_pulls === bk.data.gov_pulls && st.gov_skips === bk.data.gov_skips &&
+        st.gov_budget === '10000' && st['gov_stones_原神'] === '3200', '別の端末に読み込むと記録が元どおりになる');
+  check(fresh.specForGame('Evertale') && fresh.specForGame('Evertale').rate === 1.5, '読み込んだガチャ仕様が使える');
+
+  // もう一度読み込んでも重複しない
+  const again = fresh.mergeBackup(json, false);
+  check(Object.keys(again.added).length === 0 && JSON.parse(st.gov_pulls).length === 2, '同じバックアップを2回読んでも重複しない');
+
+  // 今の端末に別の記録があるとき：足し合わせ、今の値は消さない
+  const mine = boot({
+    gov_pulls: JSON.stringify([{ t: now, game: 'NIKKE', pulls: 10, res: 'ssr', yen: 0, hot: null }]),
+    gov_gachaspec: JSON.stringify({ Evertale: { rate: 2.0, pity: 100 } }),
+    gov_budget: '5000'
+  });
+  mine.mergeBackup(json, false);
+  const mp = JSON.parse(mine.__store.gov_pulls);
+  check(mp.length === 3 && mp[0].game === 'NIKKE', '今の記録を残したまま足し合わせる（新しい順に並ぶ）');
+  check(mine.specForGame('Evertale').rate === 2.0, 'ガチャ仕様が食い違うときは今の端末の値を優先する');
+  check(mine.__store.gov_budget === '5000', '予算など単独の値は上書きしない');
+
+  // 細工したファイル
+  let threw = '';
+  try { mine.mergeBackup({ hello: 1 }, false); } catch (e) { threw = e.message; }
+  check(/バックアップファイルではありません/.test(threw), 'ほかのファイルは読み込まない');
+  const evil = { app: 'GACHA ORACLE', format: 1, data: { gachaOracle_calcRev: 'evil', gachaOracle_result: '{}', __proto__x: '1', gov_pulls: '"文字列"' } };
+  const r = mine.mergeBackup(evil, false);
+  check(mine.__store.gachaOracle_calcRev !== 'evil' && !('__proto__x' in mine.__store) && r.skipped >= 3,
+    '許可していないキーや壊れた中身は読み込まない');
+  const dry = boot({});
+  dry.mergeBackup(json, true);
+  check(!('gov_pulls' in dry.__store), '確認段階（dryRun）では何も書き込まない');
 }
 
 // ── ⑧ 見た目の土台（スマホで読める・押せる・はみ出さない）────────

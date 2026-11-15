@@ -480,6 +480,21 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
     </div>
     <div style="font-size:.66rem;color:var(--muted);margin-top:5px">設定すると実績タブに進捗バーが出ます（未設定なら表示されません）</div>
   </div>
+
+  <div id="backup-box" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+    <div style="font-weight:700;font-size:.84rem;margin-bottom:6px">💾 記録のバックアップ</div>
+    <div style="font-size:.66rem;color:var(--muted);margin-bottom:8px;line-height:1.6">
+      引いた記録・見送り・ガチャ仕様・マイゲーム帳・プレイ中の編集は、この端末の中だけに保存されています。
+      機種変更やブラウザのデータ削除で消えるので、ときどき書き出しておいてください。<br>
+      読み込みは<b>今のデータに足し合わせます</b>（同じ記録は重複せず、今のデータは消えません）。
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="rst-btn" style="flex:1;margin-top:0;font-size:.76rem;letter-spacing:.06em" onclick="exportBackup()">書き出す</button>
+      <button type="button" class="rst-btn" style="flex:1;margin-top:0;font-size:.76rem;letter-spacing:.06em" onclick="document.getElementById('backup-file').click()">読み込む</button>
+      <input id="backup-file" type="file" accept="application/json,.json" style="display:none" onchange="importBackupFile(this)">
+    </div>
+    <div id="backup-status" style="font-size:.66rem;color:var(--muted);margin-top:6px"></div>
+  </div>
 </details>
 
 <div class="glass" id="stats-panel" style="display:none;margin-top:14px">
@@ -4857,6 +4872,161 @@ function saveSkip() {
   try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
 }
 
+/* ════════════════════════════════════════════════════════════
+   記録のバックアップ（書き出し・読み込み）
+   ────────────────────────────────────────────────────────────
+   記録はすべて端末内（localStorage）だけにあり、機種変更やブラウザの
+   データ削除で消える。1つの JSON に書き出し、別の端末で読み込めるようにする。
+
+   読み込みは「足し合わせ」：
+     ・配列（記録・見送りなど）… 重複を除いて合わせる
+     ・ゲームごとの設定（ガチャ仕様）… 今の端末にある値を優先して足す
+     ・単独の値（予算・所持石など）… 今の端末に無いときだけ入れる
+   古いバックアップを誤って読み込んでも、今のデータは何も失われない。
+   許可したキー以外は読み込まない（細工したファイルで内部状態を書き換えさせない）。
+   ════════════════════════════════════════════════════════════ */
+var BACKUP_FORMAT = 1;
+var BACKUP_APP = 'GACHA ORACLE';
+var LAST_BACKUP_KEY = 'gov_last_backup';
+function _backupSpec() {
+  // 宣言順の都合で、キー定数は呼び出し時に読む
+  return {
+    lists: {   // キー: 重複判定に使う項目（null なら中身全体）
+      [PULLS_KEY]: function (r) { return r && (r.t + '|' + r.game + '|' + r.pulls + '|' + r.res); },
+      [SKIPS_KEY]: function (r) { return r && (r.t + '|' + r.game); },
+      [MYGAMES_KEY]: function (r) { return r && r.name; },
+      [HOT_KEY]: function (r) { return r && r.id; },
+      [PLAY_ADDED_KEY]: function (r) { return r && (r.value || r); },
+      [PLAY_REMOVED_KEY]: null,
+      [HIDDEN_KEY]: null
+    },
+    maps: [GSPEC_KEY],
+    scalars: [BUDGET_KEY, YEN_PER_PULL_KEY, 'gachaOracle_profile'],
+    prefixes: [STONE_KEY],
+    caps: { [PULLS_KEY]: PULLS_MAX, [SKIPS_KEY]: SKIPS_MAX, [MYGAMES_KEY]: MYGAMES_MAX, [HOT_KEY]: HOT_PLAN_MAX }
+  };
+}
+function _backupAllowed(k, sp) {
+  return (k in sp.lists) || sp.maps.indexOf(k) >= 0 || sp.scalars.indexOf(k) >= 0 ||
+    sp.prefixes.some(function (pf) { return k.indexOf(pf) === 0 && k.length > pf.length; });
+}
+function _lsKeys() {
+  var out = [];
+  try { for (var i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {}
+  return out;
+}
+
+function buildBackup() {
+  var sp = _backupSpec(), data = {};
+  _lsKeys().forEach(function (k) {
+    if (!k || !_backupAllowed(k, sp)) return;
+    try { var v = localStorage.getItem(k); if (v != null && v !== '') data[k] = v; } catch (e) {}
+  });
+  var cnt = function (k) { try { var a = JSON.parse(data[k] || '[]'); return Array.isArray(a) ? a.length : 0; } catch (e) { return 0; } };
+  return {
+    app: BACKUP_APP, format: BACKUP_FORMAT, savedAt: new Date().toISOString(),
+    counts: { pulls: cnt(PULLS_KEY), skips: cnt(SKIPS_KEY), mygames: cnt(MYGAMES_KEY) },
+    data: data
+  };
+}
+
+/* 読み込み。dryRun なら書き込まずに「何件増えるか」だけ返す */
+function mergeBackup(obj, dryRun) {
+  if (!obj || obj.app !== BACKUP_APP || typeof obj.data !== 'object' || !obj.data)
+    throw new Error('GACHA ORACLE のバックアップファイルではありません');
+  if (+obj.format > BACKUP_FORMAT) throw new Error('新しい版のアプリで作られたバックアップです。アプリを更新してから読み込んでください');
+  var sp = _backupSpec(), added = {}, skipped = 0, writes = {};
+  var parse = function (v, def) { try { var x = JSON.parse(v); return x == null ? def : x; } catch (e) { return def; } };
+  Object.keys(obj.data).forEach(function (k) {
+    var raw = obj.data[k];
+    if (!_backupAllowed(k, sp) || typeof raw !== 'string') { skipped++; return; }
+    var cur = null;
+    try { cur = localStorage.getItem(k); } catch (e) {}
+    if (k in sp.lists) {
+      var inc = parse(raw, null);
+      if (!Array.isArray(inc)) { skipped++; return; }
+      var mine = parse(cur, []); if (!Array.isArray(mine)) mine = [];
+      var idf = sp.lists[k] || function (x) { return JSON.stringify(x); };
+      var seen = {}; mine.forEach(function (x) { seen[idf(x)] = 1; });
+      var fresh = inc.filter(function (x) { var id = idf(x); if (id == null || seen[id]) return false; seen[id] = 1; return true; });
+      if (!fresh.length) return;
+      var merged = mine.concat(fresh);
+      if (k === PULLS_KEY || k === SKIPS_KEY) merged.sort(function (a, b) { return (+b.t || 0) - (+a.t || 0); });
+      if (k === HOT_KEY) merged.sort(function (a, b) { return (+b.savedAt || 0) - (+a.savedAt || 0); });
+      if (sp.caps[k]) merged = merged.slice(0, sp.caps[k]);
+      added[k] = fresh.length; writes[k] = JSON.stringify(merged);
+    } else if (sp.maps.indexOf(k) >= 0) {
+      var incM = parse(raw, null), mineM = parse(cur, {});
+      if (!incM || typeof incM !== 'object' || Array.isArray(incM)) { skipped++; return; }
+      if (!mineM || typeof mineM !== 'object' || Array.isArray(mineM)) mineM = {};
+      var n = 0;
+      Object.keys(incM).forEach(function (g) { if (!(g in mineM)) { mineM[g] = incM[g]; n++; } });
+      if (n) { added[k] = n; writes[k] = JSON.stringify(mineM); }
+    } else {
+      // 単独の値：今の端末に無いときだけ入れる
+      if (cur == null || cur === '' || cur === '""') { added[k] = 1; writes[k] = raw; }
+    }
+  });
+  if (!dryRun) Object.keys(writes).forEach(function (k) { try { localStorage.setItem(k, writes[k]); } catch (e) {} });
+  return { added: added, skipped: skipped };
+}
+
+function exportBackup() {
+  var b = buildBackup();
+  var d = new Date(), pad = function (x) { return ('0' + x).slice(-2); };
+  var name = 'gacha-oracle-backup-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.json';
+  try {
+    _shareOrSave(new Blob([JSON.stringify(b, null, 1)], { type: 'application/json' }), name, 'GACHA ORACLE バックアップ');
+    _lsSet(LAST_BACKUP_KEY, Date.now());
+  } catch (e) { _toast('書き出しに失敗しました'); return; }
+  renderBackupStatus();
+  _toast('書き出しました（記録 ' + b.counts.pulls + '件・見送り ' + b.counts.skips + '件）');
+}
+
+function importBackupFile(input) {
+  var f = input && input.files && input.files[0];
+  if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function () {
+    try {
+      var obj = JSON.parse(String(rd.result || ''));
+      var preview = mergeBackup(obj, true);
+      var a = preview.added;
+      var total = Object.keys(a).reduce(function (s, k) { return s + a[k]; }, 0);
+      if (!total) { _toast('新しく足せる記録はありませんでした（すべて取り込み済みです）'); return; }
+      var msg = 'バックアップ（' + String(obj.savedAt || '').slice(0, 10) + '）から次を足し合わせます。今のデータは消えません。\n\n' +
+        '引いた記録 ' + (a[PULLS_KEY] || 0) + '件\n見送り ' + (a[SKIPS_KEY] || 0) + '件\n' +
+        'マイゲーム帳 ' + (a[MYGAMES_KEY] || 0) + '件\nガチャ仕様 ' + (a[GSPEC_KEY] || 0) + 'タイトル\n\nよろしいですか？';
+      if (!confirm(msg)) return;
+      mergeBackup(obj, false);
+      try { _rankCache = { key: '', rows: null }; localStorage.removeItem(RANK_STORE_KEY); } catch (e) {}
+      try { refreshGameSelect(); } catch (e) {}
+      try { renderMyGames(); } catch (e) {}
+      try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
+      _toast('読み込みました（' + total + '件を足しました）');
+    } catch (e) {
+      _toast(e && e.message ? e.message : '読み込めませんでした');
+    } finally { input.value = ''; }
+  };
+  rd.onerror = function () { _toast('ファイルを読めませんでした'); input.value = ''; };
+  rd.readAsText(f);
+}
+
+function renderBackupStatus() {
+  var el = document.getElementById('backup-status');
+  if (!el) return;
+  var t = +_lsGet(LAST_BACKUP_KEY, 0);
+  var np = pulls().length, ns = skips().length, n = np + ns;
+  if (!t) {
+    el.textContent = n ? '最後の書き出し：まだありません（引いた記録 ' + np + '件・見送り ' + ns + '件が端末内だけにあります）' : '';
+    el.style.color = n ? '#FBBF24' : 'var(--muted)'; return;
+  }
+  var days = Math.floor((Date.now() - t) / 86400000), d = new Date(t);
+  el.textContent = '最後の書き出し：' + (d.getMonth() + 1) + '/' + d.getDate() + '（' + (days ? days + '日前' : '今日') + '）';
+  el.style.color = days >= 30 && n ? '#FBBF24' : 'var(--muted)';
+}
+try { document.addEventListener('DOMContentLoaded', renderBackupStatus); } catch (e) {}
+
 /* 実績タブ */
 function showStats() {
   var el = document.getElementById('stats-panel');
@@ -5002,6 +5172,14 @@ function renderStats() {
     '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">📅 今月</div>' +
     '<div style="font-size:.78rem">課金合計 <b>' + mYen.toLocaleString() + '円</b> ／ 引いた回数 <b>' + mList.length + '回</b></div>' +
     '<div style="font-size:.66rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）' +
+    (function () {
+      var t = +_lsGet(LAST_BACKUP_KEY, 0), days = t ? Math.floor((Date.now() - t) / 86400000) : null;
+      if (t && days < 30) return '';
+      return '<br><button type="button" onclick="exportBackup()" style="margin-top:6px;min-height:32px;padding:4px 12px;' +
+        'border-radius:8px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);color:#FBBF24;' +
+        'font-size:.68rem;cursor:pointer;font-family:inherit">💾 ' + (t ? days + '日書き出していません。' : '') +
+        'バックアップを書き出す</button>';
+    })() +
     (unk.length ? '<br>※ 判定不能 ' + unk.length + '件（その日にそのゲームを占っていないため、帯内・帯外の比較から除いています）' : '') + '</div>';
 }
 
