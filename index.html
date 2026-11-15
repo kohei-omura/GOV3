@@ -19,9 +19,17 @@
   --void:#07040E;--deep:#0F0820;--well:#160C2E;--rim:rgba(255,255,255,.07);
   --glass:rgba(255,255,255,.034);--gold:#C9A84C;--gold-l:#EDD070;--gold-d:#7A5518;
   --iris:#8B5CF6;--iris-l:#A78BFA;--rose:#E05585;--ice:#38BDF8;--green:#34D399;
-  --text:#EDE6F5;--muted:#6E5F88;--danger:#F87171;--r:18px;
+  --text:#EDE6F5;--muted:#8E81AA;--danger:#F87171;--r:18px;
 }
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+/* 数字の桁をそろえる（スコア・時刻・連数・金額が縦に並んでもずれない） */
+body{font-variant-numeric:tabular-nums}
+/* 押しやすさ：指で押す前提の最小の高さ。削除ボタンが22pxしかなく、隣を誤って消しやすかった */
+button{min-height:32px;touch-action:manipulation}
+input[type="checkbox"]{width:18px;height:18px}
+/* .rst-btn は幅100%。横並び（flex:none）に置いたときに入力欄を潰したり画面外へ出たりしないよう、
+   幅を中身に合わせる（追加ボタン・保存ボタンで実際に起きていた） */
+.rst-btn[style*="flex:none"]{width:auto}
 html{scroll-behavior:smooth}
 body{font-family:'Noto Serif JP',serif;background:var(--void);color:var(--text);min-height:100vh;overflow-x:hidden}
 .bg-nebula{position:fixed;inset:0;pointer-events:none;z-index:0;background:
@@ -41,7 +49,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   filter:drop-shadow(0 0 40px rgba(201,168,76,.28));margin-bottom:12px}
 .hdr-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:var(--muted);letter-spacing:.14em}
 .hdr-tags{margin-top:14px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.hdr-tag{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.18em;color:var(--gold);
+.hdr-tag{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.18em;color:var(--gold);
   border:1px solid rgba(201,168,76,.25);border-radius:20px;padding:4px 12px;text-transform:uppercase;background:rgba(201,168,76,.06)}
 .glass{background:var(--glass);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   border:1px solid var(--rim);border-radius:var(--r);padding:36px;margin-bottom:18px;
@@ -55,8 +63,8 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
 .span2{grid-column:1/-1}
 .field{display:flex;flex-direction:column;gap:6px}
-.field label{font-family:'Cinzel',serif;font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
-.field label .opt{font-family:'Noto Serif JP',serif;text-transform:none;font-size:.62rem;color:var(--muted);letter-spacing:0;margin-left:6px}
+.field label{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)}
+.field label .opt{font-family:'Noto Serif JP',serif;text-transform:none;font-size:.66rem;color:var(--muted);letter-spacing:0;margin-left:6px}
 .field select,.field input[type=text],.field input[type=date],.field input[type=time]{
   background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:10px;
   color:var(--text);padding:12px 14px;font-size:.88rem;font-family:'Noto Serif JP',serif;
@@ -93,7 +101,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .score-num{font-family:'Cinzel',serif;font-size:3.2rem;font-weight:700;line-height:1;
   background:linear-gradient(180deg,var(--gold-l),var(--gold));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;filter:drop-shadow(0 0 14px rgba(201,168,76,.6))}
-.score-lbl{font-size:.6rem;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;margin-top:4px}
+.score-lbl{font-size:.66rem;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;margin-top:4px}
 .verdict-badge{display:inline-block;font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.14em;padding:8px 26px;border-radius:40px;border:1px solid;margin-bottom:16px}
 .game-title-disp{font-size:1.1rem;font-weight:700;margin-bottom:5px}
 .target-disp{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1rem;color:var(--gold)}
@@ -108,7 +116,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .tc.rlo{background:rgba(255,255,255,.03)}
 .tc.expired{opacity:.4;filter:grayscale(.6);pointer-events:none}
 .tc-top{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;flex-wrap:wrap}
-.tc-rank-num{font-family:'Cinzel',serif;font-size:.62rem;color:var(--muted);letter-spacing:.1em;position:absolute;top:16px;right:16px}
+.tc-rank-num{font-family:'Cinzel',serif;font-size:.66rem;color:var(--muted);letter-spacing:.1em;position:absolute;top:16px;right:16px}
 .tc-date{font-family:'Cinzel',serif;font-size:.7rem;color:var(--gold);letter-spacing:.1em}
 .tc-time{font-family:'Cinzel',serif;font-size:1.42rem;font-weight:700;color:var(--text);letter-spacing:.04em}
 .tc-pinpoint{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:700;color:var(--danger);background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);border-radius:8px;padding:5px 12px;margin-bottom:13px}
@@ -117,7 +125,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .tc-pulls strong{font-size:1.1rem}
 .tc-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;min-width:50px}
 .tc-bar-fill{height:100%;border-radius:4px}
-.badge{font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.08em;font-weight:600;padding:3px 10px;border-radius:20px}
+.badge{font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.08em;font-weight:600;padding:3px 10px;border-radius:20px}
 .b-urgent{background:rgba(248,113,113,.18);border:1px solid rgba(248,113,113,.38);color:var(--danger)}
 .b-special{background:rgba(201,168,76,.18);border:1px solid rgba(201,168,76,.38);color:var(--gold-l)}
 .b-done{background:rgba(255,255,255,.05);border:1px solid var(--rim);color:var(--muted)}
@@ -141,7 +149,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .action-list{list-style:none}
 .action-item{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.88rem;line-height:1.65}
 .action-item:last-child{border-bottom:none}
-.action-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,.14);border:1px solid rgba(201,168,76,.28);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.58rem;color:var(--gold);margin-top:2px}
+.action-num{flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(201,168,76,.14);border:1px solid rgba(201,168,76,.28);display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-size:.66rem;color:var(--gold);margin-top:2px}
 .dl-btn,.rst-btn{width:100%;padding:17px;border:none;border-radius:12px;font-family:'Cinzel',serif;font-size:.86rem;font-weight:600;letter-spacing:.16em;cursor:pointer;overflow:hidden;transition:transform .15s,box-shadow .3s;margin-top:12px}
 .dl-btn{background:linear-gradient(135deg,#7A5518,#C9A84C,#EDD070);color:#06040C;box-shadow:0 4px 24px rgba(201,168,76,.3)}
 .dl-btn:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(201,168,76,.48)}
@@ -167,7 +175,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
 .hist-bar-fill{height:100%;border-radius:2px;transition:width .5s ease}
 .hist-row{display:flex;justify-content:space-between;font-size:.72rem;color:rgba(255,255,255,.5);padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)}
 .hist-row strong{color:var(--text)}
-.hist-sub-btn{font-size:.62rem;padding:2px 9px;border-radius:6px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold);cursor:pointer;margin-top:8px}
+.hist-sub-btn{font-size:.66rem;padding:2px 9px;border-radius:6px;background:rgba(201,168,76,.1);border:1px solid rgba(201,168,76,.2);color:var(--gold);cursor:pointer;margin-top:8px}
 .hist-sub{display:none;margin-top:8px;padding:8px 10px;background:rgba(0,0,0,.35);border-radius:8px;font-size:.68rem}
 .hist-sub-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.55)}
 .hist-sub-row span:last-child{font-weight:bold}
@@ -291,7 +299,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
           <option value="白猫">白猫プロジェクト</option>
           <option value="その他">その他（自由入力）</option>
         </select>
-        <span id="games-updated-cap" style="font-size:.6rem;color:var(--muted);letter-spacing:.04em"></span>
+        <span id="games-updated-cap" style="font-size:.66rem;color:var(--muted);letter-spacing:.04em"></span>
         <button type="button" onclick="openPlayingManager()"
           style="align-self:flex-start;margin-top:4px;background:rgba(255,255,255,.05);border:1px solid rgba(201,168,76,.35);
                  border-radius:8px;color:var(--gold);font-size:.66rem;padding:5px 12px;cursor:pointer">
@@ -372,7 +380,7 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   <summary style="cursor:pointer;font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.16em;color:var(--gold);list-style:none;display:flex;align-items:center;gap:10px">
     🎋 今月の暦注カレンダー・運気 TOP5
     <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
-    <span style="font-size:.58rem;color:var(--muted)">▼ タップで展開</span>
+    <span style="font-size:.66rem;color:var(--muted)">▼ タップで展開</span>
   </summary>
   <div id="monthly-lucky-body" style="margin-top:16px"><div style="color:var(--muted);font-size:.8rem">読み込み中…</div></div>
 </details>
@@ -393,13 +401,13 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   <summary style="cursor:pointer;display:flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem">
     ⚙ 設定
     <span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span>
-    <span style="font-size:.58rem;color:var(--muted)">▼ タップで展開</span>
+    <span style="font-size:.66rem;color:var(--muted)">▼ タップで展開</span>
   </summary>
 
   <div style="margin-top:14px">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
       <span style="font-weight:700;font-size:.84rem">🎮 マイゲーム帳</span>
-      <span id="mygames-count" style="margin-left:auto;font-size:.64rem;color:var(--muted)"></span>
+      <span id="mygames-count" style="margin-left:auto;font-size:.66rem;color:var(--muted)"></span>
     </div>
     <div id="mygames-list"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
@@ -435,9 +443,9 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   <div id="play-manage" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);border-radius:12px;transition:box-shadow .5s,background .5s">
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
       <span style="font-weight:700;font-size:.84rem">★ プレイ中のタイトル</span>
-      <span id="play-count" style="margin-left:auto;font-size:.64rem;color:var(--muted)"></span>
+      <span id="play-count" style="margin-left:auto;font-size:.66rem;color:var(--muted)"></span>
     </div>
-    <div style="font-size:.62rem;color:var(--muted);margin-bottom:8px">
+    <div style="font-size:.66rem;color:var(--muted);margin-bottom:8px">
       プルダウンの「★ プレイ中のタイトル」に出す一覧です。自動更新の結果に、ここでの追加・削除が反映されます。<br>
       App Storeで見つからなかったタイトルには <span style="color:#FBBF24">⚠要確認</span> が付きますが、
       <b>自動では削除しません</b>（ストア名の変更で見つからないだけの場合があるため）。消すかどうかはここで決めてください。
@@ -461,16 +469,31 @@ canvas#cosmos{position:fixed;inset:0;pointer-events:none;z-index:0}
   <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
     <div style="font-weight:700;font-size:.84rem;margin-bottom:6px">🚫 非表示にしたゲーム</div>
     <div id="hidden-list"></div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:5px">サービス終了したゲームは、ランキングの詳細から「一覧から外す」で伏せられます</div>
+    <div style="font-size:.66rem;color:var(--muted);margin-top:5px">サービス終了したゲームは、ランキングの詳細から「一覧から外す」で伏せられます</div>
   </div>
 
   <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
     <div style="font-weight:700;font-size:.84rem;margin-bottom:6px">💰 今月の課金予算（円・任意）</div>
     <div style="display:flex;gap:8px">
       <input id="budget-input" type="number" inputmode="numeric" placeholder="未設定" style="flex:1;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem">
-      <button type="button" class="rst-btn" style="flex:none;padding:8px 16px" onclick="saveBudget()">保存</button>
+      <button type="button" class="rst-btn" style="flex:none;width:auto;margin-top:0;padding:8px 16px" onclick="saveBudget()">保存</button>
     </div>
-    <div style="font-size:.62rem;color:var(--muted);margin-top:5px">設定すると実績タブに進捗バーが出ます（未設定なら表示されません）</div>
+    <div style="font-size:.66rem;color:var(--muted);margin-top:5px">設定すると実績タブに進捗バーが出ます（未設定なら表示されません）</div>
+  </div>
+
+  <div id="backup-box" style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
+    <div style="font-weight:700;font-size:.84rem;margin-bottom:6px">💾 記録のバックアップ</div>
+    <div style="font-size:.66rem;color:var(--muted);margin-bottom:8px;line-height:1.6">
+      引いた記録・見送り・ガチャ仕様・マイゲーム帳・プレイ中の編集は、この端末の中だけに保存されています。
+      機種変更やブラウザのデータ削除で消えるので、ときどき書き出しておいてください。<br>
+      読み込みは<b>今のデータに足し合わせます</b>（同じ記録は重複せず、今のデータは消えません）。
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="button" class="rst-btn" style="flex:1;margin-top:0;font-size:.76rem;letter-spacing:.06em" onclick="exportBackup()">書き出す</button>
+      <button type="button" class="rst-btn" style="flex:1;margin-top:0;font-size:.76rem;letter-spacing:.06em" onclick="document.getElementById('backup-file').click()">読み込む</button>
+      <input id="backup-file" type="file" accept="application/json,.json" style="display:none" onchange="importBackupFile(this)">
+    </div>
+    <div id="backup-status" style="font-size:.66rem;color:var(--muted);margin-top:6px"></div>
   </div>
 </details>
 
@@ -518,7 +541,7 @@ const SS=(function(){
 //   暦・スコアの計算を触ったときだけでなく、保存する結果に項目を足した
 //   ときも必ず更新すること（古い結果には新しい項目が無く、表示が欠ける）。
 // ══════════════════════════════════════════════════
-var CALC_REV='2026-09-13-gacha-spec';
+var CALC_REV='2026-11-15-rank-order';
 (function purgeStaleCalcCache(){
   try{
     if(SS.get('gachaOracle_calcRev')===CALC_REV)return;
@@ -2926,7 +2949,7 @@ function displayResult(result){
   const _hActions=actions.map(function(a,i){return'<li class="action-item"><span class="action-num">'+(i+1)+'</span><span>'+a+'</span></li>';}).join('');
 
   // ② 日盤九星チップ
-  const dayKyuseiChip=`<span style="padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);font-size:.7rem;color:${dayKyusei.color}">日盤 ${dayKyusei.name} <a href="https://keisan.site/exec/system/1207304031" target="_blank" rel="noopener" style="font-size:.58rem;color:rgba(56,189,248,.7);text-decoration:none">🔢日盤参照</a></span>`;
+  const dayKyuseiChip=`<span style="padding:3px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);font-size:.7rem;color:${dayKyusei.color}">日盤 ${dayKyusei.name} <a href="https://keisan.site/exec/system/1207304031" target="_blank" rel="noopener" style="font-size:.66rem;color:rgba(56,189,248,.7);text-decoration:none">🔢日盤参照</a></span>`;
 
   // ③ 紫微斗数チップ
   const zwColor=ziwei.starInfo?ziwei.starInfo.color:'#C9A84C';
@@ -2948,7 +2971,7 @@ function displayResult(result){
     <div class="lunar-chip">
       <span>${moonPhase.icon}</span><span>月齢 ${getMoonAge(new Date()).age}日</span>
       <span class="lc-name">${moonPhase.name}</span><span>${moonPhase.power}</span>
-          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.6rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅月齢参照</a>
+          <a href="https://starwalk.space/ja/moon-calendar" target="_blank" rel="noopener" style="font-size:.66rem;color:rgba(56,189,248,.7);margin-left:4px;text-decoration:none">📅月齢参照</a>
     </div>
     ${(()=>{
       // ── 本日の吉日バッジ（縁起の良い吉日13選）──
@@ -3071,9 +3094,9 @@ function displayResult(result){
             const stored=getStoredBreakdown();
             const isFromCache=!scoreBreakdown&&stored&&t.dbgInfo&&t.dbgInfo.sbk;
             if(isFromCache&&i===0){
-              return `<div id="bd-cache-banner" style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:8px;font-size:.65rem;color:#38BDF8;margin-bottom:6px">
+              return `<div id="bd-cache-banner" style="display:flex;align-items:center;gap:8px;padding:5px 10px;background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.2);border-radius:8px;font-size:.66rem;color:#38BDF8;margin-bottom:6px">
                 <span>💾 前回占い時の内訳を表示中（${stored.savedAt?new Date(stored.savedAt).toLocaleDateString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):''}）</span>
-                <button onclick="clearBreakdownCache()" style="margin-left:auto;font-size:.62rem;padding:1px 7px;border-radius:5px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;cursor:pointer">✕ 消去</button>
+                <button onclick="clearBreakdownCache()" style="margin-left:auto;font-size:.66rem;padding:1px 7px;border-radius:5px;background:rgba(248,113,113,.15);border:1px solid rgba(248,113,113,.3);color:#f87171;cursor:pointer">✕ 消去</button>
               </div>`;
             }
             return '';
@@ -3089,7 +3112,7 @@ function displayResult(result){
               const row=(icon,label,pts,desc)=>`
                 <div style="display:grid;grid-template-columns:18px 1fr 40px;align-items:baseline;gap:4px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
                   <span>${icon}</span>
-                  <span style="color:rgba(255,255,255,.6)">${label}<span style="color:rgba(255,255,255,.3);font-size:.63rem;margin-left:6px">${esc(desc)}</span></span>
+                  <span style="color:rgba(255,255,255,.6)">${label}<span style="color:rgba(255,255,255,.55);font-size:.66rem;margin-left:6px">${esc(desc)}</span></span>
                   <span style="text-align:right;font-weight:bold;color:${nc(pts)}">${pl(pts)}</span>
                 </div>`;
               return '<div style="color:var(--gold);font-weight:bold;margin-bottom:8px;font-size:.74rem">📊 スコア内訳（どう計算して '+t.score+'pt になるか）</div>'
@@ -3123,25 +3146,25 @@ function displayResult(result){
                   const subHtml=subRows.map(r=>`
                     <div style="display:grid;grid-template-columns:16px 1fr 36px;gap:3px;padding:3px 0 3px 8px;border-bottom:1px solid rgba(255,255,255,.04);font-size:.66rem">
                       <span>${r.icon}</span>
-                      <span style="color:rgba(255,255,255,.5)">${r.label}<span style="color:rgba(255,255,255,.28);font-size:.6rem;margin-left:5px">${esc(sbk.labels[r.k]||'')}</span></span>
+                      <span style="color:rgba(255,255,255,.5)">${r.label}<span style="color:rgba(255,255,255,.55);font-size:.66rem;margin-left:5px">${esc(sbk.labels[r.k]||'')}</span></span>
                       <span style="text-align:right;color:${nc2(sbk[r.k])};font-weight:bold">${pl2(sbk[r.k])}</span>
                     </div>`).join('');
                   return `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">
                     <div style="display:grid;grid-template-columns:18px 1fr 40px;align-items:center;gap:4px">
                       <span>①</span>
                       <span style="color:rgba(255,255,255,.6)">総合運気ベース
-                        <span style="color:rgba(255,255,255,.3);font-size:.63rem;margin-left:6px">calculateFortune 統合スコア</span>
+                        <span style="color:rgba(255,255,255,.55);font-size:.66rem;margin-left:6px">calculateFortune 統合スコア</span>
                       </span>
                       <span style="text-align:right;font-weight:bold;color:var(--gold)">${pl2(v.base)}</span>
                     </div>
                     <div style="margin-top:4px">
                       <button id="base-btn-${i}" onclick="(function(){var p=document.getElementById('${baseId}');var b=document.getElementById('base-btn-${i}');if(p.style.display==='none'){p.style.display='block';b.textContent='▲ 閉じる';}else{p.style.display='none';b.textContent='▶ ①ベースの内訳を見る';}})()"
-                        style="font-size:.62rem;padding:2px 10px;border-radius:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:var(--gold);cursor:pointer">▶ ①ベースの内訳を見る</button>
+                        style="font-size:.66rem;padding:2px 10px;border-radius:6px;background:rgba(201,168,76,.12);border:1px solid rgba(201,168,76,.25);color:var(--gold);cursor:pointer">▶ ①ベースの内訳を見る</button>
                       <div id="${baseId}" style="display:none;margin-top:6px;padding:6px 8px;background:rgba(0,0,0,.3);border-radius:8px;border:1px solid rgba(201,168,76,.15)">
-                        <div style="font-size:.63rem;color:var(--gold);margin-bottom:4px">総合運気ベース = 固定値＋各占術の加重合計（上限99）</div>
+                        <div style="font-size:.66rem;color:var(--gold);margin-bottom:4px">総合運気ベース = 固定値＋各占術の加重合計（上限99）</div>
                         ${subHtml}
                         <div style="display:flex;justify-content:space-between;padding:5px 8px 0;margin-top:4px;border-top:1px solid rgba(201,168,76,.2);font-size:.68rem">
-                          <span style="color:rgba(255,255,255,.4)">上限99で丸め → ①ベース</span>
+                          <span style="color:rgba(255,255,255,.6)">上限99で丸め → ①ベース</span>
                           <span style="color:var(--gold);font-weight:bold">${sbk.cap}pt</span>
                         </div>
                       </div>
@@ -3207,8 +3230,8 @@ function displayResult(result){
     if(pc.guaranteedNow)cond.push('確定演出中');
     const condStr=cond.join(' ／ ');
     const presetStr=pc.preset
-      ? '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;color:#7DD3FC;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35)">プリセット: '+esc(pc.preset)+'</span>'
-      : '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)">手動入力</span>';
+      ? '<span style="font-size:.66rem;padding:2px 8px;border-radius:999px;color:#7DD3FC;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35)">プリセット: '+esc(pc.preset)+'</span>'
+      : '<span style="font-size:.66rem;padding:2px 8px;border-radius:999px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12)">手動入力</span>';
     const pityStr=pc.pityCount
       ? '<div style="margin-bottom:12px;padding:9px 12px;background:rgba(255,215,0,.08);border:1px solid rgba(255,215,0,.25);border-radius:9px;font-size:.78rem">'
         +'<span style="color:#FFD700;font-weight:700">天井まであと '+pc.remainingPulls+' 連</span>'
@@ -3318,14 +3341,14 @@ function displayResult(result){
           <td style="color:var(--muted);padding:3px 4px">十二支の刻</td><td style="padding:3px 4px;font-size:.68rem">${d.jikkoku||'—'}</td>
         </tr>
         <tr>
-          <td colspan="3" style="color:var(--muted);font-size:.65rem;padding:3px 4px">ベース + 六曜 + 時帯 + 日盤 + 紫微 + タロット + 暦注下段 + 時柱 + 十二支の刻</td>
+          <td colspan="3" style="color:var(--muted);font-size:.66rem;padding:3px 4px">ベース + 六曜 + 時帯 + 日盤 + 紫微 + タロット + 暦注下段 + 時柱 + 十二支の刻</td>
           <td style="color:#86efac;font-weight:bold;font-size:1rem;padding:3px 4px">＝ ${d.total}pt</td>
         </tr>`
         :'<tr><td colspan="4" style="color:var(--muted)">内訳データなし</td></tr>';
       hotHtml+=`<div style="background:${hotColors[i]};border-radius:10px;padding:12px 16px;margin-bottom:8px;">
         <div style="display:flex;align-items:center;justify-content:space-between;">
           <div style="flex:1">
-            <div style="font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.14em;color:var(--gold);margin-bottom:4px">${todayHotLabel[i]}</div>
+            <div style="font-family:'Cinzel',serif;font-size:.66rem;letter-spacing:.14em;color:var(--gold);margin-bottom:4px">${todayHotLabel[i]}</div>
             <div style="font-size:1.35rem;font-weight:700;color:var(--danger)">🎯 ${t.range}</div>
             <div style="font-size:.68rem;color:rgba(248,113,113,.75);margin-top:3px">1連目開始 ${t.start} → 約${t.width}分間の吉ゾーン</div>
           </div>
@@ -3709,7 +3732,7 @@ function renderHiddenList() {
       '<span style="flex:1;font-size:.76rem;color:var(--muted)">' + esc(n) + '</span>' +
       '<button type="button" onclick="unhideGame(' + JSON.stringify(n).replace(/"/g,'&quot;') + ')" ' +
       'style="background:none;border:1px solid rgba(255,255,255,.16);border-radius:7px;color:var(--muted);' +
-      'font-size:.64rem;padding:3px 9px;cursor:pointer">戻す</button></div>';
+      'font-size:.66rem;padding:3px 9px;cursor:pointer">戻す</button></div>';
   }).join('');
 }
 
@@ -3971,10 +3994,13 @@ function computeGameRanking() {
     r._pw = pw; r._pn = pn;
   });
   rows.sort(function (a, b) {
+    // 画面に出している点数を第一にする。以前は「点数＋五行相性」で並べて点数だけを
+    // 表示していたため、56点のゲームが57点のゲームより上に来るなど、
+    // 見た目と順位が逆転していた。五行相性は同点のときの決め手として使う。
+    if (b.score !== a.score) return b.score - a.score;
     var ra = (a.rankScore != null) ? a.rankScore : a.score;
     var rb = (b.rankScore != null) ? b.rankScore : b.score;
-    if (rb !== ra) return rb - ra;                 // 五行相性を織り込んだ並び
-    if (b.score !== a.score) return b.score - a.score;
+    if (rb !== ra) return rb - ra;
     if (b._pw !== a._pw) return b._pw - a._pw;
     if (b._pn !== a._pn) return b._pn - a._pn;
     return a.name.localeCompare(b.name);
@@ -4007,7 +4033,7 @@ function renderGameRankingHTML(opts) {
     var medal = ['①', '②', '③', '④', '⑤'][i] || (i + 1);
     var id = 'gr-d-' + i;
     var elemChip = r.elemPt
-      ? '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;margin:0 4px 4px 0;display:inline-block;' +
+      ? '<span style="font-size:.66rem;padding:2px 8px;border-radius:999px;margin:0 4px 4px 0;display:inline-block;' +
         'background:' + (r.elemPt > 0 ? 'rgba(74,222,128,.12)' : 'rgba(248,113,113,.1)') + ';' +
         'color:' + (r.elemPt > 0 ? '#4ADE80' : '#f87171') + '">五行 ' + esc(r.elemGe) + '×' + esc(r.elemDe) +
         ' ' + (r.elemPt > 0 ? '+' : '') + r.elemPt + '</span>'
@@ -4016,11 +4042,11 @@ function renderGameRankingHTML(opts) {
       ? r.why.map(function (w) {
           var nm = KEYNAME[w.k];
           if (!nm || KEYSKIP[w.k]) return '';
-          return '<span style="font-size:.64rem;padding:2px 8px;border-radius:999px;margin:0 4px 4px 0;display:inline-block;' +
+          return '<span style="font-size:.66rem;padding:2px 8px;border-radius:999px;margin:0 4px 4px 0;display:inline-block;' +
             'background:' + (w.v >= 0 ? 'rgba(237,208,112,.1)' : 'rgba(255,255,255,.04)') + ';' +
             'color:' + (w.v >= 0 ? '#EDD070' : 'var(--muted)') + '">' + esc(nm) + ' ' + (w.v >= 0 ? '+' : '') + (Math.round(w.v * 10) / 10) + '</span>';
         }).join('')
-      : '<span style="font-size:.64rem;color:var(--muted)">内訳は鑑定で詳しく出ます</span>';
+      : '<span style="font-size:.66rem;color:var(--muted)">内訳は鑑定で詳しく出ます</span>';
     var hotHTML = (r.hots && r.hots.length)
       ? r.hots.map(function (h) {
           return '<div style="font-size:.72rem;margin-top:3px">🔥 <b style="color:#EDD070">' + esc(h.t) + '</b>' +
@@ -4033,22 +4059,30 @@ function renderGameRankingHTML(opts) {
       'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;' +
       'color:var(--ink,#EDE6F5);cursor:pointer;text-align:left;font-family:inherit">' +
       '<span style="font-size:1rem;color:' + gr.c + ';flex:none">' + medal + '</span>' +
-      '<span style="flex:1;min-width:0;font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r.name) + '</span>' +
-      salesRankBadge(salesRankOf(r.name), { small: true }) +
-      (r.hot ? '<span style="flex:none;font-size:.66rem;color:var(--muted)">🔥' + esc(r.hot) + '</span>' : '') +
+      // 名前は1行目に広く取り、セルランと激アツ時刻は2行目に回す。
+      // 1行に全部並べていた頃は、スマホ幅で名前が「LI…」の2文字まで潰れていた。
+      '<span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">' +
+        '<span style="font-size:.86rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(r.name) + '</span>' +
+        ((salesRankOf(r.name) || r.hot)
+          ? '<span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">' +
+              salesRankBadge(salesRankOf(r.name), { small: true }) +
+              (r.hot ? '<span style="font-size:.68rem;color:var(--muted)">🔥' + esc(r.hot) + '</span>' : '') +
+            '</span>'
+          : '') +
+      '</span>' +
       '<span style="flex:none;font-size:.78rem;color:' + gr.c + ';font-weight:700">' + r.score + '</span>' +
       '<span style="flex:none;width:1.5em;text-align:center;font-size:.74rem;color:' + gr.c + ';' +
       'border:1px solid ' + gr.c + ';border-radius:5px;padding:1px 0">' + gr.g + '</span>' +
-      '<span style="flex:none;font-size:.6rem;color:var(--muted)">▼</span>' +
+      '<span style="flex:none;font-size:.66rem;color:var(--muted)">▼</span>' +
       '</button>' +
       '<div id="' + id + '" style="display:none;padding:10px 12px;margin-top:-2px;' +
       'background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-top:none;border-radius:0 0 12px 12px">' +
       '<div style="font-size:.68rem;color:var(--muted);margin-bottom:5px">なぜこの順位か</div>' +
       '<div style="margin-bottom:8px">' + elemChip + whyHTML + '</div>' +
-      (r.elemWhy ? '<div style="font-size:.64rem;color:var(--muted);margin:-4px 0 8px">' + esc(r.elemWhy) + '</div>' : '') +
+      (r.elemWhy ? '<div style="font-size:.66rem;color:var(--muted);margin:-4px 0 8px">' + esc(r.elemWhy) + '</div>' : '') +
       '<div style="font-size:.68rem;color:var(--muted);margin-bottom:2px">本日ガチャを推奨する時間</div>' +
       hotHTML +
-      '<div style="font-size:.64rem;color:var(--muted);margin-top:7px">' +
+      '<div style="font-size:.66rem;color:var(--muted);margin-top:7px">' +
       (salesRankOf(r.name) ? 'セルラン:' + salesRankOf(r.name) + '位　' : '') +
       (r.rokuyo ? '六曜:' + esc(r.rokuyo) + '　' : '') +
       (r.dayK ? '日盤:' + esc(r.dayK) + '　' : '') +
@@ -4063,7 +4097,7 @@ function renderGameRankingHTML(opts) {
     '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
     '<span style="font-size:.92rem;font-weight:700">🏆 今日引くべきゲーム TOP5</span>' +
     '<span style="flex:1;height:1px;background:linear-gradient(90deg,rgba(201,168,76,.4),transparent)"></span></div>' +
-    '<div style="font-size:.64rem;color:var(--muted);margin-bottom:9px">タップで理由と推奨時間が開きます' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-bottom:9px">タップで理由と推奨時間が開きます' +
     (res.limited ? '（登録が多いため先頭' + RANK_LIMIT + '件で集計）' : '') + '</div>' +
     body + '</div>';
 }
@@ -4133,7 +4167,7 @@ function renderMyGames() {
       return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;margin-bottom:6px;' +
         'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:10px">' +
         '<span style="flex:1;min-width:0;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(g.name) + '</span>' +
-        '<span style="flex:none;font-size:.64rem;color:var(--muted)">' +
+        '<span style="flex:none;font-size:.66rem;color:var(--muted)">' +
         (g.elem ? '【' + esc(g.elem) + '】' : (guessElement(g) ? '【' + esc(guessElement(g)) + '推定】' : '')) +
         '天井' + (g.pity || 300) + '連' +
         (g.stone ? ' ／ 1連' + g.stone + '石' : '') + ' ／ ' + (g.rate || 0.7) + '%</span>' +
@@ -4571,7 +4605,7 @@ function openPullFormTop() {
     '<label style="font-size:.7rem;color:var(--muted)">何連目で当たった（任意）<input id="pf-hitat" type="number" inputmode="numeric" placeholder="例: 37" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">目玉の提供割合（％）<input id="pf-rate" type="number" step="0.01" inputmode="decimal" placeholder="例: 0.7" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">天井（連・無ければ0）<input id="pf-pity" type="number" inputmode="numeric" placeholder="例: 200" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
-    '<div id="pf-spec-note" style="grid-column:span 2;font-size:.64rem;color:var(--muted);line-height:1.6"></div>' +
+    '<div id="pf-spec-note" style="grid-column:span 2;font-size:.66rem;color:var(--muted);line-height:1.6"></div>' +
     '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '</div>' +
     '<label style="font-size:.7rem;color:var(--muted);display:block;margin-top:8px">引いた日時' +
@@ -4693,7 +4727,7 @@ function openPullForm() {
     '<label style="font-size:.7rem;color:var(--muted)">何連目で当たった（任意）<input id="pf-hitat" type="number" inputmode="numeric" placeholder="例: 37" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">目玉の提供割合（％）<input id="pf-rate" type="number" step="0.01" inputmode="decimal" placeholder="例: 0.7" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '<label style="font-size:.7rem;color:var(--muted)">天井（連・無ければ0）<input id="pf-pity" type="number" inputmode="numeric" placeholder="例: 200" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
-    '<div id="pf-spec-note" style="grid-column:span 2;font-size:.64rem;color:var(--muted);line-height:1.6"></div>' +
+    '<div id="pf-spec-note" style="grid-column:span 2;font-size:.66rem;color:var(--muted);line-height:1.6"></div>' +
     '<label style="font-size:.7rem;color:var(--muted)">課金額（円・任意）<input id="pf-yen" type="number" inputmode="numeric" placeholder="0" style="width:100%;margin-top:3px;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:inherit;font-size:.8rem"></label>' +
     '</div>' +
     '<div style="font-size:.68rem;color:' + (w ? '#EDD070' : 'var(--muted)') + ';margin-top:8px">' +
@@ -4838,6 +4872,161 @@ function saveSkip() {
   try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
 }
 
+/* ════════════════════════════════════════════════════════════
+   記録のバックアップ（書き出し・読み込み）
+   ────────────────────────────────────────────────────────────
+   記録はすべて端末内（localStorage）だけにあり、機種変更やブラウザの
+   データ削除で消える。1つの JSON に書き出し、別の端末で読み込めるようにする。
+
+   読み込みは「足し合わせ」：
+     ・配列（記録・見送りなど）… 重複を除いて合わせる
+     ・ゲームごとの設定（ガチャ仕様）… 今の端末にある値を優先して足す
+     ・単独の値（予算・所持石など）… 今の端末に無いときだけ入れる
+   古いバックアップを誤って読み込んでも、今のデータは何も失われない。
+   許可したキー以外は読み込まない（細工したファイルで内部状態を書き換えさせない）。
+   ════════════════════════════════════════════════════════════ */
+var BACKUP_FORMAT = 1;
+var BACKUP_APP = 'GACHA ORACLE';
+var LAST_BACKUP_KEY = 'gov_last_backup';
+function _backupSpec() {
+  // 宣言順の都合で、キー定数は呼び出し時に読む
+  return {
+    lists: {   // キー: 重複判定に使う項目（null なら中身全体）
+      [PULLS_KEY]: function (r) { return r && (r.t + '|' + r.game + '|' + r.pulls + '|' + r.res); },
+      [SKIPS_KEY]: function (r) { return r && (r.t + '|' + r.game); },
+      [MYGAMES_KEY]: function (r) { return r && r.name; },
+      [HOT_KEY]: function (r) { return r && r.id; },
+      [PLAY_ADDED_KEY]: function (r) { return r && (r.value || r); },
+      [PLAY_REMOVED_KEY]: null,
+      [HIDDEN_KEY]: null
+    },
+    maps: [GSPEC_KEY],
+    scalars: [BUDGET_KEY, YEN_PER_PULL_KEY, 'gachaOracle_profile'],
+    prefixes: [STONE_KEY],
+    caps: { [PULLS_KEY]: PULLS_MAX, [SKIPS_KEY]: SKIPS_MAX, [MYGAMES_KEY]: MYGAMES_MAX, [HOT_KEY]: HOT_PLAN_MAX }
+  };
+}
+function _backupAllowed(k, sp) {
+  return (k in sp.lists) || sp.maps.indexOf(k) >= 0 || sp.scalars.indexOf(k) >= 0 ||
+    sp.prefixes.some(function (pf) { return k.indexOf(pf) === 0 && k.length > pf.length; });
+}
+function _lsKeys() {
+  var out = [];
+  try { for (var i = 0; i < localStorage.length; i++) out.push(localStorage.key(i)); } catch (e) {}
+  return out;
+}
+
+function buildBackup() {
+  var sp = _backupSpec(), data = {};
+  _lsKeys().forEach(function (k) {
+    if (!k || !_backupAllowed(k, sp)) return;
+    try { var v = localStorage.getItem(k); if (v != null && v !== '') data[k] = v; } catch (e) {}
+  });
+  var cnt = function (k) { try { var a = JSON.parse(data[k] || '[]'); return Array.isArray(a) ? a.length : 0; } catch (e) { return 0; } };
+  return {
+    app: BACKUP_APP, format: BACKUP_FORMAT, savedAt: new Date().toISOString(),
+    counts: { pulls: cnt(PULLS_KEY), skips: cnt(SKIPS_KEY), mygames: cnt(MYGAMES_KEY) },
+    data: data
+  };
+}
+
+/* 読み込み。dryRun なら書き込まずに「何件増えるか」だけ返す */
+function mergeBackup(obj, dryRun) {
+  if (!obj || obj.app !== BACKUP_APP || typeof obj.data !== 'object' || !obj.data)
+    throw new Error('GACHA ORACLE のバックアップファイルではありません');
+  if (+obj.format > BACKUP_FORMAT) throw new Error('新しい版のアプリで作られたバックアップです。アプリを更新してから読み込んでください');
+  var sp = _backupSpec(), added = {}, skipped = 0, writes = {};
+  var parse = function (v, def) { try { var x = JSON.parse(v); return x == null ? def : x; } catch (e) { return def; } };
+  Object.keys(obj.data).forEach(function (k) {
+    var raw = obj.data[k];
+    if (!_backupAllowed(k, sp) || typeof raw !== 'string') { skipped++; return; }
+    var cur = null;
+    try { cur = localStorage.getItem(k); } catch (e) {}
+    if (k in sp.lists) {
+      var inc = parse(raw, null);
+      if (!Array.isArray(inc)) { skipped++; return; }
+      var mine = parse(cur, []); if (!Array.isArray(mine)) mine = [];
+      var idf = sp.lists[k] || function (x) { return JSON.stringify(x); };
+      var seen = {}; mine.forEach(function (x) { seen[idf(x)] = 1; });
+      var fresh = inc.filter(function (x) { var id = idf(x); if (id == null || seen[id]) return false; seen[id] = 1; return true; });
+      if (!fresh.length) return;
+      var merged = mine.concat(fresh);
+      if (k === PULLS_KEY || k === SKIPS_KEY) merged.sort(function (a, b) { return (+b.t || 0) - (+a.t || 0); });
+      if (k === HOT_KEY) merged.sort(function (a, b) { return (+b.savedAt || 0) - (+a.savedAt || 0); });
+      if (sp.caps[k]) merged = merged.slice(0, sp.caps[k]);
+      added[k] = fresh.length; writes[k] = JSON.stringify(merged);
+    } else if (sp.maps.indexOf(k) >= 0) {
+      var incM = parse(raw, null), mineM = parse(cur, {});
+      if (!incM || typeof incM !== 'object' || Array.isArray(incM)) { skipped++; return; }
+      if (!mineM || typeof mineM !== 'object' || Array.isArray(mineM)) mineM = {};
+      var n = 0;
+      Object.keys(incM).forEach(function (g) { if (!(g in mineM)) { mineM[g] = incM[g]; n++; } });
+      if (n) { added[k] = n; writes[k] = JSON.stringify(mineM); }
+    } else {
+      // 単独の値：今の端末に無いときだけ入れる
+      if (cur == null || cur === '' || cur === '""') { added[k] = 1; writes[k] = raw; }
+    }
+  });
+  if (!dryRun) Object.keys(writes).forEach(function (k) { try { localStorage.setItem(k, writes[k]); } catch (e) {} });
+  return { added: added, skipped: skipped };
+}
+
+function exportBackup() {
+  var b = buildBackup();
+  var d = new Date(), pad = function (x) { return ('0' + x).slice(-2); };
+  var name = 'gacha-oracle-backup-' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '.json';
+  try {
+    _shareOrSave(new Blob([JSON.stringify(b, null, 1)], { type: 'application/json' }), name, 'GACHA ORACLE バックアップ');
+    _lsSet(LAST_BACKUP_KEY, Date.now());
+  } catch (e) { _toast('書き出しに失敗しました'); return; }
+  renderBackupStatus();
+  _toast('書き出しました（記録 ' + b.counts.pulls + '件・見送り ' + b.counts.skips + '件）');
+}
+
+function importBackupFile(input) {
+  var f = input && input.files && input.files[0];
+  if (!f) return;
+  var rd = new FileReader();
+  rd.onload = function () {
+    try {
+      var obj = JSON.parse(String(rd.result || ''));
+      var preview = mergeBackup(obj, true);
+      var a = preview.added;
+      var total = Object.keys(a).reduce(function (s, k) { return s + a[k]; }, 0);
+      if (!total) { _toast('新しく足せる記録はありませんでした（すべて取り込み済みです）'); return; }
+      var msg = 'バックアップ（' + String(obj.savedAt || '').slice(0, 10) + '）から次を足し合わせます。今のデータは消えません。\n\n' +
+        '引いた記録 ' + (a[PULLS_KEY] || 0) + '件\n見送り ' + (a[SKIPS_KEY] || 0) + '件\n' +
+        'マイゲーム帳 ' + (a[MYGAMES_KEY] || 0) + '件\nガチャ仕様 ' + (a[GSPEC_KEY] || 0) + 'タイトル\n\nよろしいですか？';
+      if (!confirm(msg)) return;
+      mergeBackup(obj, false);
+      try { _rankCache = { key: '', rows: null }; localStorage.removeItem(RANK_STORE_KEY); } catch (e) {}
+      try { refreshGameSelect(); } catch (e) {}
+      try { renderMyGames(); } catch (e) {}
+      try { if (document.getElementById('stats-body')) renderStats(); } catch (e) {}
+      _toast('読み込みました（' + total + '件を足しました）');
+    } catch (e) {
+      _toast(e && e.message ? e.message : '読み込めませんでした');
+    } finally { input.value = ''; }
+  };
+  rd.onerror = function () { _toast('ファイルを読めませんでした'); input.value = ''; };
+  rd.readAsText(f);
+}
+
+function renderBackupStatus() {
+  var el = document.getElementById('backup-status');
+  if (!el) return;
+  var t = +_lsGet(LAST_BACKUP_KEY, 0);
+  var np = pulls().length, ns = skips().length, n = np + ns;
+  if (!t) {
+    el.textContent = n ? '最後の書き出し：まだありません（引いた記録 ' + np + '件・見送り ' + ns + '件が端末内だけにあります）' : '';
+    el.style.color = n ? '#FBBF24' : 'var(--muted)'; return;
+  }
+  var days = Math.floor((Date.now() - t) / 86400000), d = new Date(t);
+  el.textContent = '最後の書き出し：' + (d.getMonth() + 1) + '/' + d.getDate() + '（' + (days ? days + '日前' : '今日') + '）';
+  el.style.color = days >= 30 && n ? '#FBBF24' : 'var(--muted)';
+}
+try { document.addEventListener('DOMContentLoaded', renderBackupStatus); } catch (e) {}
+
 /* 実績タブ */
 function showStats() {
   var el = document.getElementById('stats-panel');
@@ -4869,10 +5058,10 @@ function renderStats() {
     return '<div style="flex:1;min-width:0;padding:10px;border-radius:10px;background:' +
       (hi ? 'rgba(237,208,112,.08)' : 'rgba(255,255,255,.03)') + ';border:1px solid ' +
       (hi ? 'rgba(237,208,112,.25)' : 'rgba(255,255,255,.1)') + '">' +
-      '<div style="font-size:.64rem;color:var(--muted)">' + ttl + '</div>' +
+      '<div style="font-size:.66rem;color:var(--muted)">' + ttl + '</div>' +
       '<div style="font-size:1.1rem;font-weight:700;color:' + (hi ? '#EDD070' : 'var(--muted)') + '">' +
       (L.n ? sgn(L.diff) + '<span style="font-size:.7rem;font-weight:400">回分</span>' : '—') + '</div>' +
-      '<div style="font-size:.6rem;color:var(--muted)">' +
+      '<div style="font-size:.66rem;color:var(--muted)">' +
       (L.n ? '目玉 ' + L.obs + '回／期待 ' + L.exp.toFixed(1) + '回（n=' + L.n + '）'
            : (L.flat ? '天井まで回した ' + L.flat + '件のみ' : '比較できる記録なし')) +
       '</div></div>';
@@ -4900,7 +5089,7 @@ function renderStats() {
   var accuracy =
     '<div style="display:flex;gap:10px">' + tile('🔥 激アツ帯内', LA, true) + tile('⏱ 帯外', LB, false) + '</div>' +
     verdict +
-    '<div style="font-size:.62rem;color:var(--muted);margin-top:8px;line-height:1.6">' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-top:8px;line-height:1.6">' +
     'ガチャの結果はゲーム側の乱数で決まります。ここは「占いが当たったか」ではなく、' +
     '<b>その連数で普通に期待できる結果と比べてどうだったか</b>を残す欄です。<br>' +
     '例）天井200連まで回して目玉が出るのは確率100%なので ±0。10連で当てれば大きな＋になります。' +
@@ -4962,7 +5151,7 @@ function renderStats() {
         (skYen ? ' ／ 使わずに済んだ額 <b style="color:#7DD3FC">' + skYen.toLocaleString() + '円</b>' : '') + '</div>' +
         (skM.length ? '<div style="font-size:.66rem;color:var(--muted);margin-top:3px">今月 ' + skM.length + '回' +
           (skMYen ? ' ／ ' + skMYen.toLocaleString() + '円' : '') + '</div>' : '') +
-        '<div style="font-size:.62rem;color:var(--muted);margin-top:6px">' +
+        '<div style="font-size:.66rem;color:var(--muted);margin-top:6px">' +
         sk.slice(0, 3).map(function (r) {
           var d = new Date(r.t);
           return (d.getMonth() + 1) + '/' + d.getDate() + '　' + esc(r.game) +
@@ -4976,13 +5165,21 @@ function renderStats() {
     skBlock +
     '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">🎮 ゲーム別</div>' +
     '<table style="width:100%;font-size:.74rem;border-collapse:collapse">' +
-    '<thead><tr style="color:var(--muted);font-size:.64rem">' +
+    '<thead><tr style="color:var(--muted);font-size:.66rem">' +
     '<th style="text-align:left;padding:4px">ゲーム</th><th style="text-align:right;padding:4px">連数</th>' +
     '<th style="text-align:right;padding:4px">GET</th><th style="text-align:right;padding:4px">課金</th></tr></thead>' +
     '<tbody>' + gRows + '</tbody></table>' +
     '<div style="font-size:.8rem;font-weight:700;margin:14px 0 4px">📅 今月</div>' +
     '<div style="font-size:.78rem">課金合計 <b>' + mYen.toLocaleString() + '円</b> ／ 引いた回数 <b>' + mList.length + '回</b></div>' +
-    '<div style="font-size:.62rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-top:10px">記録は端末内だけに保存されます（最大' + PULLS_MAX + '件）' +
+    (function () {
+      var t = +_lsGet(LAST_BACKUP_KEY, 0), days = t ? Math.floor((Date.now() - t) / 86400000) : null;
+      if (t && days < 30) return '';
+      return '<br><button type="button" onclick="exportBackup()" style="margin-top:6px;min-height:32px;padding:4px 12px;' +
+        'border-radius:8px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.08);color:#FBBF24;' +
+        'font-size:.68rem;cursor:pointer;font-family:inherit">💾 ' + (t ? days + '日書き出していません。' : '') +
+        'バックアップを書き出す</button>';
+    })() +
     (unk.length ? '<br>※ 判定不能 ' + unk.length + '件（その日にそのゲームを占っていないため、帯内・帯外の比較から除いています）' : '') + '</div>';
 }
 
@@ -5042,7 +5239,7 @@ function renderPityNaviHTML(gameTitle) {
     '<label style="font-size:.7rem;color:var(--muted)">1連の円<input id="pn-yen" type="number" inputmode="numeric" value="' + yenPerPull() + '" placeholder="300" oninput="updatePityNavi()" style="' + inp + '"></label>' +
     '</div>' +
     '<div id="pn-out" style="margin-top:10px;font-size:.82rem;line-height:1.9"></div>' +
-    '<div style="font-size:.62rem;color:var(--muted);margin-top:6px">' + esc(specTxt) + '<br>' +
+    '<div style="font-size:.66rem;color:var(--muted);margin-top:6px">' + esc(specTxt) + '<br>' +
     '現在の天井カウントは、上の「現在の累計引き数」を使います。「1連の円」は10連3,000円なら300です。</div>' +
     '</div>';
 }
@@ -5509,7 +5706,7 @@ function showHistory(){
       {k:'shichu',icon:'🏮',l:'四柱推命'},
       {k:'ziwei',icon:'🌟',l:'紫微斗数'},
     ];
-    const nc=(n)=>n>0?'color:#86efac':n<0?'color:#f87171':'color:rgba(255,255,255,.45)';
+    const nc=(n)=>n>0?'color:#86efac':n<0?'color:#f87171':'color:rgba(255,255,255,.6)';
     const pl=(n)=>n>=0?'+'+n:String(n);
 
     container.innerHTML=hist.map((h,idx)=>{
@@ -5540,7 +5737,7 @@ function showHistory(){
         const lColors=['rgba(201,168,76,.9)','rgba(167,139,250,.8)','rgba(52,211,153,.7)'];
         const ldt=new Date(hh.savedAt);
         const lstr=ldt.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'});
-        return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:.6rem;color:rgba(255,255,255,.5)">
+        return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:.66rem;color:rgba(255,255,255,.5)">
           <span style="width:10px;height:2px;background:${lColors[li]};display:inline-block"></span>${li===0?'今回':lstr}(${hh.score}pt)
         </span>`;
       }).join('');
@@ -5551,7 +5748,7 @@ function showHistory(){
             <div class="hist-verdict" style="color:${vc}">${h.verdict} — ${dtStr}</div>
             <div class="hist-score">${h.score}<span style="font-size:.9rem;color:var(--muted)">pt</span></div>
           </div>
-          <div style="text-align:right;font-size:.7rem;color:rgba(255,255,255,.4)">
+          <div style="text-align:right;font-size:.7rem;color:rgba(255,255,255,.6)">
             <div>${esc(h.gameTitle)||'—'}</div>
             <div style="color:rgba(255,255,255,.6)">${esc(h.targetName||h.gachaTitle)||'—'}</div>
           </div>
@@ -5560,7 +5757,7 @@ function showHistory(){
         ${ltRows}
         <!-- レーダーチャート -->
         <div style="margin:12px 0 4px;background:rgba(0,0,0,.25);border-radius:10px;padding:10px;text-align:center">
-          <div style="font-size:.62rem;color:var(--gold);margin-bottom:6px;letter-spacing:.1em">◈ 占術レーダー</div>
+          <div style="font-size:.66rem;color:var(--gold);margin-bottom:6px;letter-spacing:.1em">◈ 占術レーダー</div>
           <canvas id="radar-${idx}" width="200" height="200" style="display:block;margin:0 auto"></canvas>
           <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px">${overlayLegend}</div>
         </div>
@@ -5572,7 +5769,7 @@ function showHistory(){
           <div style="color:var(--gold);font-size:.66rem;font-weight:bold;margin-bottom:6px">📊 スコア内訳（総合運気ベース ${bk?bk.cap:'—'}pt）</div>
           ${bkRows}
           ${bk?`<div style="display:flex;justify-content:space-between;padding:5px 0 0;margin-top:4px;border-top:1px solid rgba(201,168,76,.2);font-size:.68rem">
-            <span style="color:rgba(255,255,255,.4)">合計 → 総合運気ベース</span>
+            <span style="color:rgba(255,255,255,.6)">合計 → 総合運気ベース</span>
             <span style="color:var(--gold);font-weight:bold">${bk.cap}pt</span>
           </div>`:''}
         </div>
@@ -5763,7 +5960,7 @@ function renderMonthlyRanking(){
       var isToday=(r.d===todayD);
       var rokC=(r.rokuyo.name==='大安')?'var(--green)':(r.rokuyo.name==='仏滅'||r.rokuyo.name==='赤口')?'var(--danger)':'var(--text)';
       var chip=function(icon,name,title,style){
-        return '<span title="'+esc(title)+'" style="display:inline-block;margin:1px 2px 1px 0;padding:1px 7px;border-radius:12px;font-size:.62rem;white-space:nowrap;'
+        return '<span title="'+esc(title)+'" style="display:inline-block;margin:1px 2px 1px 0;padding:1px 7px;border-radius:12px;font-size:.66rem;white-space:nowrap;'
           +style+'">'+icon+esc(name)+'</span>';
       };
       var kBadge=r.kichi.list.map(function(k){
@@ -5776,10 +5973,10 @@ function renderMonthlyRanking(){
             k.penalty<=-8?'color:#FCA5A5;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.45)'
                          :'color:#FBBF24;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.28)');
         }).join('');
-      if(!kBadge)kBadge='<span style="color:var(--muted);font-size:.62rem">—</span>';
+      if(!kBadge)kBadge='<span style="color:var(--muted);font-size:.66rem">—</span>';
       html+='<tr style="border-bottom:1px solid rgba(255,255,255,.06)'+(isToday?';background:rgba(201,168,76,.08)':'')+'">'
         +'<td style="padding:7px 5px;color:var(--gold);font-family:\'Cinzel\',serif">'+(i+1)+'</td>'
-        +'<td style="padding:7px 5px;white-space:nowrap">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?'<br><span style="font-size:.6rem;color:var(--gold)">★本日</span>':'')+(r.kichi.supreme?'<br><span style="font-size:.56rem;color:#EDD070">⚡最強開運日</span>':'')+'</td>'
+        +'<td style="padding:7px 5px;white-space:nowrap">'+(m+1)+'/'+r.d+'（'+r.weekday+'）'+(isToday?'<br><span style="font-size:.66rem;color:var(--gold)">★本日</span>':'')+(r.kichi.supreme?'<br><span style="font-size:.66rem;color:#EDD070">⚡最強開運日</span>':'')+'</td>'
         +'<td style="padding:7px 5px;color:'+rokC+';white-space:nowrap">'+r.rokuyo.icon+r.rokuyo.name+'</td>'
         +'<td style="padding:7px 4px;white-space:nowrap">'+r.moon.icon+r.moon.name.replace('の月','')+'</td>'
         +'<td style="padding:7px 4px;max-width:112px">'+kBadge+'</td>'
@@ -5978,15 +6175,15 @@ function renderPlayingList(){
       +'background:'+(g.sunsetting?'rgba(251,191,36,.07)':'rgba(255,255,255,.02)')+';'
       +'border:1px solid '+(g.sunsetting?'rgba(251,191,36,.28)':'rgba(255,255,255,.07)')+';border-radius:9px">'
       +'<span style="flex:1;min-width:0;font-size:.76rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(g.label)+'</span>'
-      +(g.src==='user'?'<span style="flex:none;font-size:.56rem;color:#7DD3FC;border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:1px 6px">手動</span>':'')
+      +(g.src==='user'?'<span style="flex:none;font-size:.66rem;color:#7DD3FC;border:1px solid rgba(56,189,248,.35);border-radius:8px;padding:1px 6px">手動</span>':'')
       +(g.sunsetting?'<span title="'+esc(g.reason||'App Storeで見つかりませんでした')
           +'\nストア名の変更で見つからないだけの場合もあります。自動では削除しません。" '
-          +'style="flex:none;font-size:.56rem;color:#FBBF24;border:1px solid rgba(251,191,36,.4);'
+          +'style="flex:none;font-size:.66rem;color:#FBBF24;border:1px solid rgba(251,191,36,.4);'
           +'border-radius:8px;padding:1px 6px">⚠要確認</span>':'')
       +salesRankBadge(typeof g.rank==='number'?g.rank:salesRankOf(g.value),{small:true})
       +'<button type="button" title="プレイ中から外す" onclick="removePlayingTitle('+JSON.stringify(g.value).replace(/"/g,'&quot;')+')" '
       +'style="flex:none;background:rgba(248,113,113,.10);border:1px solid rgba(248,113,113,.38);border-radius:7px;color:#F87171;'
-      +'font-size:.64rem;padding:4px 10px;cursor:pointer;white-space:nowrap">✕ 削除</button></div>';
+      +'font-size:.66rem;padding:4px 10px;cursor:pointer;white-space:nowrap">✕ 削除</button></div>';
   }).join('');
 }
 var GAMES_JSON=null;              // 読み込んだ games.json
@@ -6003,7 +6200,7 @@ function salesRankBadge(rank,opts){
   var c=rank<=10?'#EDD070':rank<=30?'#C4B5FD':rank<=100?'#7DD3FC':'#94A3B8';
   var bg=rank<=10?'rgba(201,168,76,.15)':rank<=30?'rgba(139,92,246,.12)':'rgba(56,189,248,.10)';
   return '<span title="App Store（日本）ゲームカテゴリ 売上ランキング順位" '
-    +'style="display:inline-block;font-size:'+(o.small?'.58rem':'.64rem')+';padding:1px 7px;border-radius:999px;'
+    +'style="display:inline-block;font-size:'+(o.small?'.66rem':'.66rem')+';padding:1px 7px;border-radius:999px;'
     +'white-space:nowrap;color:'+c+';background:'+bg+';border:1px solid '+c+'55'+(o.ml?';margin-left:6px':'')+'">'
     +'セルラン '+rank+'位</span>';
 }
@@ -6178,8 +6375,8 @@ function resetFortune(){
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:0 2px">
       <div style="font-family:'Cinzel',serif;font-size:1rem;letter-spacing:.2em;color:var(--gold)">✦ 占い履歴 ✦</div>
       <div style="display:flex;gap:8px">
-        <button onclick="clearHistory()" style="font-size:.65rem;padding:4px 10px;border-radius:7px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;cursor:pointer">🗑 全削除</button>
-        <button onclick="hideHistory()" style="font-size:.65rem;padding:4px 12px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--muted);cursor:pointer">✕ 閉じる</button>
+        <button onclick="clearHistory()" style="font-size:.66rem;padding:4px 10px;border-radius:7px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.25);color:#f87171;cursor:pointer">🗑 全削除</button>
+        <button onclick="hideHistory()" style="font-size:.66rem;padding:4px 12px;border-radius:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--muted);cursor:pointer">✕ 閉じる</button>
       </div>
     </div>
     <div id="hist-content"></div>
